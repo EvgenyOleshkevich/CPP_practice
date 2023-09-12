@@ -778,6 +778,7 @@ public:
 namespace leetcode {
     namespace task_1 {
 /*
+* https://leetcode.com/problems/two-sum/
 Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
 You may assume that each input would have exactly one solution, and you may not use the same element twice.
 You can return the answer in any order.
@@ -796,6 +797,7 @@ You can return the answer in any order.
 
     namespace task_2 {
 /*
+* https://leetcode.com/problems/add-two-numbers/
 You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
 You may assume the two numbers do not contain any leading zero, except the number 0 itself.
 */
@@ -844,6 +846,7 @@ You may assume the two numbers do not contain any leading zero, except the numbe
 
     namespace task_3 {
 /*
+* https://leetcode.com/problems/longest-substring-without-repeating-characters/submissions/
 Given a string s, find the length of the longest substring without repeating characters.
 */
         class Solution {
@@ -876,14 +879,10 @@ Given a string s, find the length of the longest substring without repeating cha
 
 
 int main() {
-    B* b = new B();
-    A* a = b;
+    //B* b = new B();
+    //A* a = b;
     //delete b;
-    delete a;
-    using namespace leetcode::task_3;
-    Solution k;
-    string s("abc");
-    cout << k.lengthOfLongestSubstring(s);
+    //delete a;
 #pragma region part1
     /*int* t1 = nullptr;
     int* t2 = nullptr;
