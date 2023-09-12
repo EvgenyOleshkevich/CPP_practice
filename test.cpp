@@ -775,12 +775,115 @@ public:
     }
 };
 
+namespace leetcode {
+    namespace task_1 {
+/*
+Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+You may assume that each input would have exactly one solution, and you may not use the same element twice.
+You can return the answer in any order.
+*/
+        class Solution {
+        public:
+            vector<int> twoSum(vector<int>& nums, int target) {
+                for (size_t i = 0; i < nums.size(); i++)
+                    for (size_t j = i + 1; j < nums.size(); j++)
+                        if (nums[i] + nums[j] == target)
+                            return { (int)i, (int)j };
+                return { 0, 0 };
+            }
+        };
+    }
+
+    namespace task_2 {
+/*
+You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
+You may assume the two numbers do not contain any leading zero, except the number 0 itself.
+*/
+
+        //Definition for singly - linked list.
+        struct ListNode {
+            int val;
+            ListNode* next;
+            ListNode() : val(0), next(nullptr) {}
+            ListNode(int x) : val(x), next(nullptr) {}
+            ListNode(int x, ListNode* next) : val(x), next(next) {}
+
+        };
+        class Solution {
+        public:
+            ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+                auto head = new ListNode(l1->val);
+                l1 = l1->next;
+                auto current = head;
+                while (l1) {
+                    current->next = new ListNode(l1->val);
+                    current = current->next;
+                    l1 = l1->next;
+                }
+                current = head;
+                current->val += + l2->val;
+                l2 = l2->next;
+                int add_one = current->val / 10;
+                current->val %= 10;
+                while (l2 || add_one) {
+                    if (l2) {
+                        add_one += l2->val;
+                        l2 = l2->next;
+                    }
+                    if (!current->next)
+                        current->next = new ListNode(0);
+                    current = current->next;
+                    current->val += add_one;
+                    add_one = current->val / 10;
+                    current->val %= 10;
+                }
+                return head;
+            }
+        };
+    }
+
+    namespace task_3 {
+/*
+Given a string s, find the length of the longest substring without repeating characters.
+*/
+        class Solution {
+        public:
+            int lengthOfLongestSubstring(string s) {
+                vector<int> set(256, -1);
+                int max_size = 0;
+                size_t start = 0;
+                for (size_t i = 0; i < s.size(); i++) {
+                    if (set[s[i]] >= 0) {
+                        int size = i - start;
+                        if (max_size < size)
+                            max_size = size;
+                        auto index = set[s[i]];
+                        for (size_t j = start; j < index; j++)
+                            set[s[j]] = -1;
+                        start = index + 1;
+                    }
+                    set[s[i]] = i;
+                }
+                int size = s.size() - start;
+                if (max_size < size)
+                    max_size = size;
+                return max_size;
+            }
+        };
+    }
+}
+
+
+
 int main() {
     B* b = new B();
     A* a = b;
     //delete b;
     delete a;
-
+    using namespace leetcode::task_3;
+    Solution k;
+    string s("abc");
+    cout << k.lengthOfLongestSubstring(s);
 #pragma region part1
     /*int* t1 = nullptr;
     int* t2 = nullptr;
