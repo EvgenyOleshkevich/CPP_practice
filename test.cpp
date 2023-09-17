@@ -24,9 +24,9 @@ int main() {
     //A* a = b;
     //delete b;
     //delete a;
-    using namespace leetcode::task_5;
+    using namespace leetcode::task_6;
     Solution k;
-    cout << k.longestPalindrome("hhhhhqwertyytrewqdasd");
+    cout << k.convert("a", 1);
 
 #pragma region part1
     /*int* t1 = nullptr;

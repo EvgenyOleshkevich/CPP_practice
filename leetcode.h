@@ -146,4 +146,38 @@ namespace leetcode {
             }
         };
     }
+
+    namespace task_6 {
+        /*
+        * https://leetcode.com/problems/zigzag-conversion/description/
+        */
+        class Solution {
+        public:
+            string convert(string s, int numRows) {
+                if (numRows == 1)
+                    return s;
+                auto length = s.size();
+                string res;
+                
+                for (size_t i = 0; i < length; i += (numRows - 1) * 2)
+                    res.push_back(s[i]);
+
+                for (size_t j = 1; j < numRows - 1; j++)
+                    for (size_t i = j; i < length; i += (numRows - 1) * 2)
+                    {
+                        res.push_back(s[i]);
+                        size_t index = i + (numRows - j - 1) * 2;
+                        if (index < length)
+                            res.push_back(s[index]);
+                        else
+                            break;
+                    }
+
+                for (size_t i = numRows - 1; i < length; i += (numRows - 1) * 2)
+                    res.push_back(s[i]);
+
+                return res;
+            }
+        };
+    }
 }
