@@ -24,9 +24,9 @@ int main() {
     //A* a = b;
     //delete b;
     //delete a;
-    using namespace leetcode::task_6;
+    using namespace leetcode::task_7;
     Solution k;
-    cout << k.convert("a", 1);
+    cout << k.reverse(-2147483647);
 
 #pragma region part1
     /*int* t1 = nullptr;

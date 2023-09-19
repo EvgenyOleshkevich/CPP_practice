@@ -180,4 +180,29 @@ namespace leetcode {
             }
         };
     }
+
+    namespace task_7 {
+        /*
+        * https://leetcode.com/problems/reverse-integer/description/
+        */
+        class Solution {
+        public:
+            int reverse(int x) {
+                int res = 0;
+                while (x != 0) {
+                    if (abs(x) < 10) {
+                        int add  = x % 10;
+                        if (res > 214748364 || res == 214748364 && add > 7)
+                            return 0;
+                        if (res < -214748364 || res == 214748364 && add < -8)
+                            return 0;
+                    }
+                    res *= 10;
+                    res += x % 10;
+                    x /= 10;
+                }
+                return res;
+            }
+        };
+    }
 }
