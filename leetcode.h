@@ -191,15 +191,52 @@ namespace leetcode {
                 int res = 0;
                 while (x != 0) {
                     if (abs(x) < 10) {
-                        int add  = x % 10;
+                        int add = x % 10;
                         if (res > 214748364 || res == 214748364 && add > 7)
                             return 0;
-                        if (res < -214748364 || res == 214748364 && add < -8)
+                        if (res < -214748364 || res == -214748364 && add < -8)
                             return 0;
                     }
                     res *= 10;
                     res += x % 10;
                     x /= 10;
+                }
+                return res;
+            }
+        };
+    }
+    
+
+    namespace task_8 {
+        /*
+        * https://leetcode.com/problems/string-to-integer-atoi/
+        */
+        class Solution {
+        public:
+            int myAtoi(string s) {
+                int sign = 1;
+                int res = 0;
+                for (size_t i = 0; i < s.length(); i++)
+                {
+                    if (s[i] == ' ')
+                        continue;
+                    if (s[i] == '-' || s[i] == '+' || (s[i] >= '0' && s[i] <= '9')) {
+                        if (s[i] == '-')
+                            sign = -1;
+                        if (s[i] == '-' || s[i] == '+')
+                            ++i;
+                        
+                        for (size_t j = i; j < s.length() && s[j] >= '0' && s[j] <= '9'; j++) {
+                            int add = (s[j] - '0') * sign;
+                            if (res > 214748364 || res == 214748364 && add > 7)
+                                return 2147483647;
+                            if (res < -214748364 || res == -214748364 && add < -8)
+                                return -214748364;
+                            res = res * 10 + add;
+                        }
+                        break;
+                    }
+                    return 0;
                 }
                 return res;
             }
