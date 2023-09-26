@@ -24,10 +24,11 @@ int main() {
     //A* a = b;
     //delete b;
     //delete a;
-    using namespace leetcode::task_8;
+    using namespace leetcode::task_11;
     Solution k;
     //cout << (int)'0' << " " << (int)'1' << " " << (int)'9' << " ";
-    cout << k.myAtoi("-2147483649");
+    vector<int> v = { 1,8,6,2,5,4,8,3,7 };
+    cout << k.maxArea(v);
 
 #pragma region part1
     /*int* t1 = nullptr;

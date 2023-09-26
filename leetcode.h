@@ -206,7 +206,6 @@ namespace leetcode {
         };
     }
     
-
     namespace task_8 {
         /*
         * https://leetcode.com/problems/string-to-integer-atoi/
@@ -239,6 +238,76 @@ namespace leetcode {
                     return 0;
                 }
                 return res;
+            }
+        };
+    }
+
+    namespace task_9 {
+        /*
+        * https://leetcode.com/problems/palindrome-number/
+        */
+        class Solution {
+        public:
+            bool isPalindrome(int x) {
+                if (x < 0)
+                    return false;
+                int digit = 1;
+                while (x / digit > 9)
+                    digit *= 10;
+                int left = 0;
+                int right = 0;
+                while (x)
+                {
+                    left = left * 10 + x / digit;
+                    right = right * 10 + x % 10;;
+                    if (left != right)
+                        return false;
+                    x %= digit;
+                    x /= 10;
+                    digit /= 100;
+                }
+                return left == right;
+            }
+        };
+    }
+
+    namespace task_11 {
+        /*
+        * https://leetcode.com/problems/container-with-most-water/description/
+        */
+        class Solution_slow {
+        public:
+            int maxArea(vector<int>& height) {
+                int max_area = 0;
+                int max_j = height.size() - 1;
+                for (size_t i = 0; i < max_j; i++)
+                    if (height[i] * (max_j - i) > max_area)
+                        for (size_t j = i + 1; j < height.size(); j++)
+                        {
+                            int area = min(height[i], height[j]) * (j - i);
+                            if (max_area < area)
+                                max_area = area;
+                        }
+                return max_area;
+            }
+        };
+
+        class Solution {
+        public:
+            int maxArea(vector<int>& height) {
+                int max_area = 0;
+                int left = 0;
+                int right = height.size() - 1;
+                while (left != right) {
+                    int area = min(height[left], height[right]) * (right - left);
+                    if (max_area < area)
+                        max_area = area;
+                    if (height[left] < height[right])
+                        ++left;
+                    else
+                        --right;
+                }
+                return max_area;
             }
         };
     }
