@@ -24,11 +24,11 @@ int main() {
     //A* a = b;
     //delete b;
     //delete a;
-    using namespace leetcode::task_11;
+    using namespace leetcode::task_12;
     Solution k;
     //cout << (int)'0' << " " << (int)'1' << " " << (int)'9' << " ";
-    vector<int> v = { 1,8,6,2,5,4,8,3,7 };
-    cout << k.maxArea(v);
+    //vector<int> v = { 1,8,6,2,5,4,8,3,7 };
+    cout << k.intToRoman(3999);
 
 #pragma region part1
     /*int* t1 = nullptr;

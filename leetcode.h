@@ -311,4 +311,66 @@ namespace leetcode {
             }
         };
     }
+
+    namespace task_12 {
+        /*
+        * https://leetcode.com/problems/integer-to-roman/
+        */
+        class Solution {
+        public:
+            string intToRoman(int num) {
+                string res;
+                int n = num / 1000;
+                num %= 1000;
+                for (size_t i = 0; i < n; i++)
+                    res += "M";
+
+                n = num / 100;
+                num %= 100;
+                if (n == 9)
+                    res += "CM";
+                else if (n == 4)
+                    res += "CD";
+                else {
+                    if (n > 4) {
+                        res += "D";
+                        n -= 5;
+                    }
+                    for (size_t i = 0; i < n; i++)
+                        res += "C";
+                }
+
+                n = num / 10;
+                num %= 10;
+                if (n == 9)
+                    res += "XC";
+                else if (n == 4)
+                    res += "XL";
+                else {
+                    if (n > 4) {
+                        res += "L";
+                        n -= 5;
+                    }
+                    for (size_t i = 0; i < n; i++)
+                        res += "C";
+                }
+
+                n = num;
+                if (n == 9)
+                    res += "IX";
+                else if (n == 4)
+                    res += "IV";
+                else {
+                    if (n > 4) {
+                        res += "V";
+                        n -= 5;
+                    }
+                    for (size_t i = 0; i < n; i++)
+                        res += "I";
+                }
+
+                return res;
+            }
+        };
+    }
 }
