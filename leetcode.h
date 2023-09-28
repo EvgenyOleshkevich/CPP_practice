@@ -352,7 +352,7 @@ namespace leetcode {
                         n -= 5;
                     }
                     for (size_t i = 0; i < n; i++)
-                        res += "C";
+                        res += "X";
                 }
 
                 n = num;
@@ -370,6 +370,66 @@ namespace leetcode {
                 }
 
                 return res;
+            }
+        };
+    }
+
+    namespace task_13 {
+        /*
+        * https://leetcode.com/problems/roman-to-integer/description/
+        */
+        class Solution {
+        public:
+            int romanToInt(string s) {
+                int n = 0;
+                for (int i = s.size() - 1; i >= 0; --i) {
+                    if (s[i] == 'I')
+                        n += 1;
+                    if (s[i] == 'V')
+                        if (i > 0 && s[i - 1] == 'I') {
+                            --i;
+                            n += 4;
+                        }
+                        else
+                            n += 5;
+                    if (s[i] == 'X')
+                        if (i > 0 && s[i - 1] == 'I') {
+                            --i;
+                            n += 9;
+                        }
+                        else
+                            n += 10;
+                    if (s[i] == 'L')
+                        if (i > 0 && s[i - 1] == 'X') {
+                            --i;
+                            n += 40;
+                        }
+                        else
+                        n += 50;
+                    if (s[i] == 'C')
+                        if (i > 0 && s[i - 1] == 'X') {
+                            --i;
+                            n += 90;
+                        }
+                        else
+                        n += 100;
+                    if (s[i] == 'D')
+                        if (i > 0 && s[i - 1] == 'C') {
+                            --i;
+                            n += 400;
+                        }
+                        else
+                        n += 500;
+                    if (s[i] == 'M')
+                        if (i > 0 && s[i - 1] == 'C') {
+                            --i;
+                            n += 900;
+                        }
+                        else
+                        n += 1000;
+                }
+
+                return n;
             }
         };
     }

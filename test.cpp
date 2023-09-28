@@ -1,6 +1,3 @@
-// test.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <cstddef>
 #include <cstring>
@@ -19,16 +16,31 @@
 #include "some_test_code.h"
 using namespace std;
 
+
+
 int main() {
+    /*
+    auto t1 = test::get_test(1); // constructor + move constructor
+    auto t2 = test::send_value_test(t1, 2); // copy constructor + move constructor
+    auto t3 = test::send_value_test(test::Test(), 3); // constructor + move constructor + move constructor
+    test::send_value_test(test::Test(), 4); // constructor + move constructor + destructor with value
+
+    test::send_const_test(t1, 5); // no constructor
+    test::send_const_test(test::Test(), 6); // constructor + move constructor + destructor with value
+
+    test::send_ref_test(t1, 7); // no constructor
+    // test::send_ref_test(test::Test(), 8); // compile error
+    */
+
     //B* b = new B();
     //A* a = b;
     //delete b;
     //delete a;
-    using namespace leetcode::task_12;
+    using namespace leetcode::task_13;
     Solution k;
     //cout << (int)'0' << " " << (int)'1' << " " << (int)'9' << " ";
     //vector<int> v = { 1,8,6,2,5,4,8,3,7 };
-    cout << k.intToRoman(3999);
+    cout << k.romanToInt("MCMXCIV");
 
 #pragma region part1
     /*int* t1 = nullptr;
