@@ -19,29 +19,32 @@ using namespace std;
 
 
 int main() {
-    /*
-    auto t1 = test::get_test(1); // constructor + move constructor
-    auto t2 = test::send_value_test(t1, 2); // copy constructor + move constructor
-    auto t3 = test::send_value_test(test::Test(), 3); // constructor + move constructor + move constructor
-    test::send_value_test(test::Test(), 4); // constructor + move constructor + destructor with value
+#pragma region some_test
+    bool test = false;
+    if (test) {
+        auto t1 = test::get_test(1); // constructor + move constructor
+        auto t2 = test::send_value_test(t1, 2); // copy constructor + move constructor
+        auto t3 = test::send_value_test(test::Test(), 3); // constructor + move constructor + move constructor
+        test::send_value_test(test::Test(), 4); // constructor + move constructor + destructor with value
 
-    test::send_const_test(t1, 5); // no constructor
-    test::send_const_test(test::Test(), 6); // constructor + move constructor + destructor with value
+        test::send_const_test(t1, 5); // no constructor
+        test::send_const_test(test::Test(), 6); // constructor + move constructor + destructor with value
 
-    test::send_ref_test(t1, 7); // no constructor
-    // test::send_ref_test(test::Test(), 8); // compile error
-    */
+        test::send_ref_test(t1, 7); // no constructor
+        //test::send_ref_test(test::Test(), 8); // compile error
 
-    //B* b = new B();
-    //A* a = b;
-    //delete b;
-    //delete a;
-    using namespace leetcode::task_13;
+
+        //B* b = new B();
+        //A* a = b;
+        //delete b;
+        //delete a;
+    }
+#pragma endregion
+    using namespace leetcode::task_16;
     Solution k;
-    //cout << (int)'0' << " " << (int)'1' << " " << (int)'9' << " ";
-    //vector<int> v = { 1,8,6,2,5,4,8,3,7 };
-    cout << k.romanToInt("MCMXCIV");
-
+    vector<int> v = { 4,0,5,-5,3,3,0,-4,-5 };
+    cout << k.threeSumClosest(v, -2);
+    int y = 0;
 #pragma region part1
     /*int* t1 = nullptr;
     int* t2 = nullptr;

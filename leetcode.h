@@ -12,6 +12,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include <functional>
+#include <algorithm>
 using namespace std;
 
 namespace leetcode {
@@ -430,6 +431,247 @@ namespace leetcode {
                 }
 
                 return n;
+            }
+        };
+    }
+
+    namespace task_14 {
+        /*
+        * https://leetcode.com/problems/longest-common-prefix/
+        */
+        class Solution {
+        public:
+            string longestCommonPrefix(vector<string>& strs) {
+                string res;
+                for (size_t i = 0; i < strs[0].size(); i++)
+                {
+                    char c = strs[0][i];
+                    bool common = true;
+                    for (size_t j = 1; j < strs.size(); j++)
+                        if (i == strs[j].size() || strs[j][i] != c) {
+                            common = false;
+                            break;
+                        }
+                    if (common)
+                        res += c;
+                    else
+                        break;
+                }
+
+                return res;
+            }
+        };
+    }
+
+    namespace task_15 {
+        /*
+        * https://leetcode.com/problems/3sum/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> threeSum_fast(vector<int>& nums) {
+                // Step 1: Sort the input vector in ascending order.
+                sort(nums.begin(), nums.end());
+
+                // Step 2: Create a vector to store the resulting triplets.
+                vector<vector<int>> ans;
+
+                // Step 3: Loop through the input vector.
+                for (int i = 0; i < nums.size(); i++) {
+                    // Step 4: Find the target value to make the sum zero.
+                    int target = -(nums[i]);
+
+                    // Step 5: Initialize two pointers, j and k, to search for the other two elements.
+                    int j = i + 1;
+                    int k = nums.size() - 1;
+
+                    // Step 6: Perform a two-pointer search to find the other two elements.
+                    while (j < k) {
+                        // Step 7: If a triplet is found, add it to the result vector.
+                        if (nums[j] + nums[k] == target) {
+                            ans.push_back({ nums[i], nums[j], nums[k] });
+
+                            // Skip duplicate elements for pointers j and k.
+                            while (j < k && nums[j] == nums[j + 1]) j++;
+                            while (j < k && nums[k] == nums[k - 1]) k--;
+
+                            // Move the pointers to new positions.
+                            j++;
+                            k--;
+                        }
+                        // Step 8: If the sum is greater than the target, decrement k to reduce the sum.
+                        else if (nums[j] + nums[k] > target) {
+                            k--;
+                        }
+                        // Step 9: If the sum is smaller than the target, increment j to increase the sum.
+                        else {
+                            j++;
+                        }
+                    }
+
+                    // Step 10: Skip duplicate elements for pointer i.
+                    while (i + 1 < nums.size() && nums[i + 1] == nums[i]) {
+                        i++;
+                    }
+                }
+
+                // Step 11: Return the resulting vector of triplets.
+                return ans;
+            }
+
+            vector<vector<int>> threeSum(vector<int>& nums) {
+                vector<vector<int>> res;
+                size_t size = nums.size();
+                heap_sort(nums);
+
+                for (size_t i = 0; i < size - 2; i++) {
+                    if (i > 0 && nums[i] == nums[i - 1])
+                        continue;
+                    if (nums[i] + nums[size - 2] + nums[size - 1] < 0)
+                        continue;
+                    if (nums[i] + nums[i + 1] + nums[i + 2] > 0)
+                        break;
+                    for (size_t j = i + 1; j < size - 1; j++) {
+                        if (j > i + 1 && nums[j] == nums[j - 1])
+                            continue;
+                        if (nums[i] + nums[j] + nums[size - 1] < 0)
+                            continue;
+                        if (nums[i] + nums[j] + nums[j + 1] > 0)
+                            break;
+
+                        size_t k = bin_search(nums, -nums[i] - nums[j], j, size);
+                        if (k != 0)
+                            res.push_back({ nums[i], nums[j], nums[k] });
+                    }
+                }
+                return res;
+            }
+
+            void heap_sort(std::vector<int>& arr)
+            {
+                build_max_heap(arr);
+                int sz = arr.size();
+                for (int i = arr.size() - 1; i > 0; i--)
+                {
+                    std::swap(arr[0], arr[i]);
+                    sz--;
+                    max_heapify(arr, 0, sz);
+                }
+            }
+
+            void build_max_heap(std::vector<int>& arr)
+            {
+                for (int i = (arr.size() / 2); i >= 0; i--)
+                    max_heapify(arr, i, arr.size());
+            }
+
+            void max_heapify(std::vector<int>& arr, int i, int size_)
+            {
+                int largest, l = (2 * i) + 1, r = l + 1;
+
+                if (l < size_ && arr[l] > arr[i])
+                    largest = l;
+                else
+                    largest = i;
+
+                if (r < size_ && arr[r] > arr[largest])
+                    largest = r;
+
+                if (largest != i)
+                {
+                    std::swap(arr[i], arr[largest]);
+                    max_heapify(arr, largest, size_);
+                }
+            }
+
+            size_t bin_search(vector<int>& nums, int value, size_t l, size_t r) {
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == value)
+                        return i;
+                    if (nums[i] > value)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return 0;
+            }
+        };
+    }
+
+    namespace task_16 {
+        /*
+        * https://leetcode.com/problems/3sum/description/
+        */
+        class Solution {
+        public:
+            int threeSumClosest(vector<int>& nums, int target) {
+                heap_sort(nums);
+                int sum = nums[0] + nums[1] + nums[2];
+                int dif = abs(target - sum);
+                const size_t size = nums.size();
+                
+                for (size_t i = 0; i < size - 2; i++) {
+                    if (i > 0 && nums[i] == nums[i - 1])
+                        continue;
+                    int step_target = target - nums[i];
+
+                    int j = i + 1;
+                    int k = size - 1;
+
+                    while (j < k) {
+                        int step_dif = step_target - (nums[j] + nums[k]);
+                        if (step_dif == 0)
+                            return target;
+                        if (dif > abs(step_dif)) {
+                            dif = abs(step_dif);
+                            sum = nums[i] + nums[j] + nums[k];
+                        }
+
+                        if (step_dif < 0)
+                            k--;
+                        else
+                            j++;
+                    }
+                }
+                return sum;
+            }
+
+            void heap_sort(std::vector<int>& arr)
+            {
+                build_max_heap(arr);
+                int sz = arr.size();
+                for (int i = arr.size() - 1; i > 0; i--)
+                {
+                    std::swap(arr[0], arr[i]);
+                    sz--;
+                    max_heapify(arr, 0, sz);
+                }
+            }
+
+            void build_max_heap(std::vector<int>& arr)
+            {
+                for (int i = (arr.size() / 2); i >= 0; i--)
+                    max_heapify(arr, i, arr.size());
+            }
+
+            void max_heapify(std::vector<int>& arr, int i, int size_)
+            {
+                int largest, l = (2 * i) + 1, r = l + 1;
+
+                if (l < size_ && arr[l] > arr[i])
+                    largest = l;
+                else
+                    largest = i;
+
+                if (r < size_ && arr[r] > arr[largest])
+                    largest = r;
+
+                if (largest != i)
+                {
+                    std::swap(arr[i], arr[largest]);
+                    max_heapify(arr, largest, size_);
+                }
             }
         };
     }
