@@ -601,7 +601,7 @@ namespace leetcode {
 
     namespace task_16 {
         /*
-        * https://leetcode.com/problems/3sum/description/
+        * https://leetcode.com/problems/3sum-closest/description/
         */
         class Solution {
         public:
@@ -672,6 +672,116 @@ namespace leetcode {
                     std::swap(arr[i], arr[largest]);
                     max_heapify(arr, largest, size_);
                 }
+            }
+        };
+    }
+
+    namespace task_17 {
+        /*
+        * https://leetcode.com/problems/letter-combinations-of-a-phone-number/
+        */
+        class Solution {
+        public:
+            vector<string> letterCombinations(string digits) {
+                if (digits.size() == 0)
+                    return vector<string>();
+                vector<string> res = init(digits);
+                string letters(4, 'a');
+                size_t letters_size = 3;
+                size_t repeat = 1;
+                size_t size = res.size();
+
+                for (size_t i = 0; i < digits.size(); i++) {
+                    switch (digits[i])
+                    {
+                    case '2': {
+                        letters[0] = 'a';
+                        letters[1] = 'b';
+                        letters[2] = 'c';
+                        letters_size = 3;
+                        break;
+                    }
+                    case '3': {
+                        letters[0] = 'd';
+                        letters[1] = 'e';
+                        letters[2] = 'f';
+                        letters_size = 3;
+                        break;
+                    }
+                    case '4': {
+                        letters[0] = 'g';
+                        letters[1] = 'h';
+                        letters[2] = 'i';
+                        letters_size = 3;
+                        break;
+                    }
+                    case '5': {
+                        letters[0] = 'j';
+                        letters[1] = 'k';
+                        letters[2] = 'l';
+                        letters_size = 3;
+                        break;
+                    }
+                    case '6': {
+                        letters[0] = 'm';
+                        letters[1] = 'n';
+                        letters[2] = 'o';
+                        letters_size = 3;
+                        break;
+                    }
+                    case '7': {
+                        letters[0] = 'p';
+                        letters[1] = 'q';
+                        letters[2] = 'r';
+                        letters[3] = 's';
+                        letters_size = 4;
+                        break;
+                    }
+                    case '8': {
+                        letters[0] = 't';
+                        letters[1] = 'u';
+                        letters[2] = 'v';
+                        letters_size = 3;
+                        break;
+                    }
+                    case '9': {
+                        letters[0] = 'w';
+                        letters[1] = 'x';
+                        letters[2] = 'y';
+                        letters[3] = 'z';
+                        letters_size = 4;
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+
+                    size_t res_i = 0;
+                    while (res_i < size)
+                        for (size_t j = 0; j < letters_size; j++)
+                            for (size_t k = 0; k < repeat; k++)
+                            {
+                                res[res_i][i] = letters[j];
+                                ++res_i;
+                            }
+
+                    repeat *= letters_size;
+                }
+                   
+
+                return res;
+            }
+
+            vector<string> init(string& digits) {
+                
+                size_t size_str = digits.size();
+                size_t size = 1;
+                for (const char c : digits)
+                    if (c == '7' || c == '9')
+                        size *= 4;
+                    else
+                        size *= 3;
+                return vector<string>(size, string(size_str, 'a'));
             }
         };
     }
