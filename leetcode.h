@@ -787,6 +787,88 @@ namespace leetcode {
         };
     }
 
+    namespace task_18 {
+        /*
+        * https://leetcode.com/problems/4sum/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> fourSum(vector<int>& nums, int target) {
+                if (nums.size() < 4)
+                    return vector<vector<int>>();
+                heap_sort(nums);
+                vector<vector<int>> res;
+                for (size_t q = 0; q < nums.size() - 3; q++) {
+                    if (q > 0 && nums[q] == nums[q - 1])
+                        continue;
+                    for (size_t i = q + 1; i < nums.size() - 2; i++) {
+                        if (i > q + 1 && nums[i] == nums[i - 1])
+                            continue;
+                        long long step_target = (long long)target - nums[q] - nums[i];
+                        int j = i + 1;
+                        int k = nums.size() - 1;
+
+                        while (j < k) {
+                            if (nums[j] + nums[k] == step_target) {
+                                res.push_back({ nums[q], nums[i], nums[j], nums[k] });
+
+                                while (j < k && nums[j] == nums[j + 1]) j++;
+                                while (j < k && nums[k] == nums[k - 1]) k--;
+
+                                j++;
+                                k--;
+                            }
+                            else if (nums[j] + nums[k] > step_target) {
+                                k--;
+                            }
+                            else {
+                                j++;
+                            }
+                        }
+                    }
+                }
+                return res;
+            }
+
+            void heap_sort(std::vector<int>& arr)
+            {
+                build_max_heap(arr);
+                int sz = arr.size();
+                for (int i = arr.size() - 1; i > 0; i--)
+                {
+                    std::swap(arr[0], arr[i]);
+                    sz--;
+                    max_heapify(arr, 0, sz);
+                }
+            }
+
+            void build_max_heap(std::vector<int>& arr)
+            {
+                for (int i = (arr.size() / 2); i >= 0; i--)
+                    max_heapify(arr, i, arr.size());
+            }
+
+            void max_heapify(std::vector<int>& arr, int i, int size_)
+            {
+                int largest, l = (2 * i) + 1, r = l + 1;
+
+                if (l < size_ && arr[l] > arr[i])
+                    largest = l;
+                else
+                    largest = i;
+
+                if (r < size_ && arr[r] > arr[largest])
+                    largest = r;
+
+                if (largest != i)
+                {
+                    std::swap(arr[i], arr[largest]);
+                    max_heapify(arr, largest, size_);
+                }
+            }
+        };
+    }
+
     namespace task_19 {
         /*
         * https://leetcode.com/problems/remove-nth-node-from-end-of-list/
