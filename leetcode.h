@@ -8,6 +8,7 @@
 #include <tuple>
 #include <list>
 #include <vector>
+#include <stack>
 #include <map>
 #include <typeinfo>
 #include <typeindex>
@@ -782,6 +783,373 @@ namespace leetcode {
                     else
                         size *= 3;
                 return vector<string>(size, string(size_str, 'a'));
+            }
+        };
+    }
+
+    namespace task_19 {
+        /*
+        * https://leetcode.com/problems/remove-nth-node-from-end-of-list/
+        */
+
+        struct ListNode {
+            int val;
+            ListNode* next;
+            ListNode() : val(0), next(nullptr) {}
+            ListNode(int x) : val(x), next(nullptr) {}
+            ListNode(int x, ListNode* next) : val(x), next(next) {}
+        };
+
+
+        class Solution {
+        public:
+            ListNode* removeNthFromEnd(ListNode* head, int n) {
+                size_t size = 0;
+                auto ptr = head;
+                while (ptr)
+                {
+                    ++size;
+                    ptr = ptr->next;
+                }
+                if (n == size)
+                    return head->next;
+                n = size + 1 - n;
+                ptr = head;
+                for (size_t i = 2; i < n; ++i)
+                    ptr = ptr->next;
+                auto tmp = ptr->next->next;
+                delete ptr->next;
+                ptr->next = tmp;
+
+                return head;
+            }
+        };
+    }
+
+    namespace task_20 {
+        /*
+        * https://leetcode.com/problems/valid-parentheses/description/
+        */
+        class Solution {
+        public:
+            bool isValid(string s) {
+                stack<char> st;
+                for (const char c : s) {
+                    if (c == '(' || c == '{' || c == '[') {
+                        st.push(c);
+                        continue;
+                    }
+                    char top = 'c';
+                    if (st.empty())
+                        return false;
+                    else
+                        top = st.top();
+                    st.pop();
+
+                    if (top == '(' && c == ')' || top == '{' && c == '}' || top == '[' && c == ']')
+                        continue;
+                    return false;
+                }
+                return st.empty();
+            }
+        };
+    }
+
+    namespace task_21 {
+        /*
+        * https://leetcode.com/problems/merge-two-sorted-lists/
+        */
+        struct ListNode {
+            int val;
+            ListNode* next;
+            ListNode() : val(0), next(nullptr) {}
+            ListNode(int x) : val(x), next(nullptr) {}
+            ListNode(int x, ListNode* next) : val(x), next(next) {}
+
+        };
+
+        class Solution {
+        public:
+            ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+                auto head = new ListNode();
+                auto res = head;
+
+                while (list1 && list2)
+                {
+                    if (list1->val < list2->val) {
+                        res->next = list1;
+                        list1 = list1->next;
+                    }
+                    else {
+                        res->next = list2;
+                        list2 = list2->next;
+                    }
+                    res = res->next;
+                }
+
+                if (list1)
+                    res->next = list1;
+                else
+                    res->next = list2;
+
+                res = head->next;
+                delete head;
+                return res;
+            }
+        };
+    }
+
+    namespace task_22 {
+        /*
+        * https://leetcode.com/problems/generate-parentheses/description/
+        */
+        class Solution {
+        public:
+            vector<string> generateParenthesis(int n) {
+                vector<string> res({ "(" });
+                generateParenthesis(res, 0, n - 1, n);
+                return res;
+            }
+
+            void generateParenthesis(vector<string>& res, size_t i, size_t open, size_t close) {
+                if (close == 0)
+                    return;
+                if (open != 0) {
+                    if (open == close) {
+                        res[i].push_back('(');
+                        generateParenthesis(res, i, open - 1, close);;
+                    }
+                    else {
+                        res.push_back(res[i] + '(');
+                        generateParenthesis(res, res.size() - 1, open - 1, close);
+                    }
+                }
+                if (close > open) {
+                    res[i].push_back(')');
+                    generateParenthesis(res, i, open, close - 1);;
+                }
+            }
+        };
+    }
+
+    namespace task_23 {
+        /*
+        * https://leetcode.com/problems/merge-k-sorted-lists/description/
+        */
+        struct ListNode {
+            int val;
+            ListNode* next;
+            ListNode() : val(0), next(nullptr) {}
+            ListNode(int x) : val(x), next(nullptr) {}
+            ListNode(int x, ListNode* next) : val(x), next(next) {}
+
+        };
+
+        class Solution {
+        public:
+            ListNode* mergeKLists(vector<ListNode*>& lists) {
+                for (int i = 0; i < lists.size(); i++)
+                    if (lists[i] == nullptr) {
+                        lists.erase(lists.begin() + i);
+                        --i;
+                    }
+                if (lists.size() == 0)
+                    return nullptr;
+
+                auto head = new ListNode();
+                auto res = head;
+
+                while (lists.size())
+                {
+                    size_t min_index = 0;
+                    int min = lists[0]->val;
+                    for (size_t i = 1; i < lists.size(); i++)
+                        if (min < lists[i]->val) {
+                            min = lists[i]->val;
+                            min_index = i;
+                        }
+
+                    res->next = lists[min_index];
+                    lists[min_index] = lists[min_index]->next;
+                    if (!lists[min_index]) 
+                        lists.erase(lists.begin() + min_index);
+                       
+                    res = res->next;
+                }
+
+                res = head->next;
+                delete head;
+                return res;
+            }
+        };
+    }
+
+    namespace task_24 {
+        /*
+        * https://leetcode.com/problems/swap-nodes-in-pairs/description/
+        */
+        struct ListNode {
+            int val;
+            ListNode* next;
+            ListNode() : val(0), next(nullptr) {}
+            ListNode(int x) : val(x), next(nullptr) {}
+            ListNode(int x, ListNode* next) : val(x), next(next) {}
+
+        };
+
+        class Solution {
+        public:
+            ListNode* swapPairs(ListNode* head) {
+                if (!head || !head->next)
+                    return head;
+                auto newHead = head->next;
+                head->next = newHead->next;
+                newHead->next = head;
+
+                auto cur = head;
+                while (cur->next && cur->next->next) {
+                    auto next = cur->next;
+                    cur->next = next->next;
+                    next->next = cur->next->next;
+                    cur->next->next = next;
+                    cur = next;
+                }
+                return newHead;
+            }
+        };
+    }
+
+    namespace task_1721 {
+        /*
+        * https://leetcode.com/problems/swapping-nodes-in-a-linked-list/description/
+        */
+        struct ListNode {
+            int val;
+            ListNode* next;
+            ListNode() : val(0), next(nullptr) {}
+            ListNode(int x) : val(x), next(nullptr) {}
+            ListNode(int x, ListNode* next) : val(x), next(next) {}
+
+        };
+
+        class Solution {
+        public:
+            ListNode* swapNodes(ListNode* head, int k) {
+                size_t size = 0;
+                auto ptr_k = head;
+                while (ptr_k)
+                {
+                    ++size;
+                    ptr_k = ptr_k->next;
+                }
+                int j = size + 1 - k;
+                if (k == j)
+                    return head;
+                if (k > j)
+                    swap(k, j);
+                
+                ptr_k = head;
+                for (size_t i = 2; i < k; ++i)
+                    ptr_k = ptr_k->next;
+
+                auto ptr_j = head;
+                for (size_t i = 2; i < j; ++i)
+                    ptr_j = ptr_j->next;
+
+                if (k == 1) {
+                    if (size == 2) {
+                        head = ptr_j->next;
+                        head->next = ptr_k;
+                        ptr_k->next = nullptr;
+                        return head;
+                    }
+                    head = ptr_j->next;
+                    head->next = ptr_k->next;
+                    ptr_k->next = nullptr;
+                    ptr_j->next = ptr_k;
+                    return head;
+                }
+
+                if (k + 1 == j) {
+                    ptr_k->next = ptr_j->next;
+                    ptr_j->next = ptr_k->next->next;
+                    ptr_k->next->next = ptr_j;
+                }
+                else {
+                    swap(ptr_k->next->next, ptr_j->next->next);
+                    swap(ptr_k->next, ptr_j->next);
+                }
+                return head;
+            }
+        };
+    }
+
+    namespace task_2116 {
+        /*
+        * https://leetcode.com/problems/check-if-a-parentheses-string-can-be-valid/description/
+        */
+        class Solution {
+        public:
+            bool canBeValid(string s, string locked) {
+                if (s.size() % 2 == 1)
+                    return false;
+                int count = 0;
+                int count_flex = 0;
+                for (size_t i = 0; i < s.size(); ++i) {
+                    if (s[i] == '(' || locked[i] == '0')
+                        ++count;
+                    else
+                        --count;
+                    if (locked[i] == '0')
+                        ++count_flex;
+
+                    if (count < 0)
+                        return false;
+                }
+                count = 0;
+                count_flex = 0;
+                for (int i = s.size() - 1; i >= 0; --i) {
+                    if (s[i] == ')' || locked[i] == '0')
+                        ++count;
+                    else
+                        --count;
+                    if (locked[i] == '0')
+                        ++count_flex;
+
+                    if (count < 0)
+                        return false;
+                }
+                return true;
+            }
+
+            bool old(string s, string locked) {
+                int open_flex = 0;
+                int open_locked = 0;
+                int close_flex = 0;
+                for (size_t i = 0; i < s.size(); i++) {
+                    if (s[i] == '(' && locked[i] == '0')
+                        ++open_flex;
+                    else if (s[i] == '(' && locked[i] == '1')
+                        ++open_locked;
+                    else if (s[i] == ')' && locked[i] == '0')
+                        ++close_flex;
+                    else {
+                        if (open_locked > 0)
+                            --open_locked;
+                        else
+                            --open_flex;
+                    }
+
+                    int diff = open_flex + open_locked - close_flex;
+                    if (diff == -1) {
+                        --close_flex;
+                        ++open_locked;
+                        if (close_flex == -1)
+                            return false;
+                    }
+                }
+                int diff = open_flex + open_locked - close_flex;
+                return diff <= open_flex * 2;
             }
         };
     }

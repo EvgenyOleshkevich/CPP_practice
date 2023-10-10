@@ -40,11 +40,11 @@ int main() {
         //delete a;
     }
 #pragma endregion
-    using namespace leetcode::task_17;
+    using namespace leetcode::task_2116;
     Solution k;
     
-    //cout << k.threeSumClosest(v, -2);
-    auto o = k.letterCombinations("23");
+    cout << k.canBeValid("))()))", "010100");
+    auto o = k.canBeValid("()", "00");
     int y = 0;
 #pragma region part1
     /*int* t1 = nullptr;
