@@ -10,6 +10,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <unordered_map>
 #include <typeinfo>
 #include <typeindex>
 #include <functional>
@@ -17,6 +18,51 @@
 using namespace std;
 
 namespace leetcode {
+    struct ListNode {
+        int val;
+        ListNode* next;
+        ListNode() : val(0), next(nullptr) {}
+        ListNode(int x) : val(x), next(nullptr) {}
+        ListNode(int x, ListNode* next) : val(x), next(next) {}
+    };
+
+    namespace utils {
+        ListNode* vector2list(const vector<int>& v) {
+            auto head = new ListNode();
+            auto ptr = head;
+            for (const int val : v) {
+                ptr->next = new ListNode(val);
+                ptr = ptr->next;
+            }
+            ptr = head->next;
+            delete head;
+            return ptr;
+        }
+
+        vector<int> list2vector(ListNode* head) {
+            vector<int> vec;
+            while (head) {
+                vec.push_back(head->val);
+                head = head->next;
+            }
+            return vec;
+        }
+
+        ostream& operator<<(ostream& os, const vector<int>& v) {
+            for (const int val : v)
+                os << val << " ";
+            return os;
+        }
+
+        ostream& operator<<(ostream& os, ListNode* head) {
+            while (head) {
+                os << head->val << " ";
+                head = head->next;
+            }
+            return os;
+        }
+    }
+
     namespace task_1 {
         /*
         * https://leetcode.com/problems/two-sum/
@@ -37,16 +83,6 @@ namespace leetcode {
         /*
         * https://leetcode.com/problems/add-two-numbers/
         */
-
-        //Definition for singly - linked list.
-        struct ListNode {
-            int val;
-            ListNode* next;
-            ListNode() : val(0), next(nullptr) {}
-            ListNode(int x) : val(x), next(nullptr) {}
-            ListNode(int x, ListNode* next) : val(x), next(next) {}
-
-        };
         class Solution {
         public:
             ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
@@ -106,6 +142,68 @@ namespace leetcode {
                 if (max_size < size)
                     max_size = size;
                 return max_size;
+            }
+        };
+    }
+
+    namespace task_4 {
+        /*
+        * https://leetcode.com/problems/median-of-two-sorted-arrays/
+        */
+        class Solution {
+        public:
+            double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
+                int n = nums1.size();
+                int m = nums2.size();
+                bool odd = (n + m) & 1;
+                int i1 = n >> 1;
+                int i2 = m >> 1;
+                if (n == 0)
+                    return odd ? nums2[i2] : (nums2[i2] + nums2[i2 - 1]) / 2.0;
+                if (m == 0)
+                    return odd ? nums1[i1] : (nums1[i1] + nums1[i1 - 1]) / 2.0;
+
+
+                int l1 = 0;
+                int r1 = n;
+                int l2 = 0;
+                int r2 = m;
+                int target = (m + n) >> 1;
+                i1 = 0;
+
+                while (i1 + i2 != target) {
+                    i1 = (l1 + r1) >> 1;
+                    i2 = (l2 + r2) >> 1;
+                    if (nums1[i1] > nums2[i2]) {
+                        if (i1 + i2 > target)
+                            r1 = i1 + 1;
+                        else
+                            l2 = i2;
+                    }
+                    else {
+                        if (i1 + i2 > target)
+                            r2 = i2 + 1;
+                        else
+                            l1 = i1;
+                    }
+
+                }
+
+
+                return 0;
+            }
+
+            int bin_search(vector<int>& nums, int value, int l, int r) {
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == value)
+                        return i;
+                    if (nums[i] > value)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return l;
             }
         };
     }
@@ -873,16 +971,6 @@ namespace leetcode {
         /*
         * https://leetcode.com/problems/remove-nth-node-from-end-of-list/
         */
-
-        struct ListNode {
-            int val;
-            ListNode* next;
-            ListNode() : val(0), next(nullptr) {}
-            ListNode(int x) : val(x), next(nullptr) {}
-            ListNode(int x, ListNode* next) : val(x), next(next) {}
-        };
-
-
         class Solution {
         public:
             ListNode* removeNthFromEnd(ListNode* head, int n) {
@@ -941,15 +1029,6 @@ namespace leetcode {
         /*
         * https://leetcode.com/problems/merge-two-sorted-lists/
         */
-        struct ListNode {
-            int val;
-            ListNode* next;
-            ListNode() : val(0), next(nullptr) {}
-            ListNode(int x) : val(x), next(nullptr) {}
-            ListNode(int x, ListNode* next) : val(x), next(next) {}
-
-        };
-
         class Solution {
         public:
             ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
@@ -1018,15 +1097,6 @@ namespace leetcode {
         /*
         * https://leetcode.com/problems/merge-k-sorted-lists/description/
         */
-        struct ListNode {
-            int val;
-            ListNode* next;
-            ListNode() : val(0), next(nullptr) {}
-            ListNode(int x) : val(x), next(nullptr) {}
-            ListNode(int x, ListNode* next) : val(x), next(next) {}
-
-        };
-
         class Solution {
         public:
             ListNode* mergeKLists(vector<ListNode*>& lists) {
@@ -1046,7 +1116,7 @@ namespace leetcode {
                     size_t min_index = 0;
                     int min = lists[0]->val;
                     for (size_t i = 1; i < lists.size(); i++)
-                        if (min < lists[i]->val) {
+                        if (min > lists[i]->val) {
                             min = lists[i]->val;
                             min_index = i;
                         }
@@ -1070,15 +1140,6 @@ namespace leetcode {
         /*
         * https://leetcode.com/problems/swap-nodes-in-pairs/description/
         */
-        struct ListNode {
-            int val;
-            ListNode* next;
-            ListNode() : val(0), next(nullptr) {}
-            ListNode(int x) : val(x), next(nullptr) {}
-            ListNode(int x, ListNode* next) : val(x), next(next) {}
-
-        };
-
         class Solution {
         public:
             ListNode* swapPairs(ListNode* head) {
@@ -1097,6 +1158,329 @@ namespace leetcode {
                     cur = next;
                 }
                 return newHead;
+            }
+        };
+    }
+
+    namespace task_25 {
+        /*
+        * https://leetcode.com/problems/reverse-nodes-in-k-group/description/
+        */
+        class Solution {
+        public:
+            ListNode* reverseKGroup(ListNode* head, int k) {
+                if (k == 1)
+                    return head;
+                size_t size = 0;
+                auto ptr = head;
+                while (ptr)
+                {
+                    ++size;
+                    ptr = ptr->next;
+                }
+                if (size < k)
+                    return head;
+
+                auto guard = new ListNode(0, head);
+                ptr = guard;
+                auto j = ptr->next;
+                vector<ListNode*> stack(k);
+                while (k <= size) {
+                    for (size_t i = 0; i < k; i++) {
+                        stack[i] = j;
+                        j = j->next;
+                    }
+                    ptr->next = stack[k - 1];
+
+                    for (int i = k - 2; i >= 0; --i)
+                        stack[i + 1]->next = stack[i];
+                    stack[0]->next = j;
+                    ptr = stack[0];
+                    size -= k;
+                }
+                head = guard->next;
+                delete guard;
+                return head;
+            }
+        };
+    }
+
+    namespace task_26 {
+        /*
+        * https://leetcode.com/problems/remove-duplicates-from-sorted-array/description/
+        */
+        class Solution {
+        public:
+            int removeDuplicates(vector<int>& nums) {
+                for (size_t i = 1; i < nums.size(); i++)
+                    if (nums[i] == nums[i -1]) {
+                        nums.erase(nums.begin() + i);
+                        --i;
+                    }
+                return nums.size();
+            }
+        };
+    }
+
+    namespace task_27 {
+        /*
+        * https://leetcode.com/problems/remove-element/description/
+        */
+        class Solution {
+        public:
+            int removeElement(vector<int>& nums, int val) {
+                for (int i = 0; i < nums.size(); i++)
+                    if (nums[i] == val) {
+                        nums.erase(nums.begin() + i);
+                        --i;
+                    }
+                return nums.size();
+            }
+        };
+    }
+
+    namespace task_28 {
+        /*
+        * https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/description/
+        */
+        class Solution {
+        public:
+            int strStr(string haystack, string needle) {
+                if (haystack.size() < needle.size())
+                    return -1;
+                for (size_t i = 0; i < haystack.size() - needle.size() + 1; ++i)
+                {
+                    size_t j = 0;
+                    for (; j < needle.size(); ++j)
+                        if (haystack[i + j] != needle[j])
+                            break;
+                    if (j == needle.size())
+                        return i;
+                }
+                return -1;
+            }
+        };
+    }
+
+    namespace task_29 {
+        /*
+        * https://leetcode.com/problems/divide-two-integers/description/
+        */
+        class Solution {
+        public:
+            int divide(int dividend, int divisor) {
+                if (dividend == -2147483648 && divisor == -1)
+                    return 2147483647;
+                return dividend / divisor;
+            }
+        };
+    }
+
+    namespace task_30 {
+        /*
+        * https://leetcode.com/substring-with-concatenation-of-all-words/
+        */
+        class Solution {
+        public:
+            vector<int> findSubstring(string s, vector<string>& words) {
+                const size_t size = s.size();
+                const size_t count = words.size();
+                const size_t length = words[0].size();
+                const size_t end = size - count * length + 1;
+                vector<int> res;
+                if (size < count * length)
+                    return res;
+
+                unordered_map<string, pair<size_t, size_t>> words_map; // <index in words, count of copy>
+                vector<int> used(count, 0);
+                vector<int> max_used(count, 0);
+                vector<int> substr_indexes(size, -1);
+
+                for (size_t i = 0; i < count; ++i) {
+                    auto it = words_map.find(words[i]);
+                    if (it != words_map.end())
+                        ++it->second.second;
+                    else
+                        words_map[words[i]] = {i, 1};
+                }
+
+                for (const auto& it : words_map)
+                    max_used[it.second.first] = it.second.second;
+
+                for (size_t i = 0; i < size - length + 1; ++i) {
+                    auto substr = s.substr(i, length);
+                    auto it = words_map.find(substr);
+                    if (it != words_map.end())
+                        substr_indexes[i] = it->second.first;
+                }
+             
+                for (size_t i = 0; i < end; ++i) {
+                    if (substr_indexes[i] == -1)
+                        continue;
+
+                    size_t count_used = 0;
+                    for (size_t j = 0; j < count; j++)
+                        used[j] = 0;
+
+                    size_t ii = i;
+                    while (ii < size - length + 1 && count_used < count) {
+                        if (substr_indexes[ii] == -1)
+                            break;
+                        ++used[substr_indexes[ii]];
+                        ++count_used;
+
+                        if (used[substr_indexes[ii]] > max_used[substr_indexes[ii]])
+                            break;
+                        ii += length;
+                    }
+                    if (count_used == count)
+                        res.push_back(i);
+
+                }
+
+                return res;
+            }
+        };
+    }
+
+    namespace task_92 {
+        /*
+        * https://leetcode.com/problems/reverse-linked-list-ii/description/
+        */
+        class Solution {
+        public:
+            ListNode* reverseBetween(ListNode* head, int left, int right) {
+                if (!head || !head->next || left == right)
+                    return head;
+
+                ListNode* guard = nullptr;
+                if (left == 1) {
+                    guard = new ListNode(0, head);
+                    head = guard;
+                    ++left;
+                    ++right;
+                }
+
+                auto begin = head;
+
+                for (size_t i = 2; i < left; ++i)
+                    begin = begin->next;
+
+                auto prev = begin->next;
+                auto ptr = prev->next;
+                auto next = ptr->next;
+                for (size_t i = left; i < right; ++i) {
+                    ptr->next = prev;
+                    prev = ptr;
+                    ptr = next;
+                    if (next) 
+                        next = next->next;
+                    else
+                        break;
+                }
+                begin->next->next = ptr;
+                begin->next = prev;
+
+                if (guard) {
+                    head = guard->next;
+                    delete guard;
+                }
+                return head;
+            }
+        };
+    }
+
+    namespace task_203 {
+        /*
+        * https://leetcode.com/problems/remove-linked-list-elements/
+        */
+        class Solution {
+        public:
+            ListNode* removeElements(ListNode* head, int val) {
+                if (!head)
+                    return head;
+                auto guard = new ListNode(0, head);
+                head = guard;
+                while (head && head->next) {
+                    if (head->next->val == val) {
+                        auto temp = head->next->next;
+                        delete head->next;
+                        head->next = temp;
+                    }
+                    else
+                        head = head->next;
+                }
+
+                head = guard->next;
+                delete guard;
+                return head;
+            }
+        };
+    }
+
+    namespace task_206 {
+        /*
+        * https://leetcode.com/problems/reverse-linked-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* reverseList(ListNode* head) {
+                if (!head || !head->next)
+                    return head;
+                
+                auto prev = head;
+                auto ptr = head->next;
+                auto next = ptr->next;
+                while (true) {
+                    ptr->next = prev;
+                    prev = ptr;
+                    if (next) {
+                        ptr = next;
+                        next = next->next;
+                    }
+                    else
+                        break;
+                }
+                head->next = nullptr;
+
+                return ptr;
+            }
+        };
+    }
+
+    namespace task_237 {
+        /*
+        * https://leetcode.com/problems/remove-linked-list-elements/
+        */
+        class Solution {
+        public:
+            void deleteNode(ListNode* node) {
+                node->val = node->next->val;
+                node->next = node->next->next;
+            }
+        };
+    }
+
+    namespace task_283 {
+        /*
+        * https://leetcode.com/problems/move-zeroes/
+        */
+        class Solution {
+        public:
+            void moveZeroes(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size < 2)
+                    return;
+                for (size_t i = 0; i < size - 1; i++) {
+                    if (nums[i] == 0) {
+                        size_t j = i + 1;
+                        while (j < size && nums[j] == 0)
+                            ++j;
+                        if (j == size)
+                            return;
+                        swap(nums[i], nums[j]);
+                    }
+                }
             }
         };
     }
@@ -1160,6 +1544,57 @@ namespace leetcode {
                 else {
                     swap(ptr_k->next->next, ptr_j->next->next);
                     swap(ptr_k->next, ptr_j->next);
+                }
+                return head;
+            }
+        };
+    }
+
+    namespace task_2074 {
+        /*
+        * https://leetcode.com/problems/reverse-nodes-in-even-length-groups/
+        */
+        class Solution {
+        public:
+            ListNode* reverseEvenLengthGroups(ListNode* head) {
+                size_t size = 0;
+                auto ptr = head;
+                while (ptr)
+                {
+                    ++size;
+                    ptr = ptr->next;
+                }
+                if (size < 2)
+                    return head;
+
+                ptr = head;
+                
+                --size;
+                size_t k = 2;
+                size_t size_group = min(k, size);
+                vector<ListNode*> stack(sqrt(size << 1) + 1);
+                while (size_group > 0) {
+                    ++k;
+                    size -= size_group;
+                    if (size_group & 1) {
+                        for (size_t i = 0; i < size_group; i++)
+                            ptr = ptr->next;
+                        size_group = min(k, size);
+                        continue;
+                    }
+                    auto j = ptr->next;
+                    for (size_t i = 0; i < size_group; i++) {
+                        stack[i] = j;
+                        j = j->next;
+                    }
+
+                    ptr->next = stack[size_group - 1];
+                    for (int i = size_group - 2; i >= 0; --i)
+                        stack[i + 1]->next = stack[i];
+                    stack[0]->next = j;
+
+                    ptr = stack[0];
+                    size_group = min(k, size);
                 }
                 return head;
             }
