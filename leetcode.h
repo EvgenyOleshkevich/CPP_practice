@@ -48,9 +48,11 @@ namespace leetcode {
             return vec;
         }
 
-        ostream& operator<<(ostream& os, const vector<int>& v) {
-            for (const int val : v)
+        template <class T>
+        ostream& operator<<(ostream& os, const vector<T>& v) {
+            for (const T val : v)
                 os << val << " ";
+            os << endl;
             return os;
         }
 
@@ -59,6 +61,7 @@ namespace leetcode {
                 os << head->val << " ";
                 head = head->next;
             }
+            os << endl;
             return os;
         }
     }
@@ -1327,10 +1330,9 @@ namespace leetcode {
                         if (substr_indexes[ii] == -1)
                             break;
                         ++used[substr_indexes[ii]];
-                        ++count_used;
-
                         if (used[substr_indexes[ii]] > max_used[substr_indexes[ii]])
                             break;
+                        ++count_used;
                         ii += length;
                     }
                     if (count_used == count)
@@ -1338,6 +1340,300 @@ namespace leetcode {
 
                 }
 
+                return res;
+            }
+        };
+    }
+
+    namespace task_31 {
+        /*
+        * https://leetcode.com/next-permutation/
+        */
+        class Solution {
+        public:
+            void nextPermutation(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size < 2)
+                    return;
+                int i = size - 2;
+                for (; i >= 0; --i)
+                    if (nums[i] < nums[i + 1])
+                        break;
+
+                const size_t count_swap = 1 + (size - i - 1) / 2;
+                if (i != -1) {
+                    size_t j = size - 1;
+                    while (nums[j] <= nums[i])
+                        --j;
+                    swap(nums[j], nums[i]);
+                }
+                for (size_t k = 1; k < count_swap; ++k)
+                    swap(nums[i + k], nums[size - k]);
+            }
+        };
+    }
+
+    namespace task_46 {
+        /*
+        * https://leetcode.com/permutations/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> permute(vector<int>& nums) {
+                const int count = factorial(nums.size());
+                vector<vector<int>> res(count);
+                for (size_t i = 0; i < count; i++) {
+                    res[i] = nums;
+                    nextPermutation(nums);
+                }
+                return res;
+            }
+
+            void nextPermutation(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size < 2)
+                    return;
+                int i = size - 2;
+                for (; i >= 0; --i)
+                    if (nums[i] < nums[i + 1])
+                        break;
+
+                const size_t count_swap = 1 + (size - i - 1) / 2;
+                if (i != -1) {
+                    size_t j = size - 1;
+                    while (nums[j] <= nums[i])
+                        --j;
+                    swap(nums[j], nums[i]);
+                }
+                for (size_t k = 1; k < count_swap; ++k)
+                    swap(nums[i + k], nums[size - k]);
+            }
+
+            int factorial(int n) {
+                int res = 1;
+                for (size_t i = 2; i <= n; i++)
+                    res *= i;
+                return res;
+            }
+        };
+    }
+
+    namespace task_47 {
+        /*
+        * https://leetcode.com/permutations-ii/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> permute(vector<int>& nums) {
+                sort(nums.begin(), nums.end());
+                const int count = factorial(nums.size());
+                vector<vector<int>> res;
+                res.push_back(nums);
+                for (size_t i = 1; i < count; i++) {
+                    nextPermutation(nums);
+                    res.push_back(nums);
+                    if (res[i] == res[0]) {
+                        res.pop_back();
+                        break;
+                    }
+                }
+                return res;
+            }
+
+            void nextPermutation(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size < 2)
+                    return;
+                int i = size - 2;
+                for (; i >= 0; --i)
+                    if (nums[i] < nums[i + 1])
+                        break;
+
+                const size_t count_swap = 1 + (size - i - 1) / 2;
+                if (i != -1) {
+                    size_t j = size - 1;
+                    while (nums[j] <= nums[i])
+                        --j;
+                    swap(nums[j], nums[i]);
+                }
+                for (size_t k = 1; k < count_swap; ++k)
+                    swap(nums[i + k], nums[size - k]);
+            }
+
+            int factorial(int n) {
+                int res = 1;
+                for (size_t i = 2; i <= n; i++)
+                    res *= i;
+                return res;
+            }
+        };
+    }
+
+    namespace task_60 {
+        /*
+        * https://leetcode.com/permutation-sequence/description/
+        */
+        class Solution {
+        public:
+            string getPermutation(int n, int k) {
+                --k;
+                string res;
+                string set;
+                int group_size = factorial(n - 1);
+                for (size_t i = 0; i < n; i++) 
+                    set.push_back('1' + i);
+
+                while (n > 1) {
+                    size_t i = k / group_size;
+                    res.push_back(set[i]);
+                    set.erase(set.begin() + i);
+                    k %= group_size;
+                    --n;
+                    group_size /= n;
+                }
+                res.push_back(set[0]);
+                return res;
+            }
+
+            int factorial(int n) {
+                int res = 1;
+                for (size_t i = 2; i <= n; i++)
+                    res *= i;
+                return res;
+            }
+        };
+    }
+
+    namespace task_76 {
+        /*
+        * https://leetcode.com/minimum-window-substring/description/
+        */
+        class Solution {
+        public:
+            string minWindow(string s, string t) {
+                const size_t s_size = s.size();
+                const size_t t_size = t.size();
+                if (s_size < t_size)
+                    return "";
+
+                unordered_map<char, pair<size_t, size_t>> words_map; // <index in t, count of copy>
+                vector<int> used(t_size, 0);
+                vector<int> max_used(t_size, 0);
+                vector<int> substr_indexes(s_size, -1);
+
+                for (size_t i = 0; i < t_size; ++i) {
+                    auto it = words_map.find(t[i]);
+                    if (it != words_map.end())
+                        ++it->second.second;
+                    else
+                        words_map[t[i]] = { i, 1 };
+                }
+
+                for (const auto& it : words_map)
+                    max_used[it.second.first] = it.second.second;
+
+                for (size_t i = 0; i < s_size; ++i) {
+                    auto it = words_map.find(s[i]);
+                    if (it != words_map.end())
+                        substr_indexes[i] = it->second.first;
+                }
+                
+                size_t r = 0;
+                size_t count_used = 0;
+                for (; r < s_size && count_used < t_size; ++r) {
+                    if (substr_indexes[r] == -1)
+                        continue;
+
+                    ++used[substr_indexes[r]];
+                    if (used[substr_indexes[r]] <= max_used[substr_indexes[r]])
+                        ++count_used;
+                }
+
+                if (r == s_size && count_used < t_size)
+                    return "";
+                size_t min_l = 0;
+                size_t min_r = s_size;
+                size_t min_str_size = s_size;
+                for (size_t l = 0; l < r; ++l) {
+                    if (substr_indexes[l] == -1)
+                        continue;
+
+                    if (used[substr_indexes[l]] > max_used[substr_indexes[l]]) {
+                        --used[substr_indexes[l]];
+                        continue;
+                    }
+
+                    size_t str_size = r - l;
+                    if (min_str_size > str_size) {
+                        min_str_size = str_size;
+                        min_l = l;
+                        min_r = r;
+                    }
+                    bool not_found = true;
+                    for (; r < s_size; ++r) {
+                        if (substr_indexes[l] == substr_indexes[r]) {
+                            ++r;
+                            not_found = false;
+                            break;
+                        }
+                        else if (substr_indexes[r] != -1)
+                            ++used[substr_indexes[r]];
+                    }
+
+                    if (not_found) 
+                        break;
+                }
+                return s.substr(min_l, min_str_size);
+            }
+        };
+    }
+
+    namespace task_77 {
+        /*
+        * https://leetcode.com/combinations/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> combine(int n, int k) {
+                const size_t count = C(n, k);
+                vector<vector<int>> res;
+                res.push_back(vector<int>(k));
+                for (size_t i = 0; i < k; i++)
+                    res[0][i] = i + 1;
+
+                for (size_t i = 1; i < count; i++) {
+                    res.push_back(res[i - 1]);
+                    size_t max_allowed = n;
+                    int j = k - 1;
+
+                    while (j >= 0) {
+                        if (res[i][j] != max_allowed) {
+                            ++res[i][j];
+                            ++j;
+                            for (; j < k; ++j)
+                                res[i][j] = res[i][j - 1] + 1;
+                            break;
+                        }
+                        --j;
+                        --max_allowed;
+                    }
+                }
+                return res;
+            }
+
+            int C(int n, int k) {
+                if ((n >> 1) < k)
+                    k = n - k;
+                int res = 1;
+                for (size_t i = n - k + 1; i <= n; i++)
+                    res *= i;
+                return res / factorial(k);
+            }
+
+            int factorial(int n) {
+                int res = 1;
+                for (size_t i = 2; i <= n; i++)
+                    res *= i;
                 return res;
             }
         };

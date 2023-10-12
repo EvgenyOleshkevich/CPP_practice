@@ -16,9 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_30;
-
-
+using namespace leetcode::task_77;
 
 int main() {
 #pragma region some_test
@@ -44,12 +42,11 @@ int main() {
 #pragma endregion
     
     Solution k;
-    vector<int> v1({1,2,3,4,5, 6});
+    vector<int> v1({ 1,1,2 }); // 5 1 1
     
     vector<int> v2({ 0,1,0,3,12 });
     vector<string> words({ "bar","foo","the" });
-    cout << k.findSubstring("barfoofoobarthefoobarman", words);
-    //auto o = list2vector(k.reverseKGroup(vector2list(v2), 3));
+    cout << k.combine(4, 2) << endl;
     int y = 0;
 #pragma region part1
     /*int* t1 = nullptr;
