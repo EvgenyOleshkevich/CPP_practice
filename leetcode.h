@@ -1381,7 +1381,7 @@ namespace leetcode {
         public:
             int search(vector<int>& nums, int target) {
                 const size_t size = nums.size();
-                if (size < 3) {
+                if (size < 32) {
                     for (size_t i = 0; i < size; i++)
                         if (nums[i] == target)
                             return i;
