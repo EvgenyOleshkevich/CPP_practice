@@ -1373,6 +1373,63 @@ namespace leetcode {
         };
     }
 
+    namespace task_33 {
+        /*
+        * https://leetcode.com/search-in-rotated-sorted-array/description/
+        */
+        class Solution {
+        public:
+            int search(vector<int>& nums, int target) {
+                const size_t size = nums.size();
+                if (size < 3) {
+                    for (size_t i = 0; i < size; i++)
+                        if (nums[i] == target)
+                            return i;
+                    return -1;
+                }
+                return bin_search(nums, target, size, find_rotate(nums, size));
+            }
+
+            size_t find_rotate(vector<int>& nums, const size_t size) {
+                size_t l = 0;
+                size_t r = size - 1;
+                if (nums[l] < nums[r])
+                    return l;
+
+                if (nums[r - 1] > nums[r])
+                    return r;
+                size_t i = 0;
+                while (r - l > 2) {
+                    i = (r + l) / 2;
+                    if (nums[i] < nums[l])
+                        r = i + 1;
+                    else
+                        l = i;
+                }
+                return i;
+            }
+
+            int bin_search(vector<int>& nums, int value, const size_t size, const size_t rotate_point) {
+                size_t l = 0;
+                size_t r = size;
+
+                if (nums[rotate_point] == value)
+                    return rotate_point;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[(rotate_point + i) % size] == value)
+                        return (rotate_point + i) % size;
+                    if (nums[(rotate_point + i) % size] > value)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return -1;
+            }
+        };
+    }
+
     namespace task_46 {
         /*
         * https://leetcode.com/permutations/description/
@@ -1625,15 +1682,8 @@ namespace leetcode {
                 if ((n >> 1) < k)
                     k = n - k;
                 int res = 1;
-                for (size_t i = n - k + 1; i <= n; i++)
-                    res *= i;
-                return res / factorial(k);
-            }
-
-            int factorial(int n) {
-                int res = 1;
-                for (size_t i = 2; i <= n; i++)
-                    res *= i;
+                for (int i = 1; i <= k; ++i)
+                    res = ((n - i + 1)* res) / i;
                 return res;
             }
         };

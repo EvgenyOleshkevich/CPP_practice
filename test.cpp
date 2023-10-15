@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_77;
+using namespace leetcode::task_33;
 
 int main() {
 #pragma region some_test
@@ -44,9 +44,9 @@ int main() {
     Solution k;
     vector<int> v1({ 1,1,2 }); // 5 1 1
     
-    vector<int> v2({ 0,1,0,3,12 });
+    vector<int> v2({ 4,5,6,7,0,1,2 });
     vector<string> words({ "bar","foo","the" });
-    cout << k.combine(4, 2) << endl;
+    cout << k.search(v2, 4) << endl;
     int y = 0;
 #pragma region part1
     /*int* t1 = nullptr;
