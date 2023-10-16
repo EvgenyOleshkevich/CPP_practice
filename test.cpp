@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_33;
+using namespace leetcode::task_1901;
 
 int main() {
 #pragma region some_test
@@ -42,11 +42,13 @@ int main() {
 #pragma endregion
     
     Solution k;
-    vector<int> v1({ 1,1,2 }); // 5 1 1
-    
-    vector<int> v2({ 4,5,6,7,0,1,2 });
+    vector<int> nums({ 10,10,1,10 });
+    vector<vector<int>> mat(3);
+    mat[0] = { 10,20,15 };
+    mat[1] = { 21,30,14 };
+    mat[2] = { 7,16,32 };
     vector<string> words({ "bar","foo","the" });
-    cout << k.search(v2, 4) << endl;
+    cout << k.findPeakGrid(mat) << endl;
     int y = 0;
 #pragma region part1
     /*int* t1 = nullptr;

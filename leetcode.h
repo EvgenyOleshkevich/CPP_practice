@@ -1373,9 +1373,89 @@ namespace leetcode {
         };
     }
 
+    namespace task_32 {
+        /*
+        * https://leetcode.com/problems/longest-valid-parentheses/description/
+        */
+        class Solution {
+        public:
+            int longestValidParentheses(string s) {
+                size_t max = 0;
+                stack<size_t> st;
+                stack<pair<size_t, size_t>> seq_index;
+                for (size_t i = 0; i < s.size(); i++) {
+                    if (s[i] == '(') {
+                        st.push(i);
+                        continue;
+                    }
+                    if (st.size() > 0) {
+                        size_t left = st.top();
+                        st.pop();
+                        while (seq_index.size() > 0) {
+                            auto& top_seq = seq_index.top();
+                            if (top_seq.second + 1 >= left) {
+                                if (left > top_seq.first  )
+                                    left = top_seq.first;
+                                seq_index.pop();
+                                continue;
+                            }
+                            break;
+                        }
+                        seq_index.push({left, i});
+                    }
+                }
+                while (seq_index.size() > 0) {
+                    const auto& top_seq = seq_index.top();
+                    size_t len = top_seq.second - top_seq.first + 1;
+                    if (max < len)
+                        max = len;
+                    seq_index.pop();
+                }
+                return max;
+            }
+
+            int longestValidParentheses_quick(string s) {
+                int n = s.length();
+                stack<int> st;
+                for (int i = 0; i < n; i++)
+                {
+                    if (s[i] == ')')
+                    {
+                        if (st.empty() == 0)
+                        {
+                            int j = st.top();
+                            st.pop();
+                            s[i] = '_';
+                            s[j] = '_';
+                        }
+                    }
+                    if (s[i] == '(')
+                        st.push(i);
+                }
+                int ans = 0;
+                for (int i = 0; i < n; i++)
+                {
+                    if (s[i] == '_')
+                    {
+                        int ct = 1;
+                        i++;
+                        while (s[i] == '_')
+                        {
+                            ct++;
+                            i++;
+                        }
+                        i--;
+                        ans = max(ans, ct);
+                    }
+                }
+                return ans;
+            }
+        };
+    }
+
     namespace task_33 {
         /*
-        * https://leetcode.com/search-in-rotated-sorted-array/description/
+        * https://leetcode.com/problems/search-in-rotated-sorted-array/description/
         */
         class Solution {
         public:
@@ -1426,6 +1506,77 @@ namespace leetcode {
                         l = i;
                 }
                 return -1;
+            }
+        };
+    }
+
+    namespace task_34 {
+        /*
+        * https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/
+        */
+        class Solution {
+        public:
+            vector<int> searchRange(vector<int>& nums, int target) {
+                const size_t size = nums.size();
+                if (size < 32) {
+                    vector<int> res({ -1, -1 });
+                    for (size_t i = 0; i < size; i++)
+                        if (nums[i] == target) {
+                            res[0] = i;
+                            do
+                                ++i;
+                            while (i < size && nums[i] == target);
+                            --i;
+                            res[1] = i;
+                            break;
+                        }
+                    return res;
+                }
+
+                return bin_search(nums, target, size);
+            }
+
+            vector<int> bin_search(vector<int>& nums, int target, const size_t size) {
+                int l = 0;
+                int r = size;
+                if (nums[l] == target)
+                    return vector<int>({ l, right_search(nums, target, l, r)});
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == target)
+                        return vector<int>({ left_search(nums, target, l, i), right_search(nums, target, i, r) });
+                    if (nums[i] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return vector<int>({ -1, -1 });
+            }
+
+            int left_search(vector<int>& nums, int target, size_t l, size_t r) {
+                if (nums[r - 1] != target)
+                    return r;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+
+            int right_search(vector<int>& nums, int target, size_t l, size_t r) {
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == target)
+                        l = i;
+                    else
+                        r = i;
+                }
+                return l;
             }
         };
     }
@@ -1557,6 +1708,28 @@ namespace leetcode {
                 for (size_t i = 2; i <= n; i++)
                     res *= i;
                 return res;
+            }
+        };
+    }
+
+    namespace task_69 {
+        /*
+        * https://leetcode.com/sqrtx/description/
+        */
+        class Solution {
+        public:
+            int mySqrt(int x) {
+                int left = 0, right = 46340;
+
+                while (left <= right) {
+                    // Prevent (left + right) overflow
+                    int mid = left + (right - left) / 2;
+                    if (mid * mid == x) { return mid; }
+                    else if (mid * mid > x) { right = mid - 1; }
+                    else { left = mid + 1; }
+                }
+
+                return right;
             }
         };
     }
@@ -1736,6 +1909,115 @@ namespace leetcode {
         };
     }
 
+    namespace task_118 {
+        /*
+        * https://leetcode.com/problems/pascals-triangle/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> generate(int numRows) {
+                vector<vector<int>> res;
+                for (size_t k = 0; k < numRows; k++)
+                    res.push_back(getRow(k));
+                return res;
+            }
+
+            vector<int> getRow(int rowIndex) {
+                vector<int> res(rowIndex + 1, 1);
+                for (size_t k = 1; k <= rowIndex; k++)
+                    res[k] = res[k - 1] * (rowIndex - k + 1) / k;
+                return res;
+            }
+        };
+    }
+
+    namespace task_119 {
+        /*
+        * https://leetcode.com/problems/pascals-triangle-ii/description/
+        */
+        class Solution {
+        public:
+            vector<int> getRow(int rowIndex) {
+                vector<int> res(rowIndex + 1, 1);
+                for (size_t k = 1; k <= rowIndex; k++)
+                    res[k] = res[k - 1] * (rowIndex - k + 1) / k;
+                return res;
+            }
+        };
+    }
+
+    namespace task_153 {
+        /*
+        * https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/description/
+        */
+        class Solution {
+        public:
+            int findMin(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size == 1)
+                    return nums[0];
+                size_t l = 0;
+                size_t r = size - 1;
+                if (nums[l] < nums[r])
+                    return nums[l];
+                if (nums[r - 1] > nums[r])
+                    return nums[r];
+
+                while (r - l > 2) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] < nums[l])
+                        r = i + 1;
+                    else
+                        l = i;
+                }
+                return nums[l + 1];
+            }
+        };
+    }
+
+    namespace task_154 {
+        /*
+        * https://leetcode.com/problems/find-minimum-in-rotated-sorted-array-ii/description/
+        */
+        class Solution {
+        public:
+            int findMin(vector<int>& nums) {
+                const size_t size = nums.size();
+                size_t min = 0;
+                for (size_t i = 0; i < size; i++)
+                    if (nums[min] > nums[i])
+                        min = i;
+                return nums[min];
+            }
+        };
+    }
+
+    namespace task_162 {
+        /*
+        * https://leetcode.com/problems/find-peak-element/description/
+        */
+        class Solution {
+        public:
+            int findPeakElement(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size == 1 || nums[1] < nums[0])
+                    return 0;
+
+                size_t l = 0;
+                size_t r = size;
+
+                while (r - l > 2) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] > nums[i + 1])
+                        r = i + 1;
+                    else
+                        l = i;
+                }
+                return l + 1;
+            }
+        };
+    }
+
     namespace task_203 {
         /*
         * https://leetcode.com/problems/remove-linked-list-elements/
@@ -1807,6 +2089,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_278 {
+        /*
+        * https://leetcode.com/sqrtx/description/
+        */
+        bool isBadVersion(int version);
+
+        class Solution {
+        public:
+            int firstBadVersion(int n) {
+                int left = 1, right = n;
+                while (left < right) {
+                    int mid = left + (right - left) / 2;
+                    if (isBadVersion(mid)) { right = mid; }
+                    else { left = mid + 1; }
+                }
+
+                return right;
+            }
+        };
+    }
+
     namespace task_283 {
         /*
         * https://leetcode.com/problems/move-zeroes/
@@ -1827,6 +2130,79 @@ namespace leetcode {
                         swap(nums[i], nums[j]);
                     }
                 }
+            }
+        };
+    }
+
+    namespace task_374 {
+        /*
+        * https://leetcode.com/problems/guess-number-higher-or-lower/description/
+        */
+        int guess(int num);
+
+        class Solution {
+        public:
+            int guessNumber(int n) {
+                int left = 0, right = n;
+
+                while (left <= right) {
+                    int mid = left + (right - left) / 2;
+                    int pick = guess(mid);
+                    if (pick == 0) { return mid; }
+                    else if (pick == 1) { left = mid + 1; }
+                    else { right = mid - 1; }
+                }
+
+                return -1;
+            }
+        };
+    }
+
+    namespace task_704 {
+        /*
+        * https://leetcode.com/problems/binary-search/description/
+        */
+        class Solution {
+        public:
+            int search(vector<int>& nums, int target) {
+                size_t l = 0;
+                size_t r = nums.size();
+
+                if (nums[l] == target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == target)
+                        return i;
+                    if (nums[i] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return -1;
+            }
+        };
+    }
+
+    namespace task_852 {
+        /*
+        * https://leetcode.com/problems/peak-index-in-a-mountain-array/description/
+        */
+        class Solution {
+        public:
+            int peakIndexInMountainArray(vector<int>& arr) {
+                size_t l = 0;
+                size_t r = arr.size() - 1;
+
+                while (r - l > 2) {
+                    size_t i = (r + l) / 2;
+                    if (arr[i] < arr[i + 1])
+                        l = i;
+                    else
+                        r = i + 1;
+                }
+                return l + 1;
             }
         };
     }
@@ -1892,6 +2268,43 @@ namespace leetcode {
                     swap(ptr_k->next, ptr_j->next);
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_1901 {
+        /*
+        * https://leetcode.com/problems/find-a-peak-element-ii/
+        */
+        class Solution {
+        public:
+            vector<int> findPeakGrid(vector<vector<int>>& mat) {
+                for (int i = 0; i < mat.size(); i++)
+                {
+                    int j = findPeakElement(mat[i]);
+                    if ((i == 0 || mat[i - 1][j] < mat[i][j]) &&
+                        (i == mat.size() - 1 || mat[i + 1][j] < mat[i][j]))
+                        return vector<int>({ i, j });
+                }
+                return vector<int>({ -1, -1 });
+            }
+
+            int findPeakElement(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size == 1 || nums[1] < nums[0])
+                    return 0;
+
+                size_t l = 0;
+                size_t r = size;
+
+                while (r - l > 2) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] > nums[i + 1])
+                        r = i + 1;
+                    else
+                        l = i;
+                }
+                return l + 1;
             }
         };
     }
