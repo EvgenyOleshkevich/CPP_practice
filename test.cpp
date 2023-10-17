@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_1901;
+using namespace leetcode::task_540;
 
 int main() {
 #pragma region some_test
@@ -42,13 +42,22 @@ int main() {
 #pragma endregion
     
     Solution k;
-    vector<int> nums({ 10,10,1,10 });
-    vector<vector<int>> mat(3);
-    mat[0] = { 10,20,15 };
-    mat[1] = { 21,30,14 };
-    mat[2] = { 7,16,32 };
+    vector<int> v1({ 3,3,7,7,10,11,11 });
+    vector<int> v2({ 2,-1,-1,-1 });
+    vector<vector<int>> mat(4);
+    mat[0] = { 1,2,3,4 };
+    mat[1] = { 5,6,7,8 };
+    mat[2] = { 9,10,11,12 };
+    mat[3] = { 13,14,15,16 };
+
+    vector<vector<int>> mat2(3);
+    mat2[0] = { 1,2,3 };
+    mat2[1] = { 4,5,6 };
+    mat2[2] = { 7,8,9};
+
     vector<string> words({ "bar","foo","the" });
-    cout << k.findPeakGrid(mat) << endl;
+    
+    cout << k.singleNonDuplicate(v1) << endl;
     int y = 0;
 #pragma region part1
     /*int* t1 = nullptr;

@@ -1581,6 +1581,31 @@ namespace leetcode {
         };
     }
 
+    namespace task_35 {
+        /*
+        * https://leetcode.com/problems/search-insert-position/description/
+        */
+        class Solution {
+        public:
+            int searchInsert(vector<int>& nums, int target) {
+                size_t l = 0;
+                size_t r = nums.size();
+
+                if (nums[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
     namespace task_46 {
         /*
         * https://leetcode.com/permutations/description/
@@ -1677,6 +1702,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_48 {
+        /*
+        * https://leetcode.com/problems/rotate-image/description/
+        */
+        class Solution {
+        public:
+            void rotate(vector<vector<int>>& matrix) {
+                const size_t size = matrix.size();
+                for (size_t i = 0; i < size >> 1; i++)
+                    for (size_t j = 0; j < (size + 1) >> 1; j++)
+                    {
+                        auto tmp = matrix[i][j];
+                        matrix[i][j] = matrix[size - j - 1][i];
+                        matrix[size - j - 1][i] = matrix[size - i - 1][size - j - 1];
+                        matrix[size - i - 1][size - j - 1] = matrix[j][size - i - 1];
+                        matrix[j][size - i - 1] = tmp;
+                    }
+            }
+        };
+    }
+
     namespace task_60 {
         /*
         * https://leetcode.com/permutation-sequence/description/
@@ -1714,7 +1760,7 @@ namespace leetcode {
 
     namespace task_69 {
         /*
-        * https://leetcode.com/sqrtx/description/
+        * https://leetcode.com/problems/sqrtx/description/
         */
         class Solution {
         public:
@@ -1730,6 +1776,35 @@ namespace leetcode {
                 }
 
                 return right;
+            }
+        };
+    }
+
+    namespace task_74 {
+        /*
+        * https://leetcode.com/problems/search-a-2d-matrix/description/
+        */
+        class Solution {
+        public:
+            bool searchMatrix(vector<vector<int>>& matrix, int target) {
+                const size_t length = matrix.size();
+                const size_t width = matrix[0].size();
+                size_t l = 0;
+                size_t r = length * width;
+
+                if (matrix[l][l] == target)
+                    return true;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (matrix[i / width][i % width] == target)
+                        return true;
+                    if (matrix[i / width][i % width] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return false;
             }
         };
     }
@@ -2089,6 +2164,93 @@ namespace leetcode {
         };
     }
 
+    namespace task_240 {
+        /*
+        * https://leetcode.com/search-a-2d-matrix-ii/
+        */
+        class Solution {
+        public:
+            bool searchMatrix(vector<vector<int>>& matrix, int target) {
+                for (size_t i = 0; i < matrix.size(); i++) {
+                    int j = bin_search(matrix[i], target);
+                    if (j != -1)
+                        return true;
+                }
+                return false;
+            }
+
+            int bin_search(vector<int>& nums, int target) {
+                size_t l = 0;
+                size_t r = nums.size();
+
+                if (nums[l] == target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == target)
+                        return i;
+                    if (nums[i] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return -1;
+            }
+        };
+    }
+
+    namespace task_274 {
+        /*
+        * https://leetcode.com/problems/h-index/description/
+        */
+        class Solution {
+        public:
+            int hIndex(vector<int>& citations) {
+                sort(citations.begin(), citations.end());
+                size_t size = citations.size();
+                int l = -1;
+                size_t r = size - 1;
+                if (citations[r] < 1)
+                    return 0;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (citations[i] >= size - i)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return size - r;
+            }
+        };
+    }
+
+    namespace task_275 {
+        /*
+        * https://leetcode.com/problems/h-index/description/
+        */
+        class Solution {
+        public:
+            int hIndex(vector<int>& citations) {
+                size_t size = citations.size();
+                int l = -1;
+                size_t r = size - 1;
+                if (citations[r] < 1)
+                    return 0;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (citations[i] >= size - i)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return size - r;
+            }
+        };
+    }
+
     namespace task_278 {
         /*
         * https://leetcode.com/sqrtx/description/
@@ -2134,6 +2296,26 @@ namespace leetcode {
         };
     }
 
+    namespace task_367 {
+        /*
+        * https://leetcode.com/problems/valid-perfect-square/description/
+        */
+        class Solution {
+        public:
+            int isPerfectSquare(int num) {
+                int left = 0, right = 46340;
+
+                while (left <= right) {
+                    int mid = left + (right - left) / 2;
+                    if (mid * mid == num) { return true; }
+                    else if (mid * mid > num) { right = mid - 1; }
+                    else { left = mid + 1; }
+                }
+                return right * right == num;;
+            }
+        };
+    }
+
     namespace task_374 {
         /*
         * https://leetcode.com/problems/guess-number-higher-or-lower/description/
@@ -2155,6 +2337,194 @@ namespace leetcode {
 
                 return -1;
             }
+        };
+    }
+
+    namespace task_436 {
+        /*
+        * https://leetcode.com/find-right-interval/description/
+        */
+        class Solution {
+        public:
+            vector<int> findRightInterval(vector<vector<int>>& intervals) {
+                size_t size = intervals.size();
+                vector<int> res(size, -1);
+                for (size_t i = 0; i < size; i++)
+                    intervals[i].push_back(i);
+                sort(intervals.begin(), intervals.end()); 
+                
+                for (size_t i = 0; i < size; i++) {
+                    int pos = bin_search(intervals, size - 1, intervals[i][1]);
+                    if (pos != -1)
+                        res[intervals[i][2]] = intervals[pos][2];
+                    else
+                        res[intervals[i][2]] = pos;
+                }
+                return res;
+            }
+
+            int bin_search(vector<vector<int>>& interval, size_t r, int target) {
+                size_t l = 0;
+                if (interval[l][0] >= target)
+                    return l;
+                if (interval[r][0] < target)
+                    return -1;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (interval[i][0] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
+    namespace task_441 {
+        /*
+        * https://leetcode.com/problems/arranging-coins/description/
+        */
+        class Solution {
+        public:
+            int arrangeCoins(int n) {
+                size_t left = 1, right = 65535;
+
+                while (left <= right) {
+                    size_t mid = left + (right - left) / 2;
+                    size_t val = mid * (mid + 1) / 2;
+                    if (val == n) { return mid; }
+                    else if (val > n) { right = mid - 1; }
+                    else { left = mid + 1; }
+                }
+
+                return right;
+            }
+        };
+    }
+
+    namespace task_540 {
+        /*
+        * https://leetcode.com/problems/single-element-in-a-sorted-array/description/
+        */
+        class Solution {
+        public:
+            int singleNonDuplicate(vector<int>& nums) {
+                size_t l = 1;
+                size_t r = nums.size();
+
+                if (nums.size() == 1 || nums[l] != nums[l - 1])
+                    return nums[0];
+
+                while (r - l > 2) {
+                    size_t i = ((r + l) >> 2) << 1;
+                    i -= i & 1;
+                    if (nums[i] == nums[i - 1])
+                        r = i - 1;
+                    else {
+                        if (nums[i] != nums[i + 1])
+                            return nums[i];
+                        l = i + 1;
+                    }
+                }
+                return nums[l + 1];
+            }
+        };
+    }
+
+    namespace task_633 {
+        /*
+        * https://leetcode.com/problems/sum-of-square-numbers/
+        */
+        class Solution {
+        public:
+            bool judgeSquareSum(int c) {
+                size_t end = mySqrt(c);
+                for (size_t i = 0; i <= end; i++) 
+                    if (isPerfectSquare(c - i * i))
+                        return true;
+                return false;
+            }
+
+            int mySqrt(int x) {
+                int left = 0, right = 46340;
+
+                while (left <= right) {
+                    int mid = left + (right - left) / 2;
+                    if (mid * mid == x) { return mid; }
+                    else if (mid * mid > x) { right = mid - 1; }
+                    else { left = mid + 1; }
+                }
+                return right;
+            }
+
+            int isPerfectSquare(int num) {
+                int left = 0, right = 46340;
+
+                while (left <= right) {
+                    int mid = left + (right - left) / 2;
+                    if (mid * mid == num) { return true; }
+                    else if (mid * mid > num) { right = mid - 1; }
+                    else { left = mid + 1; }
+                }
+                return right * right == num;;
+            }
+        };
+    }
+
+    namespace task_658 {
+        /*
+        * https://leetcode.com/problems/find-k-closest-elements/description/
+        */
+        class Solution {
+        public:
+            vector<int> findClosestElements(vector<int>& arr, int k, int x) {
+                const size_t size = arr.size();
+                int l = search(arr, x);
+                int r = l + 1;
+                vector<int> res;
+                for (size_t i = 0; i < k; i++) {
+                    int l_diff = INT_MAX;
+                    int r_diff = INT_MAX;
+                    if (l >= 0)
+                        l_diff = x - arr[l];
+                    if (r < size)
+                        r_diff = x - arr[r];
+
+                    if (r_diff < l_diff) {
+                        res.push_back()
+                    }
+                    else {
+
+                    }
+                    
+
+                }
+
+                
+            }
+
+            int search(vector<int>& nums, int target) {
+                size_t l = 0;
+                size_t r = nums.size();
+
+                if (nums[l] == target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] == target)
+                        return i;
+                    if (nums[i] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return l;
+            }
+
+            
         };
     }
 
@@ -2185,6 +2555,31 @@ namespace leetcode {
         };
     }
 
+    namespace task_744 {
+        /*
+        * https://leetcode.com/problems/find-smallest-letter-greater-than-target/description/
+        */
+        class Solution {
+        public:
+            char nextGreatestLetter(vector<char>& letters, char target) {
+                size_t l = 0;
+                size_t r = letters.size() - 1;
+
+                if (letters[l] > target || letters[r] <= target)
+                    return letters[l];
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (letters[i] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return letters[r];
+            }
+        };
+    }
+
     namespace task_852 {
         /*
         * https://leetcode.com/problems/peak-index-in-a-mountain-array/description/
@@ -2203,6 +2598,174 @@ namespace leetcode {
                         r = i + 1;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_981 {
+        /*
+        * https://leetcode.com/time-based-key-value-store/description/
+        */
+        class TimeMap {
+        public:
+            TimeMap() {
+
+            }
+
+            void set(string key, string value, int timestamp) {
+                data[-timestamp][key] = value;
+            }
+
+            string get(string key, int timestamp) {
+                auto outer_it = data.lower_bound(-timestamp);
+                while (outer_it != data.end()) {
+                    auto inner_it = outer_it->second.find(key);
+                    if (inner_it != outer_it->second.end())
+                        return inner_it->second;
+                    ++outer_it;
+                }
+                return "";
+            }
+
+            map<int, map<string, string>> data;
+        };
+    }
+
+    namespace task_1146 {
+        /*
+        * https://leetcode.com/snapshot-array/description/
+        */
+        class SnapshotArray {
+        public:
+            SnapshotArray(int length) : id(0), data(length){
+                for (size_t i = 0; i < length; i++)
+                    data[i][0] = 0;
+            }
+
+            void set(int index, int val) {
+                data[index][-id] = val;
+            }
+
+            int snap() {
+                return id++;
+            }
+
+            int get(int index, int snap_id) {
+                return data[index].lower_bound(-snap_id)->second;
+            }
+
+            int id;
+            vector<map<int, int>> data;
+        };
+    }
+
+    namespace task_1351 {
+        /*
+        * https://leetcode.com/problems/count-negative-numbers-in-a-sorted-matrix/description/
+        */
+        class Solution {
+        public:
+            int countNegatives(vector<vector<int>>& grid) {
+                const size_t length = grid.size();
+                const size_t width = grid[0].size();
+                int count_neg = 0;
+                for (size_t i = 0; i < length; i++)
+                    count_neg += width - bin_search(grid[i], width);
+                return count_neg;
+            }
+
+            int bin_search(vector<int> &nums, size_t r) {
+                size_t l = 0;
+                if (nums[l] < 0)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] < 0)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
+    namespace task_1361 {
+        /*
+        * https://leetcode.com/problems/validate-binary-tree-nodes/description/
+        */
+        class Solution {
+        public:
+            bool validateBinaryTreeNodes(int n, vector<int>& leftChild, vector<int>& rightChild) {
+                const size_t size = n;
+                vector<int> used(size, 0);
+
+                for (size_t i = 0; i < size; i++)
+                {
+                    if (leftChild[i] != -1)
+                        ++used[leftChild[i]];
+                    if (rightChild[i] != -1)
+                        ++used[rightChild[i]];
+                }
+                size_t count_zero = 0;
+                size_t head = 0;
+                for (size_t i = 0; i < size; i++) {
+                    if (used[i] > 1)
+                        return false;
+                    if (used[i] == 0) {
+                        ++count_zero;
+                        head = i;
+                    }
+                    used[i] = 0;
+                }
+                if (count_zero != 1)
+                    return false;
+                stack<int> stack;
+                stack.push(head);
+                while (!stack.empty()) {
+                    size_t node = stack.top();
+                    stack.pop();
+                    ++used[node];
+                    if (leftChild[node] != -1)
+                        stack.push(leftChild[node]);
+                    if (rightChild[node] != -1)
+                        stack.push(rightChild[node]);
+                }
+
+                for (size_t i = 0; i < size; i++)
+                    if (used[i] != 1)
+                        return false;
+
+                return true;
+            }
+        };
+    }
+
+    namespace task_1539 {
+        /*
+        * https://leetcode.com/problems/kth-missing-positive-number/description/
+        */
+        class Solution {
+        public:
+            int findKthPositive(vector<int>& arr, int k) {
+                size_t l = 0;
+                size_t r = arr.size() - 1;
+
+                if (arr[l] > k)
+                    return k;
+                if (arr[r] - r - 1 < k)
+                    return k + r + 1;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    size_t count_missed = arr[i] - i - 1;
+                    if (count_missed >= k)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return k + r;
             }
         };
     }
@@ -2275,21 +2838,35 @@ namespace leetcode {
     namespace task_1901 {
         /*
         * https://leetcode.com/problems/find-a-peak-element-ii/
+        * false peak is a peak, which peak only in column or only in row,
+        * exist row or column, which does not contain false peak,
+        * it means peak in this row or column is true
         */
         class Solution {
         public:
             vector<int> findPeakGrid(vector<vector<int>>& mat) {
-                for (int i = 0; i < mat.size(); i++)
+                const size_t length = mat.size();
+                const size_t width = mat[0].size();
+
+                for (int i = 0; i < length; i++)
                 {
-                    int j = findPeakElement(mat[i]);
+                    int j = findPeakElementRow(mat[i]);
                     if ((i == 0 || mat[i - 1][j] < mat[i][j]) &&
-                        (i == mat.size() - 1 || mat[i + 1][j] < mat[i][j]))
+                        (i == length - 1 || mat[i + 1][j] < mat[i][j]))
+                        return vector<int>({ i, j });
+                }
+
+                for (int j = 0; j < width; j++)
+                {
+                    int i = findPeakElementColumn(mat, j, length);
+                    if ((j == 0 || mat[i][j - 1] < mat[i][j]) &&
+                        (j == mat.size() - 1 || mat[i][j + 1] < mat[i][j]))
                         return vector<int>({ i, j });
                 }
                 return vector<int>({ -1, -1 });
             }
 
-            int findPeakElement(vector<int>& nums) {
+            int findPeakElementRow(vector<int>& nums) {
                 const size_t size = nums.size();
                 if (size == 1 || nums[1] < nums[0])
                     return 0;
@@ -2300,6 +2877,23 @@ namespace leetcode {
                 while (r - l > 2) {
                     size_t i = (r + l) / 2;
                     if (nums[i] > nums[i + 1])
+                        r = i + 1;
+                    else
+                        l = i;
+                }
+                return l + 1;
+            }
+
+            int findPeakElementColumn(vector<vector<int>>& mat, const size_t j, const size_t length) {
+                if (length == 1 || mat[1][j] < mat[0][j])
+                    return 0;
+
+                size_t l = 0;
+                size_t r = length;
+
+                while (r - l > 2) {
+                    size_t i = (r + l) / 2;
+                    if (mat[i][j] > mat[i + 1][j])
                         r = i + 1;
                     else
                         l = i;
@@ -2426,6 +3020,47 @@ namespace leetcode {
                 }
                 int diff = open_flex + open_locked - close_flex;
                 return diff <= open_flex * 2;
+            }
+        };
+    }
+
+    namespace task_2529 {
+        /*
+        * https://leetcode.com/problems/maximum-count-of-positive-integer-and-negative-integer/description/
+        */
+        class Solution {
+        public:
+            int maximumCount(vector<int>& nums) {
+                const size_t size = nums.size();
+                size_t l = 0;
+                size_t r = size;
+                if (nums[l] > 0)
+                    return size;
+                if (nums[l] == 0)
+                    r = l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= 0)
+                        r = i;
+                    else
+                        l = i;
+                }
+                if (r == size)
+                    return r;
+                size_t count_neg = r;
+                l = r - 1;
+                r = size;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] > 0)
+                        r = i;
+                    else
+                        l = i;
+                }
+
+                return max(count_neg, size - r);
             }
         };
     }
