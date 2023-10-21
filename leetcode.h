@@ -156,57 +156,98 @@ namespace leetcode {
         class Solution {
         public:
             double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
-                int n = nums1.size();
-                int m = nums2.size();
-                bool odd = (n + m) & 1;
-                int i1 = n >> 1;
-                int i2 = m >> 1;
-                if (n == 0)
+                const size_t size1 = nums1.size();
+                const size_t size2 = nums2.size();
+                bool odd = (size1 + size2) & 1;
+                size_t i1 = size1 >> 1;
+                size_t i2 = size2 >> 1;
+                if (size1 == 0)
                     return odd ? nums2[i2] : (nums2[i2] + nums2[i2 - 1]) / 2.0;
-                if (m == 0)
+                if (size2 == 0)
                     return odd ? nums1[i1] : (nums1[i1] + nums1[i1 - 1]) / 2.0;
 
+                size_t l1 = 0;
+                size_t r1 = size1;
+                size_t l2 = 0;
+                size_t r2 = size2;
+                size_t target = (size2 + size1) >> 1;
 
-                int l1 = 0;
-                int r1 = n;
-                int l2 = 0;
-                int r2 = m;
-                int target = (m + n) >> 1;
-                i1 = 0;
-
-                while (i1 + i2 != target) {
-                    i1 = (l1 + r1) >> 1;
-                    i2 = (l2 + r2) >> 1;
-                    if (nums1[i1] > nums2[i2]) {
-                        if (i1 + i2 > target)
-                            r1 = i1 + 1;
+                while (true) {
+                    i1 = (r1 + l1) >> 1;
+                    i2 = (r2 + l2) >> 1;
+                    size_t sum_i = i1 + i2 + 1;
+                    bool first_less = nums1[i1] <= nums2[i2];
+                    if (sum_i > target) {
+                        if (first_less && l2 != i2 || l1 == i1)
+                            r2 = i2;
+                        else
+                            r1 = i1;
+                        continue;
+                    }
+                    else if (sum_i < target) {
+                        if (first_less && l1 != i1 || l2 == i2)
+                            l1 = i1;
                         else
                             l2 = i2;
+                        continue;
                     }
                     else {
-                        if (i1 + i2 > target)
-                            r2 = i2 + 1;
-                        else
-                            l1 = i1;
+                        if (first_less) {
+                            if (i1 + 1 < r1 && nums1[i1 + 1] < nums2[i2]) {
+                                l1 = i1;
+                                continue;
+                            }
+                        }
+                        else {
+                            if (i2 + 1 < r2 && nums1[i1] > nums2[i2 + 1]) {
+                                l2 = i2;
+                                continue;
+                            }
+                        }
                     }
-
+                    break;
                 }
 
-
-                return 0;
-            }
-
-            int bin_search(vector<int>& nums, int value, int l, int r) {
-                while (r - l > 1) {
-                    size_t i = (r + l) / 2;
-                    if (nums[i] == value)
-                        return i;
-                    if (nums[i] > value)
-                        r = i;
-                    else
-                        l = i;
+                if (odd) {
+                    if (nums1[i1] < nums2[i2]) {
+                        int next1 = INT_MAX;
+                        if (i1 + 1 < size1)
+                            next1 = nums1[i1 + 1];
+                        return min(next1, nums2[i2]);
+                    }
+                    else {
+                        int next2 = INT_MAX;
+                        if (i2 + 1 < size2)
+                            next2 = nums2[i2 + 1];
+                        return min(nums1[i1], next2);
+                    }
                 }
-                return l;
+                else {
+                    if (nums1[i1] < nums2[i2]) {
+                        int val1 = INT_MIN;
+                        if (i2 > l2)
+                            val1 = nums2[i2 - 1];
+                        val1 = max(nums1[i1], val1);
+
+                        int val2 = INT_MAX;
+                        if (i1 + 1 < size1)
+                            val2 = nums1[i1 + 1];
+                        val2 = min(nums2[i2], val2);
+                        return (val1 + val2) / 2.0;
+                    }
+                    else {
+                        int val1 = INT_MIN;
+                        if (i1 > l1)
+                            val1 = nums1[i1 - 1];
+                        val1 = max(nums2[i2], val1);
+
+                        int val2 = INT_MAX;
+                        if (i2 + 1 < size2)
+                            val2 = nums2[i2 + 1];
+                        val2 = min(nums1[i1], val2);
+                        return (val1 + val2) / 2.0;
+                    }
+                }
             }
         };
     }
@@ -2296,6 +2337,60 @@ namespace leetcode {
         };
     }
 
+    namespace task_341 {
+        /*
+        * https://leetcode.com/problems/flatten-nested-list-iterator/description/
+        */
+        class NestedInteger {
+        public:
+            vector<NestedInteger> nodes;
+            int value;
+
+            bool isInteger() const {
+                return nodes.empty();
+            }
+
+            int getInteger() const {
+                return value;
+            }
+
+            const vector<NestedInteger>& getList() const {
+                return nodes;
+            }
+        };
+
+        class NestedIterator {
+        public:
+            vector<int> values;
+            size_t index = 0;
+
+            NestedIterator(vector<NestedInteger>& nestedList) {
+                stack<NestedInteger> stack;
+                for (int i = nestedList.size() - 1; i >= 0; --i)
+                    stack.push(nestedList[i]);
+                while (!stack.empty()) {
+                    NestedInteger node = stack.top();
+                    stack.pop();
+                    if (node.isInteger())
+                        values.push_back(node.getInteger());
+                    else {
+                        const vector<NestedInteger>& nodes = node.getList();
+                        for (int i = nodes.size() - 1; i >= 0; --i)
+                            stack.push(nodes[i]);
+                    }
+                }
+            }
+
+            int next() {
+                return values[index++];
+            }
+
+            bool hasNext() {
+                return index < values.size();
+            }
+        };
+    }
+
     namespace task_367 {
         /*
         * https://leetcode.com/problems/valid-perfect-square/description/
@@ -2433,6 +2528,38 @@ namespace leetcode {
         };
     }
 
+    namespace task_611 {
+        /*
+        * https://leetcode.com/problems/valid-triangle-number/description/
+        */
+        class Solution {
+        public:
+            int triangleNumber(vector<int>& nums) {
+                if (nums.size() < 3)
+                    return 0;
+                sort(nums.begin(), nums.end());
+                int sum = 0;
+                for (size_t i = 0; i < nums.size() - 2; i++) {
+                    if (nums[i] == 0)
+                        continue;
+                    size_t j = i + 1;
+                    size_t k = i + 2;
+
+                    for (; j < nums.size() - 1; j++) {
+                        k = max(j + 1, k);
+                        while (k < nums.size() && nums[i] + nums[j] > nums[k])
+                            ++k;
+                        if (k == nums.size())
+                            break;
+                        sum += k - j - 1;
+                    }
+                    sum += (k - j - 1) * (k - j) / 2;
+                }
+                return sum;
+            }
+        };
+    }
+
     namespace task_633 {
         /*
         * https://leetcode.com/problems/sum-of-square-numbers/
@@ -2484,25 +2611,16 @@ namespace leetcode {
                 int l = search(arr, x);
                 int r = l + 1;
                 vector<int> res;
-                for (size_t i = 0; i < k; i++) {
-                    int l_diff = INT_MAX;
-                    int r_diff = INT_MAX;
-                    if (l >= 0)
-                        l_diff = x - arr[l];
-                    if (r < size)
-                        r_diff = x - arr[r];
+                while (r - l - 1 < k)
+                    if (l < 0 || (r < size && arr[r] - x < x - arr[l]))
+                        ++r;
+                    else
+                        --l;
 
-                    if (r_diff < l_diff) {
-                        res.push_back()
-                    }
-                    else {
-
-                    }
-                    
-
-                }
-
-                
+                ++l;
+                for (; l < r; l++)
+                    res.push_back(arr[l]);
+                return res;
             }
 
             int search(vector<int>& nums, int target) {
@@ -2523,8 +2641,6 @@ namespace leetcode {
                 }
                 return l;
             }
-
-            
         };
     }
 
@@ -2576,6 +2692,62 @@ namespace leetcode {
                         l = i;
                 }
                 return letters[r];
+            }
+        };
+    }
+
+    namespace task_844 {
+        /*
+        * https://leetcode.com/problems/backspace-string-compare/description/
+        */
+        class Solution {
+        public:
+            bool backspaceCompare(string s, string t) {
+                int i = s.length() - 1, j = t.length() - 1;
+                while (i >= 0 || j >= 0) {
+                    int steps = 0;
+                    while (i >= 0 && (s[i] == '#' || steps > 0)) {
+                        if (s[i] == '#')
+                            ++steps;
+                        else
+                            --steps;
+                        --i;
+                    }
+                    steps = 0;
+                    while (j >= 0 && (t[j] == '#' || steps > 0)) {
+                        if (t[j] == '#')
+                            ++steps;
+                        else
+                            --steps;
+                        --j;
+                    }
+                    if (i < 0 && j < 0)
+                        return true;
+                    if (i < 0 || j < 0 || s[i] != t[j])
+                        return false;
+                    --i;
+                    --j;
+                }
+
+                return i == j;
+            }
+
+            bool backspaceCompare2(string s, string t) {
+                string s_copy;
+                string t_copy;
+                for (size_t i = 0; i < s.length(); i++)
+                    if (i + 1 < s.length() && s[i + 1] == '#')
+                        ++i;
+                    else
+                        s_copy.push_back(s[i]);
+
+                for (size_t i = 0; i < t.length(); i++)
+                    if (i + 1 < t.length() && t[i + 1] == '#')
+                        ++i;
+                    else
+                        t_copy.push_back(t[i]);
+
+                return s_copy == t_copy;
             }
         };
     }
@@ -2950,6 +3122,41 @@ namespace leetcode {
                     size_group = min(k, size);
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_2300 {
+        /*
+        * https://leetcode.com/problems/successful-pairs-of-spells-and-potions/description/
+        */
+        class Solution {
+        public:
+            vector<int> successfulPairs(vector<int>& spells, vector<int>& potions, long long success) {
+                sort(potions.begin(), potions.end());
+                const size_t spells_size = spells.size();
+                vector<int> res(spells_size);
+                for (size_t i = 0; i < spells_size; i++)
+                    res[i] = search(potions, spells[i], success);
+                return res;
+            }
+
+            int search(vector<int>& nums, const long long mult, const long long target) {
+                size_t l = 0;
+                size_t r = nums.size();
+                if (nums[l] * mult >= target)
+                    return r;
+                if (nums[r - 1] * mult < target)
+                    return 0;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) >> 1;
+                    if (nums[i] * mult >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return nums.size() - r;
             }
         };
     }

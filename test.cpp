@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_540;
+using namespace leetcode::task_2300;
 
 int main() {
 #pragma region some_test
@@ -42,23 +42,16 @@ int main() {
 #pragma endregion
     
     Solution k;
-    vector<int> v1({ 3,3,7,7,10,11,11 });
-    vector<int> v2({ 2,-1,-1,-1 });
+    vector<int> v1({ 5,1,3 });
+    vector<int> v2({ 1,2,3,4,5 });
     vector<vector<int>> mat(4);
     mat[0] = { 1,2,3,4 };
     mat[1] = { 5,6,7,8 };
     mat[2] = { 9,10,11,12 };
     mat[3] = { 13,14,15,16 };
-
-    vector<vector<int>> mat2(3);
-    mat2[0] = { 1,2,3 };
-    mat2[1] = { 4,5,6 };
-    mat2[2] = { 7,8,9};
-
     vector<string> words({ "bar","foo","the" });
-    
-    cout << k.singleNonDuplicate(v1) << endl;
-    int y = 0;
+    cout << k.successfulPairs(v1, v2, 7) << endl;
+
 #pragma region part1
     /*int* t1 = nullptr;
     int* t2 = nullptr;
