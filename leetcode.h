@@ -15,6 +15,7 @@
 #include <typeindex>
 #include <functional>
 #include <algorithm>
+#include <random>
 using namespace std;
 
 namespace leetcode {
@@ -2337,6 +2338,43 @@ namespace leetcode {
         };
     }
 
+    namespace task_300 {
+        /*
+        * https://leetcode.com/problems/longest-increasing-subsequence/description/
+        */
+        class Solution {
+        public:
+            int lengthOfLIS(vector<int>& nums) {
+                const size_t size = nums.size();
+                size_t length = 0;
+                vector<int> ends_of_LIS(size, INT_MAX);
+
+                for (size_t i = 0; i < size; i++) {
+                    size_t j = search(ends_of_LIS, length, nums[i]);
+                    ends_of_LIS[j] = min(ends_of_LIS[j], nums[i]);
+                    length = max(j + 1, length);
+                }
+
+                return length;
+            }
+
+            size_t search(vector<int>& nums, size_t r, const int target) {
+                size_t l = 0;
+                if (nums[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
     namespace task_341 {
         /*
         * https://leetcode.com/problems/flatten-nested-list-iterator/description/
@@ -2387,6 +2425,43 @@ namespace leetcode {
 
             bool hasNext() {
                 return index < values.size();
+            }
+        };
+    }
+
+    namespace task_354 {
+        /*
+        * https://leetcode.com/problems/russian-doll-envelopes/description/
+        */
+        class Solution {
+        public:
+            int maxEnvelopes(vector<vector<int>>& envelopes) {
+                sort(envelopes.begin(), envelopes.end());
+
+                const size_t size = envelopes.size();
+                size_t length = 0;
+                vector<int> countEnvelopes(size, 1);
+
+                for (size_t i = 0; i < size; i++) {
+                    size_t j = search(countEnvelopes, envelopes, i, envelopes[i]);
+                    ends_of_LIS[j] = min(ends_of_LIS[j], nums[i]);
+                    length = max(j + 1, length);
+                }
+            }
+
+            size_t search(const vector<int>& nums, const vector<vector<int>>& envelopes, size_t r, const vector<int>& target) {
+                size_t l = 0;
+                if (nums[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return l;
             }
         };
     }
@@ -2495,6 +2570,48 @@ namespace leetcode {
                 }
 
                 return right;
+            }
+        };
+    }
+
+    namespace task_528 {
+        /*
+        * https://leetcode.com/problems/random-pick-with-weight/description/
+        */
+        class Solution {
+        public:
+            vector<unsigned int> prob_sum;
+            size_t size;
+            std::uniform_int_distribution<> distr; // define the range
+            std::mt19937 gen;
+
+            Solution(vector<int>& w) {
+                std::random_device rd; // obtain a random number from hardware
+                gen = std::mt19937(rd()); // seed the generator
+                size = w.size();
+                unsigned int sum = 0;
+                for (size_t i = 0; i < size; i++) {
+                    sum += w[i];
+                    prob_sum.push_back(sum);
+                }
+                distr = std::uniform_int_distribution<>(1, sum); // define the range
+            }
+
+            int pickIndex() {
+                unsigned int target = distr(gen);
+                size_t l = 0;
+                size_t r = size - 1;
+                if (prob_sum[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) >> 1;
+                    if (prob_sum[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
             }
         };
     }
@@ -2910,6 +3027,47 @@ namespace leetcode {
                         return false;
 
                 return true;
+            }
+        };
+    }
+
+    namespace task_1498 {
+        /*
+        * https://leetcode.com/problems/number-of-subsequences-that-satisfy-the-given-sum-condition/description/
+        */
+        class Solution {
+        public:
+            int numSubseq(vector<int>& nums, int target) {
+                sort(nums.begin(), nums.end());
+                unsigned long long sum = 0;
+                const int size = nums.size();
+                int i = 0;
+                int j = size - 1;
+                const int modul = 1000000007;
+
+                for (; i < size; i++) {
+                    while (j >= i && nums[i] + nums[j] > target) 
+                        --j;
+                    if (j < i)
+                        break;
+                    sum = (sum + pow(j - i, modul)) % modul;
+                }
+                return sum;
+            }
+
+            unsigned long long pow(int degree, const int modul) {
+                unsigned long long res = 1;
+                unsigned long long mult = 2;
+                while (degree) {
+                    if (degree & 1) {
+                        res *= mult;
+                        res %= modul;
+                    }
+                    mult *= mult;
+                    mult %= modul;
+                    degree >>= 1;
+                }
+                return res;
             }
         };
     }
