@@ -10,6 +10,7 @@
 #include <vector>
 #include <stack>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <typeinfo>
 #include <typeindex>
@@ -1648,6 +1649,207 @@ namespace leetcode {
         };
     }
 
+    namespace task_36 {
+        /*
+        * https://leetcode.com/problems/valid-sudoku/description/
+        */
+        class Solution {
+        public:
+            bool isValidSudoku(vector<vector<char>>& board) {
+                const size_t size = 9;
+                vector<int> unique(size, -1);
+                for (size_t i = 0; i < size; ++i)
+                    for (size_t j = 0; j < size; ++j)
+                    {
+                        if (board[i][j] == '.')
+                            continue;
+                        if (unique[board[i][j] - '1'] == i)
+                            return false;
+                        unique[board[i][j] - '1'] = i;
+                    }
+
+                for (size_t i = 0; i < size; ++i)
+                    unique[i] = -1;
+
+                for (size_t i = 0; i < size; ++i)
+                    for (size_t j = 0; j < size; ++j)
+                    {
+                        if (board[j][i] == '.')
+                            continue;
+                        if (unique[board[j][i] - '1'] == i)
+                            return false;
+                        unique[board[j][i] - '1'] = i;
+                    }
+
+                for (size_t i = 0; i < size; ++i)
+                    unique[i] = -1;
+
+                for (size_t k = 0; k < 3; ++k)
+                    for (size_t l = 0; l < 3; ++l)
+                        for (size_t i = k * 3; i < (k + 1) * 3; ++i)
+                            for (size_t j = l * 3; j < (l + 1) * 3; ++j)
+                            {
+                                if (board[i][j] == '.')
+                                    continue;
+                                if (unique[board[i][j] - '1'] == k * 3 + l)
+                                    return false;
+                                unique[board[i][j] - '1'] = k * 3 + l;
+                            }
+
+                return true;
+            }
+        };
+    }
+
+    namespace task_37 {
+        /*
+        * https://leetcode.com/problems/sudoku-solver/description/
+        */
+        class Solution {
+        public:
+            const size_t size = 9;
+
+            void solveSudoku(vector<vector<char>>& board) {
+                auto solveSet = buildSet(board);
+            }
+
+            vector<vector<set<char>>> buildSet(vector<vector<char>>& board) {
+                vector<vector<set<char>>> res(size, vector<set<char>>(size));
+                const set<char> allowed({ '1', '2', '3','4', '5', '6', '7', '8', '9' });
+
+                for (size_t i = 0; i < size; ++i)
+                    for (size_t j = 0; j < size; ++j)
+                        if (board[i][j] == '.') {
+                            res[i][j] = allowed;
+
+
+                            for (size_t k = 0; k < size; ++k)
+                                if (board[i][k] != '.')
+                                    res[i][j].erase(board[i][k]);
+
+                            for (size_t k = 0; k < size; ++k)
+                                if (board[k][j] != '.')
+                                    res[i][j].erase(board[k][j]);
+
+                            for (size_t k = (i / 3) * 3; k < (1 + i / 3) * 3; ++k)
+                                for (size_t l = (j / 3) * 3; l < (1 + j / 3) * 3; ++l)
+                                    if (board[k][l] != '.')
+                                        res[i][j].erase(board[k][l]);
+                        }
+                        else 
+                            res[i][j].insert(board[i][j]);
+
+                adjustOneSizeSet(res, board);
+                return res;
+            }
+
+            void adjustOneSizeSet(vector<vector<set<char>>>& solveSet, vector<vector<char>>& board) {
+                bool repeat = true;
+                while (repeat) {
+                    repeat = false;
+                    for (size_t i = 0; i < size; ++i)
+                        for (size_t j = 0; j < size; ++j)
+                            if (board[i][j] == '.' && solveSet[i][j].size() == 1) {
+                                board[i][j] = *solveSet[i][j].begin();
+                                repeat = true;
+
+                                for (size_t k = 0; k < size; ++k)
+                                    if (board[i][k] == '.')
+                                        solveSet[i][k].erase(board[i][j]);
+
+                                for (size_t k = 0; k < size; ++k)
+                                    if (board[k][j] == '.')
+                                        solveSet[k][j].erase(board[i][j]);
+
+                                for (size_t k = (i / 3) * 3; k < (1 + i / 3) * 3; ++k)
+                                    for (size_t l = (j / 3) * 3; l < (1 + j / 3) * 3; ++l)
+                                        if (board[k][l] == '.')
+                                            solveSet[k][l].erase(board[i][j]);
+                            }
+                }
+            }
+
+            void writeNumber(vector<vector<set<char>>>& solveSet, vector<vector<char>>& board, size_t i, size_t j) {
+                stack<pair<size_t, size_t>> indexes;
+                indexes.push({ i, j });
+
+                while (!indexes.empty())
+                {
+                    const auto& index = indexes.top();
+                    i = index.first;
+                    j = index.second;
+                    indexes.pop();
+                    if (board[i][j] == '.' && solveSet[i][j].size() == 1) {
+                        board[i][j] = *solveSet[i][j].begin();
+
+                        for (size_t k = 0; k < size; ++k)
+                            if (board[i][k] == '.') {
+                                solveSet[i][k].erase(board[i][j]);
+                                if (solveSet[i][k].size() == 1) {
+                                    indexes.push({ i, k });
+                                }
+                            }
+
+                        for (size_t k = 0; k < size; ++k)
+                            if (board[k][j] == '.') {
+                                solveSet[k][j].erase(board[i][j]);
+                            }
+
+                        for (size_t k = (i / 3) * 3; k < (1 + i / 3) * 3; ++k)
+                            for (size_t l = (j / 3) * 3; l < (1 + j / 3) * 3; ++l)
+                                if (board[k][l] == '.') {
+                                    solveSet[k][l].erase(board[i][j]);
+                                }
+                    }
+                }
+
+            }
+
+            bool checkSudoku(vector<vector<char>>& board) {
+                vector<int> unique(size, -1);
+                for (size_t i = 0; i < size; ++i)
+                    for (size_t j = 0; j < size; ++j)
+                    {
+                        if (board[i][j] == '.')
+                            continue;
+                        if (unique[board[i][j] - '1'] == i)
+                            return false;
+                        unique[board[i][j] - '1'] = i;
+                    }
+
+                for (size_t i = 0; i < size; ++i)
+                    unique[i] = -1;
+
+                for (size_t i = 0; i < size; ++i)
+                    for (size_t j = 0; j < size; ++j)
+                    {
+                        if (board[j][i] == '.')
+                            continue;
+                        if (unique[board[j][i] - '1'] == i)
+                            return false;
+                        unique[board[j][i] - '1'] = i;
+                    }
+
+                for (size_t i = 0; i < size; ++i)
+                    unique[i] = -1;
+
+                for (size_t k = 0; k < 3; ++k)
+                    for (size_t l = 0; l < 3; ++l)
+                        for (size_t i = k * 3; i < (k + 1) * 3; ++i)
+                            for (size_t j = l * 3; j < (l + 1) * 3; ++j)
+                            {
+                                if (board[i][j] == '.')
+                                    continue;
+                                if (unique[board[i][j] - '1'] == k * 3 + l)
+                                    return false;
+                                unique[board[i][j] - '1'] = k * 3 + l;
+                            }
+
+                return true;
+            }
+        };
+    }
+
     namespace task_46 {
         /*
         * https://leetcode.com/permutations/description/
@@ -2435,21 +2637,56 @@ namespace leetcode {
         */
         class Solution {
         public:
+            class Node {
+            public:
+                Node(const vector<int>& envelope) : widht(envelope[0]), height(envelope[1]) {}
+                int widht;
+                int height;
+                Node* left = nullptr;
+                Node* right = nullptr;
+            };
+            Node* tree;
+            vector<Node*> to_delete;
+
+            // sort by widht and then solve LIS for the height
             int maxEnvelopes(vector<vector<int>>& envelopes) {
-                sort(envelopes.begin(), envelopes.end());
-
+                set<vector<int>> envelopes_set;
                 const size_t size = envelopes.size();
-                size_t length = 0;
-                vector<int> countEnvelopes(size, 1);
+                for (size_t i = 0; i < size; i++)
+                    envelopes_set.insert(envelopes[i]);
 
-                for (size_t i = 0; i < size; i++) {
-                    size_t j = search(countEnvelopes, envelopes, i, envelopes[i]);
-                    ends_of_LIS[j] = min(ends_of_LIS[j], nums[i]);
-                    length = max(j + 1, length);
+                map<int, int> heights_inserted;
+                int max_inserted = 0;
+                int current_widht = 0;
+                stack<pair<size_t, int>> heights;
+                vector<int> height_of_inserted(envelopes_set.size(), INT_MAX);
+
+                for (const vector<int>& envelope : envelopes_set) {
+                    if (current_widht != envelope[0]) {
+                        while (!heights.empty()) {
+                            const pair<int, int>& height = heights.top();
+                            max_inserted = max(height.first + 1, max_inserted);
+                            height_of_inserted[height.first] = min(height_of_inserted[height.first], height.second);
+                            heights.pop();
+                        }
+                        current_widht = envelope[0];
+                    }
+
+                    size_t count_inserted = search(height_of_inserted, max_inserted, envelope[1]);
+                    heights.push({ count_inserted, envelope[1] });
                 }
+
+                while (!heights.empty()) {
+                    const pair<int, int>& height = heights.top();
+                    max_inserted = max(height.first + 1, max_inserted);
+                    height_of_inserted[height.first] = min(height_of_inserted[height.first], height.second);
+                    heights.pop();
+                }
+
+                return max_inserted;
             }
 
-            size_t search(const vector<int>& nums, const vector<vector<int>>& envelopes, size_t r, const vector<int>& target) {
+            size_t search(vector<int>& nums, size_t r, const int target) {
                 size_t l = 0;
                 if (nums[l] >= target)
                     return l;
@@ -2461,7 +2698,94 @@ namespace leetcode {
                     else
                         l = i;
                 }
-                return l;
+                return r;
+            }
+
+            Node* merge(Node* a, Node* b) {
+                if (!a || !b)
+                    return a ? a : b;
+                if (a->height >= b->height) {
+                    a->right = merge(a->right, b);
+                    return a;
+                } else {
+                    b->left = merge(a, b->left);
+                    return b;
+                }
+            }
+
+            void split(Node* n, int widht, Node*& a, Node*& b) {
+                if (!n) {
+                    a = nullptr;
+                    b = nullptr;
+                    return;
+                }
+                if (n->widht < widht) {
+                    split(n->right, widht, n->right, b);
+                    a = n;
+                }
+                else {
+                    split(n->left, widht, a, n->left);
+                    b = n;
+                }
+            }
+
+            void insert(const vector<int>& envelope) {
+                Node* left, * right;
+                split(tree, envelope[0], left, right);
+                tree = merge(left, merge(new Node(envelope), right));
+            }
+
+            int dfs(Node* n) {
+                if (!n)
+                    return 0;
+                to_delete.push_back(n);
+                return max(dfs(n->left) + 1, dfs(n->right));
+            }
+
+            int maxEnvelopesTree(vector<vector<int>>& envelopes) {
+                set<vector<int>> envelopes_set;
+                const size_t size = envelopes.size();
+                tree = nullptr;
+                to_delete.clear();
+                for (size_t i = 0; i < size; i++)
+                    envelopes_set.insert(envelopes[i]);
+
+                for (const vector<int>& envelope : envelopes_set)
+                    insert(envelope);
+
+                int res = dfs(tree);
+                for (size_t i = 0; i < to_delete.size(); i++)
+                    delete to_delete[i];
+                return res;
+            }
+
+            int maxEnvelopesSlow(vector<vector<int>>& envelopes) {
+                vector<pair<map<int, int>, set<int>>> insertedEnvelopes;
+                const size_t size = envelopes.size();
+                sort(envelopes.begin(), envelopes.end());
+
+                for (size_t i = 0; i < size; i++) {
+                    envelopes[i][0] = -envelopes[i][0];
+                    envelopes[i][1] = -envelopes[i][1];
+                    int j = insertedEnvelopes.size() - 1;
+                    for (; j >= 0; --j) {
+                        auto it = insertedEnvelopes[j].first.upper_bound(envelopes[i][0]);
+                        for (; it != insertedEnvelopes[j].first.end(); it++)
+                            if (it->second > envelopes[i][1])
+                                break;
+
+                        if (it != insertedEnvelopes[j].first.end())
+                            break;
+                    }
+                    ++j;
+                    if (j == insertedEnvelopes.size())
+                        insertedEnvelopes.push_back({ map<int, int>(), set<int>() });
+                    auto it_set = insertedEnvelopes[j].second.upper_bound(envelopes[i][1]);
+                    if (it_set == insertedEnvelopes[j].second.end())
+                        insertedEnvelopes[j].first.insert({ envelopes[i][0], envelopes[i][1] });
+                }
+
+                return insertedEnvelopes.size();
             }
         };
     }

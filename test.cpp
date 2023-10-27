@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_300;
+using namespace leetcode::task_354;
 
 int main() {
 #pragma region some_test
@@ -43,14 +43,13 @@ int main() {
     
     vector<int> v1({ 7,7,7,7,7,7,7 });
     vector<int> v2({ 1,2,3,4,5 });
-    vector<vector<int>> mat(4);
-    mat[0] = { 1,2,3,4 };
-    mat[1] = { 5,6,7,8 };
-    mat[2] = { 9,10,11,12 };
-    mat[3] = { 13,14,15,16 };
+    vector<vector<int>> mat(3);
+    mat[0] = { 1,1 };
+    mat[1] = { 2,2 };
+    mat[2] = { 3,4 };
     vector<string> words({ "bar","foo","the" });
     Solution k;
-    cout << k.lengthOfLIS(v1) << endl;
+    cout << k.maxEnvelopes(mat) << endl;
 
 #pragma region part1
     /*int* t1 = nullptr;
