@@ -23,5 +23,14 @@
     <ClInclude Include="leetcode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stepik_csc_1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stepik_csc_2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="some_test_code.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1905,9 +1905,10 @@ namespace leetcode {
             }
 
             void solve() {
-                while (countEmpty) {
-                    findOnePossible();
-                }
+
+                fillPossibleQueue();
+                findOnePossible();
+                if (countEmpty != 0)
             }
 
             bool chooseNumber(const size_t i, const size_t j, const int value) {
