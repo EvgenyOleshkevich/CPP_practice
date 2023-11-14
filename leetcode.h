@@ -1712,9 +1712,10 @@ namespace leetcode {
             vector<vector<int>> rowPossible;
             vector<vector<int>> columnPossible;
             vector<vector<int>> cellPossible;
-            set<pair<size_t, int>> rowCheck;
-            set<pair<size_t, int>> columnCheck;
-            set<pair<size_t, int>> cellCheck;
+            set<vector<size_t>> rowCheck;
+            set<vector<size_t>> columnCheck;
+            set<vector<size_t>> cellCheck;
+            stack<pair<size_t, size_t>> markIndexes;
             vector<vector<set<int>>> solveSet;
             vector<vector<int>> board;
 
@@ -1767,15 +1768,16 @@ namespace leetcode {
                         else
                             solveSet[i][j].insert(board[i][j]);
                     }
-                adjustOneSizeSet();
                 fillPossibles();
+                adjustOneSizeSet();
             }
 
             void adjustOneSizeSet() {
                 for (size_t i = 0; i < size; ++i)
                     for (size_t j = 0; j < size; ++j)
                         if (board[i][j] == 0 && solveSet[i][j].size() == 1)
-                            writeNumber(i, j);
+                            writeNumber(i, j, *solveSet[i][j].begin());
+                CheckNumber();
             }
 
             void fillPossibles() {
@@ -1792,165 +1794,119 @@ namespace leetcode {
                     }
             }
 
-            void writeNumber(size_t i, size_t j) {
-                stack<pair<size_t, size_t>> indexes;
-                board[i][j] = *solveSet[i][j].begin();
-                solveSet[i][j].clear();
-                indexes.push({ i, j });
-
-                while (!indexes.empty()) {
-                    const auto& index = indexes.top();
-                    i = index.first;
-                    j = index.second;
-                    indexes.pop();
+            void CheckNumber() {
+                while (!markIndexes.empty()) {
+                    const auto& index = markIndexes.top();
+                    size_t i = index.first;
+                    size_t j = index.second;
+                    markIndexes.pop();
 
                     for (size_t k = 0; k < size; ++k)
-                        if (board[i][k] == 0 &&
-                            solveSet[i][k].erase(board[i][j]) &&
-                            solveSet[i][k].size() == 1) {
-                            indexes.push({ i, k });
-                            board[i][k] = *solveSet[i][k].begin();
-                            solveSet[i][k].clear();
-                        }
-
-                    for (size_t k = 0; k < size; ++k)
-                        if (board[k][j] == 0 &&
-                            solveSet[k][j].erase(board[i][j]) &&
-                            solveSet[k][j].size() == 1) {
-                            indexes.push({ k, j });
-                            board[k][j] = *solveSet[k][j].begin();
-                            solveSet[k][j].clear();
-
-                        }
-
-                    for (size_t k = (i / 3) * 3; k < (1 + i / 3) * 3; ++k)
-                        for (size_t l = (j / 3) * 3; l < (1 + j / 3) * 3; ++l)
-                            if (board[k][l] == 0 &&
-                                solveSet[k][l].erase(board[i][j]) &&
-                                solveSet[k][l].size() == 1) {
-                                indexes.push({ k, l });
-                                board[k][l] = *solveSet[k][l].begin();
-                                solveSet[k][l].clear();
-                            }
-                }
-
-            }
-
-            void writeNumberCheck(size_t i, size_t j, const int value) {
-                stack<pair<size_t, size_t>> indexes;
-                writeAndCheck(i, j, value);
-                indexes.push({ i, j });
-
-                while (!indexes.empty())
-                {
-                    const auto& index = indexes.top();
-                    i = index.first;
-                    j = index.second;
-                    indexes.pop();
-
-                    for (size_t k = 0; k < size; ++k)
-                        if (board[i][k] == 0 && solveSet[i][k].erase(board[i][j])) {
+                        if (board[i][k] == 0 && solveSet[i][k].erase(board[i][j]))
                             markPossoble(i, k, board[i][j]);
-                            if (solveSet[i][k].size() == 1) {
-                                indexes.push({ i, k });
-                                writeAndCheck(i, k, *solveSet[i][k].begin());
-                            }
-                        }
 
                     for (size_t k = 0; k < size; ++k)
-                        if (board[k][j] == 0 && solveSet[k][j].erase(board[i][j])) {
+                        if (board[k][j] == 0 && solveSet[k][j].erase(board[i][j]))
                             markPossoble(k, j, board[i][j]);
-                            if (solveSet[k][j].size() == 1) {
-                                indexes.push({ k, j });
-                                writeAndCheck(k, j, *solveSet[k][j].begin());
-                            }
-                        }
 
                     for (size_t k = (i / 3) * 3; k < (1 + i / 3) * 3; ++k)
                         for (size_t l = (j / 3) * 3; l < (1 + j / 3) * 3; ++l)
-                            if (board[k][l] == 0 && solveSet[k][l].erase(board[i][j])) {
+                            if (board[k][l] == 0 && solveSet[k][l].erase(board[i][j]))
                                 markPossoble(k, l, board[i][j]);
-                                if (solveSet[k][l].size() == 1) {
-                                    indexes.push({ k, l });
-                                    writeAndCheck(k, l, *solveSet[k][l].begin());
-                                }
-                            }
                 }
-
             }
 
             void markPossoble(const size_t i, const size_t j, const int value) {
                 --rowPossible[i][value];
-                if (rowPossible[i][value] == 1)
-                    rowCheck.insert({ i, value });
                 --columnPossible[j][value];
-                if (columnPossible[j][value] == 1)
-                    columnCheck.insert({ j, value });
-                --cellPossible[(i / 3) * 3 + j / 3][value];
-                if (cellPossible[(i / 3) * 3 + j / 3][value] == 1)
-                    columnCheck.insert({ (i / 3) * 3 + j / 3, value });
+                const size_t cell_i = (i / 3) * 3 + j / 3;
+                --cellPossible[cell_i][value];
+
+                if (solveSet[i][j].size() == 1 ||
+                    rowPossible[i][value] == 1 ||
+                    columnPossible[j][value] == 1 ||
+                    cellPossible[cell_i][value] == 1)
+                    writeNumber(i, j, cell_i, value);
             }
 
-            void writeAndCheck(const size_t i, const size_t j, const int value) {
+            void writeNumber(const size_t i, const size_t j, const int value) {
+                writeNumber(i, j, (i / 3) * 3 + j / 3, value);
+            }
+
+            void writeNumber(const size_t i, const size_t j, const size_t cell_i, const int value) {
                 --countEmpty;
                 board[i][j] = value;
                 solveSet[i][j].clear();
-                rowPossible[i][board[i][j]] = 0;
-                columnPossible[j][board[i][j]] = 0;
-                cellPossible[(i / 3) * 3 + j / 3][board[i][j]] = 0;
-            }
-
-            void fillPossibleQueue() {
-                for (size_t i = 0; i < size; i++) {
-                    for (int j = 1; j < size + 1; j++)
-                        if (rowPossible[i][i] == 1)
-                            rowCheck.insert({ i, j });
-                    for (int j = 1; j < size + 1; j++)
-                        if (columnPossible[i][i] == 1)
-                            columnCheck.insert({ i, j });
-                    for (int j = 1; j < size + 1; j++)
-                        if (cellPossible[i][i] == 1)
-                            cellCheck.insert({ i, j });
-                }
-
+                rowPossible[i][value] = 0;
+                columnPossible[j][value] = 0;
+                cellPossible[cell_i][value] = 0;
+                markIndexes.push({ i, j });
             }
 
             void findOnePossible() {
-                while (!rowCheck.empty() && !columnCheck.empty() && !cellCheck.empty()) {
-                    if (!rowCheck.empty()) {
-                        auto row_value = *rowCheck.begin();
-                        rowCheck.erase(row_value);
+                for (int value = 1; value < size + 1; value++)
+                {
+                    for (size_t i = 0; i < size; i++)
+                        if (rowPossible[i][value] == 1)
+                            for (size_t j = 0; j < size; j++)
+                                if (solveSet[i][j].count(value))
+                                    writeNumber(i, j, value);
 
-                        for (size_t j = 0; j < size; j++)
-                            if (solveSet[row_value.first][j].count(row_value.second))
-                                writeNumberCheck(row_value.first, j, row_value.second);
-                    }
+                    for (size_t j = 0; j < size; j++)
+                        if (columnPossible[j][value] == 1)
+                            for (size_t i = 0; i < size; i++)
+                                if (solveSet[i][j].count(value))
+                                    writeNumber(i, j, value);
 
-                    if (!columnCheck.empty()) {
-                        auto column_value = *columnCheck.begin();
-                        columnCheck.erase(column_value);
-
-                        for (size_t i = 0; i < size; i++)
-                            if (solveSet[i][column_value.first].count(column_value.second))
-                                writeNumberCheck(i, column_value.first, column_value.second);
-                    }
-
-                    if (!cellCheck.empty()) {
-                        auto cell_value = *cellCheck.begin();
-                        cellCheck.erase(cell_value);
-
-                        for (size_t i = (cell_value.first / 3) * 3; i < (1 + cell_value.first / 3) * 3; i++)
-                            for (size_t j = (cell_value.first % 3) * 3; j < (1 + cell_value.first % 3) * 3; j++)
-                                if (solveSet[i][j].count(cell_value.second))
-                                    writeNumberCheck(i, j, cell_value.second);
-                    }
+                    for (size_t cell_i = 0; cell_i < size; cell_i++)
+                        if (cellPossible[cell_i][value] == 1)
+                            for (size_t i = (cell_i / 3) * 3; i < (1 + cell_i / 3) * 3; i++)
+                                for (size_t j = (cell_i % 3) * 3; j < (1 + cell_i % 3) * 3; j++)
+                                    if (solveSet[i][j].count(value))
+                                        writeNumber(i, j, cell_i, value);
                 }
+
+            }
+
+            void obviousPair() {
+                for (size_t i = 0; i < size; i++)
+                    for (size_t j = 1; j < size; j++)
+                        if (solveSet[i][j].size() == 2) {
+                            for (size_t row_i = i + 1; row_i < size; row_i++)
+                                if (solveSet[i][j] == solveSet[row_i][j])
+                                    for (size_t a = 0; a < size; a++)
+                                        if (a != i && a != row_i && board[a][j] == 0)
+                                            for (const int value : solveSet[i][j])
+                                                if (solveSet[a][j].erase(value))
+                                                    markPossoble(a, j, value);
+
+                            for (size_t column_i = i + 1; column_i < size; column_i++)
+                                if (solveSet[i][j] == solveSet[i][column_i])
+                                    for (size_t b = 0; b < size; b++)
+                                        if (b != j && b != column_i && board[i][b] == 0)
+                                            for (const int value : solveSet[i][j])
+                                                if (solveSet[i][b].erase(value))
+                                                    markPossoble(i, b, value);
+
+                            size_t cell_i_begin = (i / 3) * 3;
+                            size_t cell_i_end = (1 + i / 3) * 3;
+                            size_t cell_j_begin = (j / 3) * 3;
+                            size_t cell_j_end = (1 + j / 3) * 3;
+                            for (size_t cell_i = i; cell_i < cell_i_end; cell_i++)
+                                for (size_t cell_j = j + 1; cell_j < cell_j_end; cell_j++)
+                                    if (solveSet[i][j] == solveSet[cell_i][cell_j])
+                                        for (size_t a = cell_i_begin; a < cell_i_end; a++)
+                                            for (size_t b = cell_j_begin; b < cell_j_end; b++)
+                                                if (board[a][b] == 0 && solveSet[i][j] != solveSet[a][b])
+                                                    for (const int value : solveSet[i][j])
+                                                        if (solveSet[a][b].erase(value))
+                                                            markPossoble(a, b, value);
+                        }
             }
 
             void solve() {
                 while (countEmpty) {
                     findOnePossible();
-                    fillPossibleQueue();
                 }
             }
 
@@ -3729,41 +3685,6 @@ namespace leetcode {
         };
     }
 
-    namespace task_2300 {
-        /*
-        * https://leetcode.com/problems/successful-pairs-of-spells-and-potions/description/
-        */
-        class Solution {
-        public:
-            vector<int> successfulPairs(vector<int>& spells, vector<int>& potions, long long success) {
-                sort(potions.begin(), potions.end());
-                const size_t spells_size = spells.size();
-                vector<int> res(spells_size);
-                for (size_t i = 0; i < spells_size; i++)
-                    res[i] = search(potions, spells[i], success);
-                return res;
-            }
-
-            int search(vector<int>& nums, const long long mult, const long long target) {
-                size_t l = 0;
-                size_t r = nums.size();
-                if (nums[l] * mult >= target)
-                    return r;
-                if (nums[r - 1] * mult < target)
-                    return 0;
-
-                while (r - l > 1) {
-                    size_t i = (r + l) >> 1;
-                    if (nums[i] * mult >= target)
-                        r = i;
-                    else
-                        l = i;
-                }
-                return nums.size() - r;
-            }
-        };
-    }
-
     namespace task_2116 {
         /*
         * https://leetcode.com/problems/check-if-a-parentheses-string-can-be-valid/description/
@@ -3830,6 +3751,41 @@ namespace leetcode {
                 }
                 int diff = open_flex + open_locked - close_flex;
                 return diff <= open_flex * 2;
+            }
+        };
+    }
+
+    namespace task_2300 {
+        /*
+        * https://leetcode.com/problems/successful-pairs-of-spells-and-potions/description/
+        */
+        class Solution {
+        public:
+            vector<int> successfulPairs(vector<int>& spells, vector<int>& potions, long long success) {
+                sort(potions.begin(), potions.end());
+                const size_t spells_size = spells.size();
+                vector<int> res(spells_size);
+                for (size_t i = 0; i < spells_size; i++)
+                    res[i] = search(potions, spells[i], success);
+                return res;
+            }
+
+            int search(vector<int>& nums, const long long mult, const long long target) {
+                size_t l = 0;
+                size_t r = nums.size();
+                if (nums[l] * mult >= target)
+                    return r;
+                if (nums[r - 1] * mult < target)
+                    return 0;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) >> 1;
+                    if (nums[i] * mult >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return nums.size() - r;
             }
         };
     }
