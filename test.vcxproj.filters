@@ -23,13 +23,21 @@
     <ClInclude Include="leetcode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< Updated upstream
     <ClInclude Include="stepik_csc_1.h">
+=======
+    <ClInclude Include="some_test_code.h">
+>>>>>>> Stashed changes
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stepik_csc_2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< Updated upstream
     <ClInclude Include="some_test_code.h">
+=======
+    <ClInclude Include="stepik_csc_1.h">
+>>>>>>> Stashed changes
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

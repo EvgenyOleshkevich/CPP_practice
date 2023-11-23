@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_354;
+using namespace leetcode::task_712;
 
 int main() {
 #pragma region some_test
@@ -41,15 +41,21 @@ int main() {
     }
 #pragma endregion
     
-    vector<int> v1({ 7,7,7,7,7,7,7 });
+    vector<int> v1({ 0, 2 });
     vector<int> v2({ 1,2,3,4,5 });
     vector<vector<int>> mat(3);
-    mat[0] = { 1,1 };
-    mat[1] = { 2,2 };
-    mat[2] = { 3,4 };
-    vector<string> words({ "bar","foo","the" });
+    mat[0] = { 2,1,3 };
+    mat[1] = { 6,5,4 };
+    mat[2] = { 7,8,9 };
+    vector<vector<char>> mat_char(4);
+    mat_char[0] = { '1','0','1','0','0' };
+    mat_char[1] = { '1','0','1','1','1' };
+    mat_char[2] = { '1','1','1','1','1' };
+    mat_char[3] = { '1','0','0','1','0' };
+
+    vector<string> words({ "leet","code" });
     Solution k;
-    cout << k.maxEnvelopes(mat) << endl;
+    cout << k.minDistance("delete", "leet") << endl;
 
 #pragma region part1
     /*int* t1 = nullptr;
