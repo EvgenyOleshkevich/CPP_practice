@@ -2102,6 +2102,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_70 {
+        /*
+        * https://leetcode.com/problems/climbing-stairs/description/
+        */
+        class Solution {
+        public:
+            int climbStairs(int n) {
+                if (n < 3)
+                    return n;
+                int cur = 2;
+                int prev = 1;
+                for (size_t i = 2; i < n; i++) {
+                    int temp = cur + prev;
+                    prev = cur;
+                    cur = temp;
+                }
+                return cur;
+            }
+        };
+    }
+
     namespace task_74 {
         /*
         * https://leetcode.com/problems/search-a-2d-matrix/description/
@@ -2411,6 +2432,29 @@ namespace leetcode {
                         l = i;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_198 {
+        /*
+        * https://leetcode.com/problems/house-robber/description/
+        */
+        class Solution {
+        public:
+            int rob(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size == 1)
+                    return nums[0];
+                if (size == 2)
+                    return max(nums[0], nums[1]);
+                nums[2] += nums[0];
+                if (size == 3)
+                    return max(nums[1], nums[2]);
+
+                for (size_t i = 3; i < size; i++)
+                    nums[i] += max(nums[i - 2], nums[i - 3]);
+                return max(nums[size - 1], nums[size - 2]);
             }
         };
     }
@@ -2976,6 +3020,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_509 {
+        /*
+        * https://leetcode.com/problems/fibonacci-number/description/
+        */
+        class Solution {
+        public:
+            int fib(int n) {
+                if (n < 2)
+                    return n;
+                int cur = 1;
+                int prev = 1;
+                for (size_t i = 2; i < n; i++) {
+                    int temp = cur + prev;
+                    prev = cur;
+                    cur = temp;
+                }
+                return cur;
+            }
+        };
+    }
+
     namespace task_528 {
         /*
         * https://leetcode.com/problems/random-pick-with-weight/description/
@@ -3190,6 +3255,29 @@ namespace leetcode {
         };
     }
 
+    namespace task_740 {
+        /*
+        * https://leetcode.com/problems/delete-and-earn/description/
+        */
+        class Solution {
+        public:
+            int deleteAndEarn(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size == 1)
+                    return nums[0];
+                if (size == 2)
+                    return max(nums[0], nums[1]);
+                nums[2] += nums[0];
+                if (size == 3)
+                    return max(nums[1], nums[2]);
+
+                for (size_t i = 3; i < size; i++)
+                    nums[i] += max(nums[i - 2], nums[i - 3]);
+                return max(nums[size - 1], nums[size - 2]);
+            }
+        };
+    }
+
     namespace task_744 {
         /*
         * https://leetcode.com/problems/find-smallest-letter-greater-than-target/description/
@@ -3211,6 +3299,21 @@ namespace leetcode {
                         l = i;
                 }
                 return letters[r];
+            }
+        };
+    }
+
+    namespace task_746 {
+        /*
+        * https://leetcode.com/problems/min-cost-climbing-stairs/description/
+        */
+        class Solution {
+        public:
+            int minCostClimbingStairs(vector<int>& cost) {
+                const size_t size = cost.size();
+                for (size_t i = 2; i < size; i++)
+                    cost[i] += min(cost[i - 1], cost[i - 2]);
+                return min(cost[size - 1], cost[size - 2]);
             }
         };
     }
@@ -3319,6 +3422,31 @@ namespace leetcode {
             }
 
             map<int, map<string, string>> data;
+        };
+    }
+
+    namespace task_1137 {
+        /*
+        * https://leetcode.com/problems/n-th-tribonacci-number/description/
+        */
+        class Solution {
+        public:
+            int tribonacci(int n) {
+                if (n < 2)
+                    return n;
+                if (n == 2)
+                    return 1;
+                int cur = 2;
+                int prev = 1;
+                int prev_prev = 1;
+                for (size_t i = 3; i < n; i++) {
+                    int temp = cur + prev + prev_prev;
+                    prev_prev = prev;
+                    prev = cur;
+                    cur = temp;
+                }
+                return cur;
+            }
         };
     }
 
