@@ -3693,29 +3693,6 @@ namespace leetcode {
         class Solution {
         public:
             int deleteAndEarn(vector<int>& nums) {
-                const size_t size = nums.size();
-                if (size == 1)
-                    return nums[0];
-                if (size == 2)
-                    return max(nums[0], nums[1]);
-                nums[2] += nums[0];
-                if (size == 3)
-                    return max(nums[1], nums[2]);
-
-                for (size_t i = 3; i < size; i++)
-                    nums[i] += max(nums[i - 2], nums[i - 3]);
-                return max(nums[size - 1], nums[size - 2]);
-            }
-        };
-    }
-
-    namespace task_740 {
-        /*
-        * https://leetcode.com/problems/delete-and-earn/description/
-        */
-        class Solution {
-        public:
-            int deleteAndEarn(vector<int>& nums) {
                 sort(nums.begin(), nums.end());
                 reverse(nums.begin(), nums.end());
                 size_t size = nums.size();
