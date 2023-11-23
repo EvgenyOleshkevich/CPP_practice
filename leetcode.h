@@ -2080,6 +2080,100 @@ namespace leetcode {
         };
     }
 
+    namespace task_62 {
+        /*
+        * https://leetcode.com/problems/unique-paths/description/
+        */
+        class Solution {
+        public:
+            int uniquePaths(int m, int n) {
+                vector<vector<int>> matrix(m, (vector<int>(n)));
+                matrix[0][0] = 1;
+                for (size_t i = 0; i < m; i++)
+                    matrix[i][0] = 1;
+                for (size_t j = 0; j < n; j++)
+                    matrix[0][j] = 1;
+
+                for (size_t i = 1; i < m; i++)
+                    for (size_t j = 1; j < n; j++)
+                        matrix[i][j] = matrix[i][j - 1] + matrix[i - 1][j];
+
+                return matrix[m - 1][n - 1];
+            }
+
+            int uniquePaths_math(int m, int n) {
+                int t = min(m, n) - 1;
+                m = m + n - 2;
+                n = t;
+                unsigned long long res = 1;
+                for (int i = 1; i <= n; ++i)
+                    res = ((m - i + 1) * res) / i;
+                return res;
+            }
+        };
+    }
+
+    namespace task_63 {
+        /*
+        * https://leetcode.com/problems/unique-paths-ii/description/
+        */
+        class Solution {
+        public:
+            int uniquePathsWithObstacles(vector<vector<int>>& obstacleGrid) {
+                const size_t m = obstacleGrid.size();
+                const size_t n = obstacleGrid[0].size();
+                if (obstacleGrid[0][0] == 1 || obstacleGrid[m - 1][n - 1] == 1)
+                    return 0;
+
+                obstacleGrid[0][0] = 1;
+                for (size_t i = 1; i < m; i++)
+                    if (obstacleGrid[i][0] == 0)
+                        obstacleGrid[i][0] = obstacleGrid[i - 1][0];
+                    else
+                        obstacleGrid[i][0] = 0;
+                for (size_t j = 1; j < n; j++)
+                    if (obstacleGrid[0][j] == 0)
+                        obstacleGrid[0][j] = obstacleGrid[0][j - 1];
+                    else
+                        obstacleGrid[0][j] = 0;
+
+                for (size_t i = 1; i < m; i++)
+                    for (size_t j = 1; j < n; j++)
+                        if (obstacleGrid[i][j] == 0)
+                            obstacleGrid[i][j] = obstacleGrid[i][j - 1] + obstacleGrid[i - 1][j];
+                        else
+                            obstacleGrid[i][j] = 0;
+
+                return obstacleGrid[m - 1][n - 1];
+            }
+        };
+    }
+
+    namespace task_64 {
+        /*
+        * https://leetcode.com/problems/minimum-path-sum/description/
+        */
+        class Solution {
+        public:
+            int minPathSum(vector<vector<int>>& grid) {
+                const size_t m = grid.size();
+                const size_t n = grid[0].size();
+
+                for (size_t i = 1; i < m; i++)
+                    grid[i][0] += grid[i - 1][0];
+
+                for (size_t j = 1; j < n; j++)
+                    grid[0][j] += grid[0][j - 1];
+
+                for (size_t i = 1; i < m; i++)
+                    for (size_t j = 1; j < n; j++)
+                        grid[i][j] += min(grid[i][j - 1], grid[i - 1][j]);
+
+                return grid[m - 1][n - 1];
+            }
+        };
+    }
+
     namespace task_69 {
         /*
         * https://leetcode.com/problems/sqrtx/description/
@@ -2119,6 +2213,40 @@ namespace leetcode {
                     cur = temp;
                 }
                 return cur;
+            }
+        };
+    }
+
+    namespace task_72 {
+        /*
+        * https://leetcode.com/problems/edit-distance/description/
+        */
+        class Solution {
+        public:
+            int minDistance(string word1, string word2) {
+                const size_t size1 = word1.size();
+                const size_t size2 = word2.size();
+                if (size1 == 0 || size2 == 0)
+                    return size1 + size2;
+                vector<vector<int>> result(size1, vector<int>(size2));
+                int is_first_letter_same = 0;
+                for (size_t j = 0; j < size2; j++) {
+                    if (word1[0] == word2[j])
+                        is_first_letter_same = 1;
+                    result[0][j] = j + 1 - is_first_letter_same;
+                }
+                is_first_letter_same = 0;
+                for (size_t i = 0; i < size1; i++) {
+                    if (word1[i] == word2[0])
+                        is_first_letter_same = 1;
+                    result[i][0] = i + 1 - is_first_letter_same;
+                }
+
+                for (size_t i = 1; i < size1; i++)
+                    for (size_t j = 1; j < size2; j++)
+                        result[i][j] = min(min(result[i][j - 1] + 1, result[i - 1][j] + 1),
+                            result[i - 1][j - 1] + (word1[i] == word2[j] ? 0 : 1));
+                return result.back().back();
             }
         };
     }
@@ -2327,6 +2455,30 @@ namespace leetcode {
         };
     }
 
+    namespace task_115 {
+        /*
+        * https://leetcode.com/problems/distinct-subsequences/description/
+        */
+        class Solution {
+        public:
+            int numDistinct(string s, string t) {
+                const size_t size1 = s.size();
+                const size_t size2 = t.size();
+                if (size1 < size2)
+                    return 0;
+                vector<vector<long long>> result(size1, vector<long long>(size2));
+                result[0][0] = s[0] == t[0] ? 1 : 0;
+                for (size_t i = 1; i < size1 + 1 - size2; i++)
+                    result[i][0] = result[i - 1][0] + (s[i] == t[0] ? 1 : 0);
+
+                for (size_t j = 1; j < size2; j++)
+                    for (size_t i = j; i < size1 + 1 + j - size2; i++)
+                        result[i][j] += result[i - 1][j] + (s[i] == t[j] ? result[i - 1][j - 1] : 0);
+                return result.back().back();
+            }
+        };
+    }
+
     namespace task_118 {
         /*
         * https://leetcode.com/problems/pascals-triangle/
@@ -2360,6 +2512,130 @@ namespace leetcode {
                 for (size_t k = 1; k <= rowIndex; k++)
                     res[k] = res[k - 1] * (rowIndex - k + 1) / k;
                 return res;
+            }
+        };
+    }
+
+    namespace task_120 {
+        /*
+        * https://leetcode.com/problems/triangle/description/
+        */
+        class Solution {
+        public:
+            int minimumTotal(vector<vector<int>>& triangle) {
+                const size_t size = triangle.size();
+
+                for (size_t i = 1; i < size; i++)
+                    for (size_t j = 0; j <= i; j++)
+                        triangle[i][j] += min(j < i ? triangle[i - 1][j] : INT_MAX,
+                            j > 0 ? triangle[i - 1][j - 1] : INT_MAX);
+
+                int min_path = INT_MAX;
+                for (size_t j = 0; j < size; j++)
+                    if (min_path > triangle.back()[j])
+                        min_path = triangle.back()[j];
+
+                return min_path;
+            }
+        };
+    }
+
+    namespace task_139 {
+        /*
+        * https://leetcode.com/problems/word-break/description/
+        */
+        class Solution {
+        public:
+            bool wordBreak(string s, vector<string>& wordDict) {
+                const size_t size = s.size();
+                vector<char> result(size, 0);
+
+                for (size_t i = 0; i < size; i++)
+                    for (size_t j = 0; j < wordDict.size(); j++) {
+                        const size_t word_size = wordDict[j].size();
+                        if (word_size > i + 1)
+                            continue;
+
+                        if ((word_size == i + 1 || result[i - word_size]) && s.substr(i + 1 - word_size, word_size) == wordDict[j]) {
+                            result[i] = 1;
+                            break;
+                        }
+                    }
+                return result.back();
+            }
+        };
+    }
+
+    namespace task_140 {
+        /*
+        * https://leetcode.com/problems/word-break-ii/description/
+        */
+        class Solution {
+        public:
+            vector<string> wordBreak(string s, vector<string>& wordDict) {
+                const size_t size = s.size();
+                vector<vector<size_t>> word_indexer(size);
+
+                for (size_t i = 0; i < size; i++)
+                    for (size_t j = 0; j < wordDict.size(); j++) {
+                        const size_t word_size = wordDict[j].size();
+                        if (word_size > i + 1)
+                            continue;
+
+                        if ((word_size == i + 1 || !word_indexer[i - word_size].empty()) && s.substr(i + 1 - word_size, word_size) == wordDict[j]) {
+                            word_indexer[i].push_back(j);
+                        }
+                    }
+
+                return buildResult(word_indexer, size - 1, wordDict);
+            }
+
+            vector<string> buildResult(const vector<vector<size_t>>& word_indexer, const size_t s_pos, const vector<string>& wordDict) {
+                vector<string> result;
+                for (size_t i = 0; i < word_indexer[s_pos].size(); i++) {
+                    const size_t word_size = wordDict[word_indexer[s_pos][i]].size();
+                    if (word_size > s_pos) {
+                        result.push_back(wordDict[word_indexer[s_pos][i]]);
+                        continue;
+                    }
+                    auto words = buildResult(word_indexer, s_pos - word_size, wordDict);
+                    for (size_t j = 0; j < words.size(); j++) {
+                        words[j] += " " + wordDict[word_indexer[s_pos][i]];
+                        result.push_back(words[j]);
+                    }
+                }
+                return result;
+            }
+        };
+    }
+
+    namespace task_152 {
+        /*
+        * https://leetcode.com/problems/maximum-product-subarray/description/
+        */
+        class Solution {
+        public:
+            int maxProduct(vector<int>& nums) {
+                int max_prod = INT_MIN;
+                int prod = 1;
+
+                for (int i = 0; i < nums.size(); i++)
+                {
+                    prod *= nums[i];
+                    max_prod = max(prod, max_prod);
+                    if (prod == 0)
+                        prod = 1;
+                }
+                prod = 1;
+                for (int i = nums.size() - 1; i >= 0; i--)
+                {
+                    prod *= nums[i];
+
+                    max_prod = max(prod, max_prod);
+                    if (prod == 0)
+                        prod = 1;
+                }
+                return max_prod;
             }
         };
     }
@@ -2513,6 +2789,36 @@ namespace leetcode {
                 head->next = nullptr;
 
                 return ptr;
+            }
+        };
+    }
+
+    namespace task_221 {
+        /*
+        * https://leetcode.com/problems/maximal-square/description/
+        */
+        class Solution {
+        public:
+            int maximalSquare(vector<vector<char>>& matrix) {
+                const size_t m = matrix.size();
+                const size_t n = matrix[0].size();
+                vector<vector<int>> square_matrix(m, vector<int>(n));
+                for (size_t i = 0; i < m; i++)
+                    square_matrix[i][0] = matrix[i][0] - '0';
+                for (size_t j = 1; j < n; j++)
+                    square_matrix[0][j] = matrix[0][j] - '0';
+
+                for (size_t i = 1; i < m; i++)
+                    for (size_t j = 1; j < n; j++)
+                        if (matrix[i][j] == '1')
+                            square_matrix[i][j] = 1 + min(min(square_matrix[i - 1][j], square_matrix[i][j - 1]), square_matrix[i - 1][j - 1]);
+
+                int max_size = 0;
+                for (size_t i = 0; i < m; i++)
+                    for (size_t j = 0; j < n; j++)
+                        if (max_size < square_matrix[i][j])
+                            max_size = square_matrix[i][j];
+                return max_size * max_size;
             }
         };
     }
@@ -3041,6 +3347,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_516 {
+        /*
+        * https://leetcode.com/problems/longest-palindromic-subsequence/description/
+        */
+        class Solution {
+        public:
+            int longestPalindromeSubseq(string s) {
+                const size_t size = s.size();
+                vector<int> length_palindrome(size);
+
+                for (size_t i = 0; i < size; i++) {
+                    length_palindrome[i] = 1;
+                    int max_palindrome_between = 0;
+                    int j = i - 1;
+                    for (; j >= 0; --j) {
+                        int temp = max_palindrome_between;
+                        if (max_palindrome_between < length_palindrome[j])
+                            temp = length_palindrome[j];
+                        if (s[j] == s[i])
+                            length_palindrome[j] = max_palindrome_between + 2;
+                        max_palindrome_between = temp;
+                    }
+                }
+
+                int max_palindrome = 0;
+                for (size_t i = 0; i < size; i++)
+                    if (max_palindrome < length_palindrome[i])
+                        max_palindrome = length_palindrome[i];
+                return max_palindrome;
+            }
+        };
+    }
+
     namespace task_528 {
         /*
         * https://leetcode.com/problems/random-pick-with-weight/description/
@@ -3108,6 +3447,40 @@ namespace leetcode {
                     }
                 }
                 return nums[l + 1];
+            }
+        };
+    }
+
+    namespace task_583 {
+        /*
+        * https://leetcode.com/problems/delete-operation-for-two-strings/description/
+        */
+        class Solution {
+        public:
+            int minDistance(string word1, string word2) {
+                const size_t size1 = word1.size();
+                const size_t size2 = word2.size();
+                if (size1 == 0 || size2 == 0)
+                    return size1 + size2;
+                vector<vector<int>> result(size1, vector<int>(size2));
+                int is_first_letter_same = 0;
+                for (size_t j = 0; j < size2; j++) {
+                    if (word1[0] == word2[j])
+                        is_first_letter_same = 2;
+                    result[0][j] = j + 2 - is_first_letter_same;
+                }
+                is_first_letter_same = 0;
+                for (size_t i = 0; i < size1; i++) {
+                    if (word1[i] == word2[0])
+                        is_first_letter_same = 2;
+                    result[i][0] = i + 2 - is_first_letter_same;
+                }
+
+                for (size_t i = 1; i < size1; i++)
+                    for (size_t j = 1; j < size2; j++)
+                        result[i][j] = min(min(result[i][j - 1] + 1, result[i - 1][j] + 1),
+                            result[i - 1][j - 1] + (word1[i] == word2[j] ? 0 : 2));
+                return result.back().back();
             }
         };
     }
@@ -3184,6 +3557,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_647 {
+        /*
+        * https://leetcode.com/problems/palindromic-substrings/description/
+        */
+        class Solution {
+        public:
+            int countSubstrings(string s) {
+                int count = 0;
+                size_t length = s.size() * 2 - 1;
+
+                for (size_t i = 0; i < length; i++) {
+                    int index = i / 2;
+                    int left = index + i % 2;
+                    int right = index;
+                    count += (i + 1) % 2;
+                    while (true) {
+                        --left;
+                        ++right;
+                        if (0 > left ||
+                            right == s.size() ||
+                            s[left] != s[right]) {
+                            --right;
+                            ++left;
+                            break;
+                        }
+                        ++count;
+                    }
+                }
+                return count;
+            }
+        };
+    }
+
     namespace task_658 {
         /*
         * https://leetcode.com/problems/find-k-closest-elements/description/
@@ -3255,6 +3661,31 @@ namespace leetcode {
         };
     }
 
+    namespace task_712 {
+        /*
+        * https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/description/
+        */
+        class Solution {
+        public:
+            int minDistance(string s1, string s2) {
+                const size_t size1 = s1.size() + 1;
+                const size_t size2 = s2.size() + 1;
+                vector<vector<int>> result(size1, vector<int>(size2));
+                result[0][0] = 0;
+                for (size_t j = 1; j < size2; j++)
+                    result[0][j] = result[0][j - 1] + s2[j - 1];
+                for (size_t i = 1; i < size1; i++)
+                    result[i][0] = result[i - 1][0] + s1[i - 1];
+
+                for (size_t i = 1; i < size1; i++)
+                    for (size_t j = 1; j < size2; j++)
+                        result[i][j] = min(min(result[i][j - 1] + s2[j - 1], result[i - 1][j] + s1[i - 1]),
+                            result[i - 1][j - 1] + (s1[i - 1] == s2[j - 1] ? 0 : (s1[i - 1] + s2[j - 1])));
+                return result.back().back();
+            }
+        };
+    }
+
     namespace task_740 {
         /*
         * https://leetcode.com/problems/delete-and-earn/description/
@@ -3274,6 +3705,47 @@ namespace leetcode {
                 for (size_t i = 3; i < size; i++)
                     nums[i] += max(nums[i - 2], nums[i - 3]);
                 return max(nums[size - 1], nums[size - 2]);
+            }
+        };
+    }
+
+    namespace task_740 {
+        /*
+        * https://leetcode.com/problems/delete-and-earn/description/
+        */
+        class Solution {
+        public:
+            int deleteAndEarn(vector<int>& nums) {
+                sort(nums.begin(), nums.end());
+                reverse(nums.begin(), nums.end());
+                size_t size = nums.size();
+
+                vector<vector<int>> num_count_points;
+                for (size_t i = 0; i < size;) {
+                    int last = nums[i];
+                    num_count_points.push_back(vector<int>({ last , 0, 0 }));
+                    for (; i < size && nums[i] == last; ++i)
+                        ++num_count_points.back()[1];
+                    num_count_points.back()[2] = last * num_count_points.back()[1];
+                }
+                size = num_count_points.size();
+                int global_max_points = num_count_points[0][2];
+                for (size_t i = 1; i < size; ++i) {
+                    int prev_points = num_count_points[i][0] + 1 != num_count_points[i - 1][0] ?
+                        num_count_points[i - 1][2] :
+                        0;
+                    int prev_prev_points = i > 1 ?
+                        num_count_points[i - 2][2] :
+                        0;
+                    int prev_prev_prev_points = i > 2 ?
+                        num_count_points[i - 3][2] :
+                        0;
+                    num_count_points[i][2] += max(max(prev_points, prev_prev_points), prev_prev_prev_points);
+
+                    if (global_max_points < num_count_points[i][2])
+                        global_max_points = num_count_points[i][2];
+                }
+                return global_max_points;
             }
         };
     }
@@ -3392,6 +3864,31 @@ namespace leetcode {
                         r = i + 1;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_931 {
+        /*
+        * https://leetcode.com/problems/minimum-falling-path-sum/description/
+        */
+        class Solution {
+        public:
+            int minFallingPathSum(vector<vector<int>>& matrix) {
+                const size_t size = matrix.size();
+
+                for (size_t i = 1; i < size; i++)
+                    for (size_t j = 0; j < size; j++)
+                        matrix[i][j] += min(min(j > 0 ? matrix[i - 1][j - 1] : INT_MAX,
+                            j + 1 < size ? matrix[i - 1][j + 1] : INT_MAX),
+                            matrix[i - 1][j]);
+
+                int min_path = INT_MAX;
+                for (size_t j = 0; j < size; j++)
+                    if (min_path > matrix.back()[j])
+                        min_path = matrix.back()[j];
+
+                return min_path;
             }
         };
     }
@@ -3956,505 +4453,6 @@ namespace leetcode {
                 }
 
                 return max(count_neg, size - r);
-            }
-        };
-    }
-}
-
-namespace leetcode {
-    namespace task_62 {
-        /*
-        * https://leetcode.com/problems/unique-paths/description/
-        */
-        class Solution {
-        public:
-            int uniquePaths(int m, int n) {
-                vector<vector<int>> matrix(m, (vector<int>(n)));
-                matrix[0][0] = 1;
-                for (size_t i = 0; i < m; i++)
-                    matrix[i][0] = 1;
-                for (size_t j = 0; j < n; j++)
-                    matrix[0][j] = 1;
-
-                for (size_t i = 1; i < m; i++)
-                    for (size_t j = 1; j < n; j++)
-                        matrix[i][j] = matrix[i][j - 1] + matrix[i - 1][j];
-
-                return matrix[m - 1][n - 1];
-            }
-
-            int uniquePaths_math(int m, int n) {
-                int t = min(m, n) - 1;
-                m = m + n - 2;
-                n = t;
-                unsigned long long res = 1;
-                for (int i = 1; i <= n; ++i)
-                    res = ((m - i + 1) * res) / i;
-                return res;
-            }
-        };
-    }
-
-    namespace task_63 {
-        /*
-        * https://leetcode.com/problems/unique-paths-ii/description/
-        */
-        class Solution {
-        public:
-            int uniquePathsWithObstacles(vector<vector<int>>& obstacleGrid) {
-                const size_t m = obstacleGrid.size();
-                const size_t n = obstacleGrid[0].size();
-                if (obstacleGrid[0][0] == 1 || obstacleGrid[m - 1][n - 1] == 1)
-                    return 0;
-
-                obstacleGrid[0][0] = 1;
-                for (size_t i = 1; i < m; i++)
-                    if (obstacleGrid[i][0] == 0)
-                        obstacleGrid[i][0] = obstacleGrid[i - 1][0];
-                    else
-                        obstacleGrid[i][0] = 0;
-                for (size_t j = 1; j < n; j++)
-                    if (obstacleGrid[0][j] == 0)
-                        obstacleGrid[0][j] = obstacleGrid[0][j - 1];
-                    else
-                        obstacleGrid[0][j] = 0;
-
-                for (size_t i = 1; i < m; i++)
-                    for (size_t j = 1; j < n; j++)
-                        if (obstacleGrid[i][j] == 0)
-                            obstacleGrid[i][j] = obstacleGrid[i][j - 1] + obstacleGrid[i - 1][j];
-                        else
-                            obstacleGrid[i][j] = 0;
-
-                return obstacleGrid[m - 1][n - 1];
-            }
-        };
-    }
-
-    namespace task_64 {
-        /*
-        * https://leetcode.com/problems/minimum-path-sum/description/
-        */
-        class Solution {
-        public:
-            int minPathSum(vector<vector<int>>& grid) {
-                const size_t m = grid.size();
-                const size_t n = grid[0].size();
-
-                for (size_t i = 1; i < m; i++)
-                    grid[i][0] += grid[i - 1][0];
-
-                for (size_t j = 1; j < n; j++)
-                        grid[0][j] += grid[0][j - 1];
-
-                for (size_t i = 1; i < m; i++)
-                    for (size_t j = 1; j < n; j++)
-                            grid[i][j] += min(grid[i][j - 1], grid[i - 1][j]);
-
-                return grid[m - 1][n - 1];
-            }
-        };
-    }
-
-    namespace task_72 {
-        /*
-        * https://leetcode.com/problems/edit-distance/description/
-        */
-        class Solution {
-        public:
-            int minDistance(string word1, string word2) {
-                const size_t size1 = word1.size();
-                const size_t size2 = word2.size();
-                if (size1 == 0 || size2 == 0)
-                    return size1 + size2;
-                vector<vector<int>> result(size1, vector<int>(size2));
-                int is_first_letter_same = 0;
-                for (size_t j = 0; j < size2; j++) {
-                    if (word1[0] == word2[j])
-                        is_first_letter_same = 1;
-                    result[0][j] = j + 1 - is_first_letter_same;
-                }
-                is_first_letter_same = 0;
-                for (size_t i = 0; i < size1; i++) {
-                    if (word1[i] == word2[0])
-                        is_first_letter_same = 1;
-                    result[i][0] = i + 1 - is_first_letter_same;
-                }
-
-                for (size_t i = 1; i < size1; i++)
-                    for (size_t j = 1; j < size2; j++)
-                        result[i][j] = min(min(result[i][j - 1] + 1, result[i - 1][j] + 1),
-                            result[i - 1][j - 1] + (word1[i] == word2[j] ? 0 : 1));
-                return result.back().back();
-            }
-        };
-    }
-
-    namespace task_115 {
-        /*
-        * https://leetcode.com/problems/distinct-subsequences/description/
-        */
-        class Solution {
-        public:
-            int numDistinct(string s, string t) {
-                const size_t size1 = s.size();
-                const size_t size2 = t.size();
-                if (size1 < size2)
-                    return 0;
-                vector<vector<long long>> result(size1, vector<long long>(size2));
-                result[0][0] = s[0] == t[0] ? 1 : 0;
-                for (size_t i = 1; i < size1 + 1 - size2; i++)
-                    result[i][0] = result[i - 1][0] + (s[i] == t[0] ? 1 : 0);
-
-                for (size_t j = 1; j < size2; j++)
-                    for (size_t i = j; i < size1 + 1 + j - size2; i++)
-                        result[i][j] += result[i - 1][j] + (s[i] == t[j] ? result[i - 1][j - 1] : 0);
-                return result.back().back();
-            }
-        };
-    }
-
-    namespace task_120 {
-        /*
-        * https://leetcode.com/problems/triangle/description/
-        */
-        class Solution {
-        public:
-            int minimumTotal(vector<vector<int>>& triangle) {
-                const size_t size = triangle.size();
-
-                for (size_t i = 1; i < size; i++)
-                    for (size_t j = 0; j <= i; j++)
-                        triangle[i][j] += min(j < i ? triangle[i - 1][j] : INT_MAX,
-                                                j > 0 ? triangle[i - 1][j - 1] : INT_MAX);
-
-                int min_path = INT_MAX;
-                for (size_t j = 0; j < size; j++)
-                    if (min_path > triangle.back()[j])
-                        min_path = triangle.back()[j];
-
-                return min_path;
-            }
-        };
-    }
-
-    namespace task_139 {
-        /*
-        * https://leetcode.com/problems/word-break/description/
-        */
-        class Solution {
-        public:
-            bool wordBreak(string s, vector<string>& wordDict) {
-                const size_t size = s.size();
-                vector<char> result(size, 0);
-
-                for (size_t i = 0; i < size; i++) 
-                    for (size_t j = 0; j < wordDict.size(); j++) {
-                        const size_t word_size = wordDict[j].size();
-                        if (word_size > i + 1)
-                            continue;
-
-                        if ((word_size == i + 1 || result[i - word_size]) && s.substr(i + 1 - word_size, word_size) == wordDict[j]) {
-                            result[i] = 1;
-                            break;
-                        }
-                    }
-                return result.back();
-            }
-        };
-    }
-
-    namespace task_140 {
-        /*
-        * https://leetcode.com/problems/word-break-ii/description/
-        */
-        class Solution {
-        public:
-            vector<string> wordBreak(string s, vector<string>& wordDict) {
-                const size_t size = s.size();
-                vector<vector<size_t>> word_indexer(size);
-
-                for (size_t i = 0; i < size; i++)
-                    for (size_t j = 0; j < wordDict.size(); j++) {
-                        const size_t word_size = wordDict[j].size();
-                        if (word_size > i + 1)
-                            continue;
-
-                        if ((word_size == i + 1 || !word_indexer[i - word_size].empty()) && s.substr(i + 1 - word_size, word_size) == wordDict[j]) {
-                            word_indexer[i].push_back(j);
-                        }
-                    }
-
-                return buildResult(word_indexer, size - 1, wordDict);
-            }
-
-            vector<string> buildResult(const vector<vector<size_t>>& word_indexer, const size_t s_pos, const vector<string>& wordDict) {
-                vector<string> result;
-                for (size_t i = 0; i < word_indexer[s_pos].size(); i++) {
-                    const size_t word_size = wordDict[word_indexer[s_pos][i]].size();
-                    if (word_size > s_pos) {
-                        result.push_back(wordDict[word_indexer[s_pos][i]]);
-                        continue;
-                    }
-                    auto words = buildResult(word_indexer, s_pos - word_size, wordDict);
-                    for (size_t j = 0; j < words.size(); j++) {
-                        words[j] += " " + wordDict[word_indexer[s_pos][i]];
-                        result.push_back(words[j]);
-                    }
-                }
-                return result;
-            }
-        };
-    }
-
-    namespace task_152 {
-        /*
-        * https://leetcode.com/problems/maximum-product-subarray/description/
-        */
-        class Solution {
-        public:
-            int maxProduct(vector<int>& nums) {
-                int max_prod = INT_MIN;
-                int prod = 1;
-
-                for (int i = 0; i < nums.size(); i++)
-                {
-                    prod *= nums[i];
-                    max_prod = max(prod, max_prod);
-                    if (prod == 0)
-                        prod = 1;
-                }
-                prod = 1;
-                for (int i = nums.size() - 1; i >= 0; i--)
-                {
-                    prod *= nums[i];
-
-                    max_prod = max(prod, max_prod);
-                    if (prod == 0)
-                        prod = 1;
-                }
-                return max_prod;
-            }
-        };
-    }
-
-    namespace task_221 {
-        /*
-        * https://leetcode.com/problems/maximal-square/description/
-        */
-        class Solution {
-        public:
-            int maximalSquare(vector<vector<char>>& matrix) {
-                const size_t m = matrix.size();
-                const size_t n = matrix[0].size();
-                vector<vector<int>> square_matrix(m, vector<int>(n));
-                for (size_t i = 0; i < m; i++)
-                    square_matrix[i][0] = matrix[i][0] - '0';
-                for (size_t j = 1; j < n; j++)
-                    square_matrix[0][j] = matrix[0][j] - '0';
-
-                for (size_t i = 1; i < m; i++)
-                    for (size_t j = 1; j < n; j++)
-                        if (matrix[i][j] == '1')
-                            square_matrix[i][j] = 1 + min(min(square_matrix[i - 1][j], square_matrix[i][j - 1]), square_matrix[i - 1][j - 1]);
-
-                int max_size = 0;
-                for (size_t i = 0; i < m; i++)
-                    for (size_t j = 0; j < n; j++)
-                        if (max_size < square_matrix[i][j])
-                            max_size = square_matrix[i][j];
-                return max_size * max_size;
-            }
-        };
-    }
-
-    namespace task_516 {
-        /*
-        * https://leetcode.com/problems/longest-palindromic-subsequence/description/
-        */
-        class Solution {
-        public:
-            int longestPalindromeSubseq(string s) {
-                const size_t size = s.size();
-                vector<int> length_palindrome(size);
-
-                for (size_t i = 0; i < size; i++) {
-                    length_palindrome[i] = 1;
-                    int max_palindrome_between = 0;
-                    int j = i - 1;
-                    for (; j >= 0; --j) {
-                        int temp = max_palindrome_between;
-                        if (max_palindrome_between < length_palindrome[j])
-                            temp = length_palindrome[j];
-                        if (s[j] == s[i])
-                            length_palindrome[j] = max_palindrome_between + 2;
-                        max_palindrome_between = temp;
-                    }
-                }
-
-                int max_palindrome = 0;
-                for (size_t i = 0; i < size; i++)
-                    if (max_palindrome < length_palindrome[i])
-                        max_palindrome = length_palindrome[i];
-                return max_palindrome;
-            }
-        };
-    }
-
-    namespace task_583 {
-        /*
-        * https://leetcode.com/problems/delete-operation-for-two-strings/description/
-        */
-        class Solution {
-        public:
-            int minDistance(string word1, string word2) {
-                const size_t size1 = word1.size();
-                const size_t size2 = word2.size();
-                if (size1 == 0 || size2 == 0)
-                    return size1 + size2;
-                vector<vector<int>> result(size1, vector<int>(size2));
-                int is_first_letter_same = 0;
-                for (size_t j = 0; j < size2; j++) {
-                    if (word1[0] == word2[j])
-                        is_first_letter_same = 2;
-                    result[0][j] = j + 2 - is_first_letter_same;
-                }
-                is_first_letter_same = 0;
-                for (size_t i = 0; i < size1; i++) {
-                    if (word1[i] == word2[0])
-                        is_first_letter_same = 2;
-                    result[i][0] = i + 2 - is_first_letter_same;
-                }
-
-                for (size_t i = 1; i < size1; i++)
-                    for (size_t j = 1; j < size2; j++)
-                        result[i][j] = min(min(result[i][j - 1] + 1, result[i - 1][j] + 1),
-                            result[i - 1][j - 1] + (word1[i] == word2[j] ? 0 : 2));
-                return result.back().back();
-            }
-        };
-    }
-
-    namespace task_647 {
-        /*
-        * https://leetcode.com/problems/palindromic-substrings/description/
-        */
-        class Solution {
-        public:
-            int countSubstrings(string s) {
-                int count = 0;
-                size_t length = s.size() * 2 - 1;
-
-                for (size_t i = 0; i < length; i++) {
-                    int index = i / 2;
-                    int left = index + i % 2;
-                    int right = index;
-                    count += (i + 1) % 2;
-                    while (true) {
-                        --left;
-                        ++right;
-                        if (0 > left ||
-                            right == s.size() ||
-                            s[left] != s[right]) {
-                            --right;
-                            ++left;
-                            break;
-                        }
-                        ++count;
-                    }
-                }
-                return count;
-            }
-        };
-    }
-
-    namespace task_712 {
-        /*
-        * https://leetcode.com/problems/minimum-ascii-delete-sum-for-two-strings/description/
-        */
-        class Solution {
-        public:
-            int minDistance(string s1, string s2) {
-                const size_t size1 = s1.size() + 1;
-                const size_t size2 = s2.size() + 1;
-                vector<vector<int>> result(size1, vector<int>(size2));
-                result[0][0] = 0;
-                for (size_t j = 1; j < size2; j++)
-                    result[0][j] = result[0][j - 1] + s2[j - 1];
-                for (size_t i = 1; i < size1; i++)
-                    result[i][0] = result[i - 1][0] + s1[i - 1];
-
-                for (size_t i = 1; i < size1; i++)
-                    for (size_t j = 1; j < size2; j++)
-                        result[i][j] = min(min(result[i][j - 1] + s2[j - 1], result[i - 1][j] + s1[i - 1]),
-                            result[i - 1][j - 1] + (s1[i - 1] == s2[j - 1] ? 0 : (s1[i - 1] + s2[j - 1])));
-                return result.back().back();
-            }
-        };
-    }
-
-    namespace task_740 {
-        /*
-        * https://leetcode.com/problems/delete-and-earn/description/
-        */
-        class Solution {
-        public:
-            int deleteAndEarn(vector<int>& nums) {
-                sort(nums.begin(), nums.end());
-                reverse(nums.begin(), nums.end());
-                size_t size = nums.size();
-
-                vector<vector<int>> num_count_points;
-                for (size_t i = 0; i < size;) {
-                    int last = nums[i];
-                    num_count_points.push_back(vector<int>({ last , 0, 0 }));
-                    for (; i < size && nums[i] == last; ++i)
-                        ++num_count_points.back()[1];
-                    num_count_points.back()[2] = last * num_count_points.back()[1];
-                }
-                size = num_count_points.size();
-                int global_max_points = num_count_points[0][2];
-                for (size_t i = 1; i < size; ++i) {
-                    int prev_points = num_count_points[i][0] + 1 != num_count_points[i - 1][0] ?
-                        num_count_points[i - 1][2] :
-                        0;
-                    int prev_prev_points = i > 1 ?
-                        num_count_points[i - 2][2] :
-                        0;
-                    int prev_prev_prev_points = i > 2 ?
-                        num_count_points[i - 3][2] :
-                        0;
-                    num_count_points[i][2] += max(max(prev_points, prev_prev_points), prev_prev_prev_points);
-
-                    if (global_max_points < num_count_points[i][2])
-                        global_max_points = num_count_points[i][2];
-                }
-                return global_max_points;
-            }
-        };
-    }
-
-    namespace task_931 {
-        /*
-        * https://leetcode.com/problems/minimum-falling-path-sum/description/
-        */
-        class Solution {
-        public:
-            int minFallingPathSum(vector<vector<int>>& matrix) {
-                const size_t size = matrix.size();
-
-                for (size_t i = 1; i < size; i++)
-                    for (size_t j = 0; j < size; j++)
-                        matrix[i][j] += min(min(j > 0 ? matrix[i - 1][j - 1] : INT_MAX,
-                            j + 1 < size ? matrix[i - 1][j + 1] : INT_MAX),
-                            matrix[i - 1][j]);
-
-                int min_path = INT_MAX;
-                for (size_t j = 0; j < size; j++)
-                    if (min_path > matrix.back()[j])
-                        min_path = matrix.back()[j];
-
-                return min_path;
             }
         };
     }
