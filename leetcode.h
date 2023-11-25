@@ -1906,9 +1906,9 @@ namespace leetcode {
 
             void solve() {
 
-                fillPossibleQueue();
+                //fillPossibleQueue();
                 findOnePossible();
-                if (countEmpty != 0)
+                //if (countEmpty != 0)
             }
 
             bool chooseNumber(const size_t i, const size_t j, const int value) {
@@ -3557,6 +3557,44 @@ namespace leetcode {
         };
     }
 
+    namespace task_646 {
+        /*
+        * https://leetcode.com/problems/maximum-length-of-pair-chain/description/
+        */
+        class Solution {
+        public:
+            int findLongestChain(vector<vector<int>>& pairs) {
+                sort(pairs.begin(), pairs.end());
+                const size_t size = pairs.size();
+                size_t length = 0;
+                vector<int> ends_of_LIS(size, INT_MAX);
+
+                for (size_t i = 0; i < size; i++) {
+                    size_t j = search(ends_of_LIS, length, pairs[i][0]);
+                    ends_of_LIS[j] = min(ends_of_LIS[j], pairs[i][1]);
+                    length = max(j + 1, length);
+                }
+
+                return length;
+            }
+
+            size_t search(vector<int>& nums, size_t r, const int target) {
+                size_t l = 0;
+                if (nums[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
     namespace task_647 {
         /*
         * https://leetcode.com/problems/palindromic-substrings/description/
@@ -3630,6 +3668,80 @@ namespace leetcode {
                         l = i;
                 }
                 return l;
+            }
+        };
+    }
+
+    namespace task_673 {
+        /*
+        * https://leetcode.com/problems/number-of-longest-increasing-subsequence/description/
+        */
+        class Solution {
+        public:
+            int findNumberOfLIS(vector<int>& nums) {
+                const size_t size = nums.size();
+                size_t length = 0;
+                vector<vector<pair<int, int>>> ends_counts_of_LIS(size);
+
+                for (size_t i = 0; i < size; i++) {
+                    size_t j = search(ends_counts_of_LIS, length, nums[i]);
+
+                    int count = 0;
+                    if (j > 0)
+                        for (size_t k = 0; k < ends_counts_of_LIS[j - 1].size(); k++) {
+                            if (ends_counts_of_LIS[j - 1][k].first < nums[i])
+                                count += ends_counts_of_LIS[j - 1][k].second;
+                        }
+                    else
+                        count = 1;
+                    ends_counts_of_LIS[j].push_back({ nums[i] , count });
+                    length = max(j + 1, length);
+                }
+                int count = 0;
+                for (size_t k = 0; k < ends_counts_of_LIS[length - 1].size(); k++)
+                        count += ends_counts_of_LIS[length - 1][k].second;
+                return count;
+            }
+
+            size_t search(const vector<vector<pair<int, int>>>& nums, size_t r, const int target) {
+                size_t l = 0;
+                if (!nums[l].empty() && nums[l].back().first >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i].back().first >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
+    namespace task_674 {
+        /*
+        * https://leetcode.com/problems/longest-continuous-increasing-subsequence/description/
+        */
+        class Solution {
+        public:
+            int findLengthOfLCIS(vector<int>& nums) {
+                const size_t size = nums.size();
+                size_t length = 1;
+                size_t max_length = 1;
+
+                for (size_t i = 1; i < size; i++)
+                    if (nums[i] > nums[i - 1])
+                        ++length;
+                    else {
+                        if (max_length < length)
+                            max_length = length;
+                        length = 1;
+                    }
+                if (max_length < length)
+                    max_length = length;
+                return max_length;
             }
         };
     }
@@ -3899,6 +4011,89 @@ namespace leetcode {
         };
     }
 
+    namespace task_1027 {
+        /*
+        * https://leetcode.com/problems/longest-arithmetic-subsequence/description/
+        */
+        class Solution {
+        public:
+            int longestArithSeqLength_copied(vector<int>& nums) {
+                if (nums.size() <= 2)
+                    return nums.size();
+                int ans = 1;
+                vector<unordered_map<int, int>> jd(nums.size());
+
+                for (int i = 1; i < nums.size(); i++)
+                    for (int j = 0; j < i; j++)
+                    {
+                        int diff = nums[i] - nums[j];
+                        if (jd[j].count(diff) != 0)
+                            jd[i][diff] = jd[j][diff] + 1;
+                        else
+                            jd[i][diff] = 2;
+                        ans = max(ans, jd[i][diff]);
+                    }
+
+                return ans;
+            }
+
+            int longestArithSeqLength(vector<int>& nums) {
+                int max_length = 1;
+                int min_elem = nums[0];
+                int max_elem = nums[0];
+                for (size_t i = 1; i < nums.size(); i++) {
+                    if (min_elem > nums[i])
+                        min_elem = nums[i];
+                    if (max_elem < nums[i])
+                        max_elem = nums[i];
+                }
+                max_elem -= min_elem;
+
+                for (int i = 1; i <= max_elem; i++) 
+                    max_length = max(max_length, max (longestSubsequence(nums, i), longestSubsequence(nums, -i)));
+
+                return max(max_length, lengthForZero(nums));
+            }
+
+            int longestSubsequence(const vector<int>& arr, int difference) {
+                const size_t size = arr.size();
+                int max_length = 1;
+                vector<map<int, int>> mod_end_length(abs(difference));
+
+                for (size_t i = 0; i < size; i++) {
+                    auto it_before = mod_end_length[arr[i] % difference].find(arr[i] - difference);
+                    auto it = mod_end_length[arr[i] % difference].find(arr[i]);
+                    int length = 1;
+
+                    if (it != mod_end_length[arr[i] % difference].end())
+                        length = it->second;
+                    if (it_before != mod_end_length[arr[i] % difference].end())
+                        length = max(length, it_before->second + 1);
+                    if (max_length < length)
+                        max_length = length;
+                    mod_end_length[arr[i] % difference][arr[i]] = length;
+                }
+                return max_length;
+            }
+
+            int lengthForZero(vector<int>& arr) {
+                sort(arr.begin(), arr.end());
+                int max_length = 1;
+                int length = 1;
+                const size_t size = arr.size();
+                for (size_t i = 1; i < size; i++)
+                    if (arr[i - 1] == arr[i])
+                        ++length;
+                    else {
+                        if (max_length < length)
+                            max_length = length;
+                        length = 1;
+                    }
+                return max(max_length, length);
+            }
+        };
+    }
+
     namespace task_1137 {
         /*
         * https://leetcode.com/problems/n-th-tribonacci-number/description/
@@ -3949,6 +4144,65 @@ namespace leetcode {
 
             int id;
             vector<map<int, int>> data;
+        };
+    }
+
+    namespace task_1218 {
+        /*
+        * https://leetcode.com/problems/longest-arithmetic-subsequence-of-given-difference/description/
+        */
+        class Solution {
+        public:
+            int longestSubsequence(vector<int>& arr, int difference) {
+                if (difference == 0)
+                    return lengthForZero(arr);
+                const size_t size = arr.size();
+                if (difference < 0) {
+                    for (int& val : arr)
+                        val = -val;
+                    difference = -difference;
+                }
+                int min_eleml = arr[0];
+                for (size_t i = 1; i < size; i++)
+                    if (min_eleml > arr[i])
+                        min_eleml = arr[i];
+                if (min_eleml < 0)
+                    for (size_t i = 0; i < size; i++)
+                        arr[i] -= min_eleml;
+                vector<map<int, int>> mod_end_length(difference);
+                int max_length = 0;
+
+                for (size_t i = 0; i < size; i++) {
+                    auto it_before = mod_end_length[arr[i] % difference].find(arr[i] - difference);
+                    auto it = mod_end_length[arr[i] % difference].find(arr[i]);
+                    int length = 1;
+
+                    if (it != mod_end_length[arr[i] % difference].end())
+                        length = it->second;
+                    if (it_before != mod_end_length[arr[i] % difference].end())
+                        length = max(length, it_before->second + 1);
+                    if (max_length < length)
+                        max_length = length;
+                    mod_end_length[arr[i] % difference][arr[i]] = length;
+                }
+                return max_length;
+            }
+
+            int lengthForZero(vector<int>& arr) {
+                sort(arr.begin(), arr.end());
+                int max_length = 1;
+                int length = 1;
+                const size_t size = arr.size();
+                for (size_t i = 1; i < size; i++)
+                    if (arr[i - 1] == arr[i])
+                        ++length;
+                    else {
+                        if (max_length < length)
+                            max_length = length;
+                        length = 1;
+                    }
+                return max(max_length, length);
+            }
         };
     }
 

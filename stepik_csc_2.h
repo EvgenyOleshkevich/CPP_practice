@@ -1,4 +1,5 @@
 #pragma once
+#ifdef stepik
 
 #include <iostream>
 #include <cstddef>
@@ -537,3 +538,5 @@ namespace lect_9_4_1 {
 namespace lect_9_4_1 {
 
 }
+
+#endif // stepik

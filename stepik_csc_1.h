@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef stepik
 #include <iostream>
 #include <cstddef>
 #include <cstring>
@@ -234,3 +234,5 @@ namespace part_one {
     }
 
 }
+
+#endif // stepik
