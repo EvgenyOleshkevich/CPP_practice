@@ -52,7 +52,7 @@ namespace leetcode {
 
         template <class T>
         ostream& operator<<(ostream& os, const vector<T>& v) {
-            for (const T val : v)
+            for (const T& val : v)
                 os << val << " ";
             os << endl;
             return os;
@@ -4119,6 +4119,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_1143 {
+        /*
+        * https://leetcode.com/problems/longest-common-subsequence/description/
+        */
+        class Solution {
+        public:
+            int longestCommonSubsequence(string text1, string text2) {
+                size_t size1 = text1.size();
+                size_t size2 = text2.size();
+                if (size1 > size2) {
+                    swap(size1, size2);
+                    swap(text1, text2);
+                }
+                vector<int> length_of_LÑS(size2);
+
+                for (size_t i = 0; i < size1; i++) {
+                    int length = 0;
+                    for (size_t j = 0; j < size2; j++) {
+                        int cur_length = length_of_LÑS[j];
+                        if (text1[i] == text2[j])
+                            length_of_LÑS[j] =  length + 1;
+                        length = max(length, cur_length);
+                    }
+                }
+
+                int length = 0;
+                for (size_t i = 0; i < size2; i++)
+                    length = max(length, length_of_LÑS[i]);
+                return length;
+            }
+        };
+    }
+
     namespace task_1146 {
         /*
         * https://leetcode.com/snapshot-array/description/
@@ -4487,6 +4520,44 @@ namespace leetcode {
                         l = i;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_1964 {
+        /*
+        * https://leetcode.com/problems/find-the-longest-valid-obstacle-course-at-each-position/description/
+        */
+        class Solution {
+        public:
+            vector<int> longestObstacleCourseAtEachPosition(vector<int>& obstacles) {
+                const size_t size = obstacles.size();
+                size_t length = 0;
+                vector<int> ans(size);
+                vector<int> ends_of_LIS(size, INT_MAX);
+
+                for (size_t i = 0; i < size; i++) {
+                    size_t j = search(ends_of_LIS, length, obstacles[i]);
+                    ends_of_LIS[j] = min(ends_of_LIS[j], obstacles[i]);
+                    length = max(j + 1, length);
+                    ans[i] = j + 1;
+                }
+                return ans;
+            }
+
+            size_t search(vector<int>& nums, size_t r, const int target) {
+                size_t l = 0;
+                if (nums[l] > target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] > target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
             }
         };
     }

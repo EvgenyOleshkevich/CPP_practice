@@ -16,12 +16,11 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_1027;
+using namespace leetcode::task_1964;
 
 int main() {
-    
     vector<int> v1({ 0, 2 });
-    vector<int> v2({ 20,1,15,3,10,5,8 });
+    vector<int> v2({ 1,2,3,2 });
     vector<vector<int>> mat(3);
     mat[0] = { 2,1,3 };
     mat[1] = { 6,5,4 };
@@ -34,7 +33,8 @@ int main() {
 
     vector<string> words({ "leet","code" });
     Solution k;
-    cout << k.longestArithSeqLength(v2) << endl;
+    cout << k.longestObstacleCourseAtEachPosition(v2) << endl;
+
 #ifdef stepik
 #pragma region some_test
     bool test = false;
