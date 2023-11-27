@@ -2540,6 +2540,25 @@ namespace leetcode {
         };
     }
 
+    namespace task_124 {
+        /*
+        * https://leetcode.com/problems/best-time-to-buy-and-sell-stock/description/
+        */
+        class Solution {
+        public:
+            int maxProfit(vector<int>& prices) {
+                size_t size = prices.size();
+                int min_price = prices[0];
+                int profit = 0;
+                for (int i = 1; i < size; ++i) {
+                    profit = max(profit, prices[i] - min_price);
+                    min_price = min(min_price, prices[i]);
+                }
+                return profit;
+            }
+        };
+    }
+
     namespace task_139 {
         /*
         * https://leetcode.com/problems/word-break/description/
@@ -3001,6 +3020,51 @@ namespace leetcode {
                         l = i;
                 }
                 return r;
+            }
+        };
+    }
+
+    namespace task_309 {
+        /*
+        * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/description/
+        */
+        class Solution {
+        public:
+            int maxProfit_copy(vector<int>& prices) {
+                int prev_prev_buy = 0, prev_buy = 0, curr_buy = 0;
+                int prev_sell = 0, curr_sell = 0;
+                for (int i = prices.size() - 1; i >= 0; --i)
+                {
+                    curr_buy = max(-prices[i] + prev_sell, prev_buy);
+                    curr_sell = max(prices[i] + prev_prev_buy, prev_sell);
+                    prev_prev_buy = prev_buy;
+                    prev_buy = curr_buy;
+                    prev_sell = curr_sell;
+                }
+                return curr_buy;
+            }
+
+            int maxProfit(vector<int>& prices) {
+                const size_t size = prices.size();
+                if (size < 2)
+                    return 0;
+                vector<int> profits(size);
+                profits[0] = 0;
+                profits[1] = max(0, prices[1] - prices[0]);
+                int result = max(0, profits[1]);
+
+                for (int i = 2; i < size; i++) {
+                    int buy_i = i - 1;
+                    int min_buy = prices[buy_i];
+                    int max_profit = max(-prices[1], -prices[0]);
+                    for (int last_sell = buy_i - 2; last_sell >= 0; --last_sell, --buy_i) {
+                        min_buy = min(prices[buy_i], min_buy);
+                        max_profit = max(max_profit, profits[last_sell] - min_buy);
+                    }
+                    profits[i] = max(0, max_profit + prices[i]);
+                    result = max(result, profits[i]);
+                }
+                return result;
             }
         };
     }
@@ -3798,6 +3862,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_714 {
+        /*
+        * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/description/
+        */
+        class Solution {
+        public:
+            int maxProfit(vector<int>& prices, int fee) {
+                int prev_buy = 0, curr_buy = 0;
+                int prev_sell = 0, curr_sell = 0;
+                for (int i = prices.size() - 1; i >= 0; --i)
+                {
+                    curr_buy = max(-prices[i] + prev_sell, prev_buy);
+                    curr_sell = max(prices[i] - fee + prev_buy, prev_sell);
+                    prev_buy = curr_buy;
+                    prev_sell = curr_sell;
+                }
+                return curr_buy;
+            }
+        };
+    }
+
     namespace task_740 {
         /*
         * https://leetcode.com/problems/delete-and-earn/description/
@@ -4094,6 +4179,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_1035 {
+        /*
+        * https://leetcode.com/problems/uncrossed-lines/description/
+        */
+        class Solution {
+        public:
+            int maxUncrossedLines(vector<int>& nums1, vector<int>& nums2) {
+                size_t size1 = nums1.size();
+                size_t size2 = nums2.size();
+                if (size1 > size2) {
+                    swap(size1, size2);
+                    swap(nums1, nums2);
+                }
+                vector<int> length_of_LNS(size2);
+
+                for (size_t i = 0; i < size1; i++) {
+                    int length = 0;
+                    for (size_t j = 0; j < size2; j++) {
+                        int cur_length = length_of_LNS[j];
+                        if (nums1[i] == nums2[j])
+                            length_of_LNS[j] = length + 1;
+                        length = max(length, cur_length);
+                    }
+                }
+
+                int length = 0;
+                for (size_t i = 0; i < size2; i++)
+                    length = max(length, length_of_LNS[i]);
+                return length;
+            }
+        };
+    }
+
     namespace task_1137 {
         /*
         * https://leetcode.com/problems/n-th-tribonacci-number/description/
@@ -4132,21 +4250,21 @@ namespace leetcode {
                     swap(size1, size2);
                     swap(text1, text2);
                 }
-                vector<int> length_of_LÑS(size2);
+                vector<int> length_of_LNS(size2);
 
                 for (size_t i = 0; i < size1; i++) {
                     int length = 0;
                     for (size_t j = 0; j < size2; j++) {
-                        int cur_length = length_of_LÑS[j];
+                        int cur_length = length_of_LNS[j];
                         if (text1[i] == text2[j])
-                            length_of_LÑS[j] =  length + 1;
+                            length_of_LNS[j] =  length + 1;
                         length = max(length, cur_length);
                     }
                 }
 
                 int length = 0;
                 for (size_t i = 0; i < size2; i++)
-                    length = max(length, length_of_LÑS[i]);
+                    length = max(length, length_of_LNS[i]);
                 return length;
             }
         };
@@ -4235,6 +4353,57 @@ namespace leetcode {
                         length = 1;
                     }
                 return max(max_length, length);
+            }
+        };
+    }
+
+    namespace task_1312 {
+        /*
+        * https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/description/
+        */
+        class Solution {
+        public:
+            int minInsertions(string s) {
+                const int size = s.size();
+                const int iter_size = size * 2 + 1;
+
+                int length = size;
+                for (int i = 0; i < iter_size; ++i) {
+                    auto s1 = s.substr(0, i >> 1);
+                    int j = (i >> 1) + i % 2;
+                    auto s2 = s.substr(j, size - j);
+                    reverse(s2.begin(), s2.end());
+                    int commenLength = longestCommonSubsequence(s1, s2);
+                    length = min(length, size - (commenLength << 1) - i % 2);
+                }
+                return length;
+            }
+
+            int longestCommonSubsequence(string text1, string text2) {
+                size_t size1 = text1.size();
+                size_t size2 = text2.size();
+                if (size1 > size2) {
+                    swap(size1, size2);
+                    swap(text1, text2);
+                }
+                if (size1 == 0)
+                    return 0;
+                vector<int> length_of_LNS(size2);
+
+                for (size_t i = 0; i < size1; i++) {
+                    int length = 0;
+                    for (size_t j = 0; j < size2; j++) {
+                        int cur_length = length_of_LNS[j];
+                        if (text1[i] == text2[j])
+                            length_of_LNS[j] = length + 1;
+                        length = max(length, cur_length);
+                    }
+                }
+
+                int length = 0;
+                for (size_t i = 0; i < size2; i++)
+                    length = max(length, length_of_LNS[i]);
+                return length;
             }
         };
     }

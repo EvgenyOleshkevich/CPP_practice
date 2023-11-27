@@ -16,7 +16,7 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_1964;
+using namespace leetcode::task_1312;
 
 int main() {
     vector<int> v1({ 0, 2 });
@@ -33,7 +33,7 @@ int main() {
 
     vector<string> words({ "leet","code" });
     Solution k;
-    cout << k.longestObstacleCourseAtEachPosition(v2) << endl;
+    cout << k.minInsertions_copy("zzazz") << endl;
 
 #ifdef stepik
 #pragma region some_test
