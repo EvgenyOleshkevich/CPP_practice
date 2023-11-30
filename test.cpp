@@ -16,11 +16,11 @@
 #include "some_test_code.h"
 using namespace std;
 using namespace leetcode::utils;
-using namespace leetcode::task_1312;
+using namespace leetcode::task_188;
 
 int main() {
     vector<int> v1({ 0, 2 });
-    vector<int> v2({ 1,2,3,2 });
+    vector<int> v2({ 1,2,4,2,5,7,2,4,9,0 });
     vector<vector<int>> mat(3);
     mat[0] = { 2,1,3 };
     mat[1] = { 6,5,4 };
@@ -33,7 +33,7 @@ int main() {
 
     vector<string> words({ "leet","code" });
     Solution k;
-    cout << k.minInsertions_copy("zzazz") << endl;
+    cout << k.maxProfit(2, v2) << endl;
 
 #ifdef stepik
 #pragma region some_test

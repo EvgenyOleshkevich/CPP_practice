@@ -2540,7 +2540,7 @@ namespace leetcode {
         };
     }
 
-    namespace task_124 {
+    namespace task_121 {
         /*
         * https://leetcode.com/problems/best-time-to-buy-and-sell-stock/description/
         */
@@ -2553,6 +2553,52 @@ namespace leetcode {
                 for (int i = 1; i < size; ++i) {
                     profit = max(profit, prices[i] - min_price);
                     min_price = min(min_price, prices[i]);
+                }
+                return profit;
+            }
+        };
+    }
+
+    namespace task_122 {
+        /*
+        * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/description/
+        */
+        class Solution {
+        public:
+            int maxProfit(vector<int>& prices) {
+                size_t size = prices.size();
+                int min_price = prices[0];
+                int profit = 0;
+                for (int i = 1; i < size; ++i) {
+                    if (prices[i] > min_price) {
+                        profit += prices[i] - min_price;
+                        min_price = prices[i];
+                    }
+                    else
+                        min_price = min(min_price, prices[i]);
+                }
+                return profit;
+            }
+        };
+    }
+
+    namespace task_123 {
+        /*
+        * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/description/
+        */
+        class Solution {
+        public:
+            int maxProfit(vector<int>& prices) {
+                size_t size = prices.size();
+                int min_price = prices[0];
+                int profit = 0;
+                for (int i = 1; i < size; ++i) {
+                    if (prices[i] > min_price) {
+                        profit += prices[i] - min_price;
+                        min_price = prices[i];
+                    }
+                    else
+                        min_price = min(min_price, prices[i]);
                 }
                 return profit;
             }
@@ -2727,6 +2773,74 @@ namespace leetcode {
                         l = i;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_188 {
+        /*
+        * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/description/
+        */
+        class Solution {
+        public:
+            int maxProfit(int k, vector<int>& prices) {
+                if (k == 1)
+                    return maxProfitOnce(prices);
+                prices.push_back(-1);
+                const size_t size = prices.size();
+                vector<int> trades;
+                size_t i = 1;
+                size_t min_price_i = 0;
+
+                while (i < size) {
+                    for (; i < size && (prices[min_price_i] >= prices[i - 1] || prices[i] >= prices[i - 1]); ++i)
+                        if (prices[min_price_i] > prices[i])
+                            min_price_i = i;
+                    if (i == size)
+                        break;
+
+                    trades.push_back(prices[min_price_i]);
+                    trades.push_back(prices[i - 1]);
+                    bool is_not_last_deleted = true;
+                    if (trades.size() >> 1 > k)
+                        is_not_last_deleted = findToErase(trades);
+                    if (is_not_last_deleted)
+                        min_price_i = i;
+                    ++i;
+                }
+
+                int sum = 0;
+                for (size_t i = 1; i < trades.size(); i += 2)
+                    sum += trades[i] - trades[i - 1];
+                return sum;
+            }
+
+            bool findToErase(vector<int>& trades) {
+                size_t to_erase_i = 1;
+                const size_t size = trades.size();
+                int min_loss = INT_MAX;
+                for (size_t i = 1; i < size; i++) {
+                    int loss = abs(trades[i] - trades[i - 1]);
+                    if (min_loss > loss) {
+                        min_loss = loss;
+                        to_erase_i = i;
+                    }
+                }
+
+                trades.erase(trades.begin() + to_erase_i - 1);
+                trades.erase(trades.begin() + to_erase_i - 1);
+                return to_erase_i != size - 1;
+            }
+
+            int maxProfitOnce(const vector<int>& prices) {
+                size_t size = prices.size();
+                int min_price = prices[0];
+                int profit = 0;
+                for (int i = 1; i < size; ++i) {
+                    profit = max(profit, prices[i] - min_price);
+                    min_price = min(min_price, prices[i]);
+                }
+                return profit;
             }
         };
     }
