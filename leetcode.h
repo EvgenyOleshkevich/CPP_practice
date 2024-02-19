@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <sstream>
 #include <cassert>
 #include <tuple>
 #include <list>
@@ -1928,6 +1929,118 @@ namespace leetcode {
         };
     }
 
+    namespace task_38 {
+        /*
+        * https://leetcode.com/problems/count-and-say/
+        */
+        class Solution {
+        public:
+            string countAndSay(int n) {
+                string s = "1";
+                for (size_t i = 1; i < n; i++)
+                    s = getNext(s);
+                return s;
+            }
+
+            string getNext(string s) {
+                int i = 0;
+                string next = "";
+                while (i < s.size()) {
+                    int count = 1;
+                    int j = i + 1;
+                    while (j < s.size() && s[i] == s[j])
+                        ++j;
+                    next.push_back('0' + j - i);
+                    next.push_back(s[i]);
+                    i = j;
+                }
+                return next;
+            }
+        };
+    }
+
+    namespace task_39 {
+        /*
+        * https://leetcode.com/problems/combination-sum/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+                sort(candidates.begin(), candidates.end());
+                return combinationSumReq(candidates, 0, target);
+            }
+
+            vector<vector<int>> combinationSumReq(const vector<int>& candidates, const size_t from, int target) {
+                if (from == candidates.size() || candidates[from] > target)
+                    return vector<vector<int>>();
+                vector<vector<int>> res;
+
+                int i = 0;
+                for (; candidates[from] * i < target; i++) {
+                    auto vectors = combinationSumReq(candidates, from + 1, target - candidates[from] * i);
+                    for (auto& vec : vectors) {
+                        for (int j = i; j > 0; j--)
+                            vec.push_back(candidates[from]);
+                        res.push_back(vec);
+                    }
+                }
+
+                if (candidates[from] * i == target) 
+                    res.push_back(vector<int>(i, candidates[from]));
+
+                return res;
+            }
+        };
+    }
+
+    namespace task_40 {
+        /*
+        * https://leetcode.com/problems/combination-sum-ii/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+                sort(candidates.begin(), candidates.end());
+                return combinationSumReq(candidates, 0, target);
+            }
+
+            vector<vector<int>> combinationSumReq(const vector<int>& candidates, const size_t from, const int target) {
+                if (from == candidates.size() || candidates[from] > target)
+                    return vector<vector<int>>();
+                if (candidates[from] == target)
+                    return vector<vector<int>>(1, vector<int>(1, target));
+
+                auto vectorsWith = combinationSumReq(candidates, from + 1, target - candidates[from]);
+                auto vectorsWithout = combinationSumReq(candidates, getNextUnique(candidates, from), target);
+                for (auto& vec : vectorsWith)
+                    vec.push_back(candidates[from]);
+                for (auto& vec : vectorsWithout)
+                    vectorsWith.push_back(vec);
+
+                return vectorsWith;
+            }
+
+            size_t getNextUnique(const vector<int>& candidates, const size_t from) {
+                size_t next = from + 1;
+                while (candidates.size() > next && candidates[next] == candidates[from])
+                    ++next;
+                return next;
+            }
+        };
+    }
+
+    namespace task_43 {
+        /*
+        * https://leetcode.com/problems/multiply-strings/
+        */
+        class Solution {
+        public:
+            string multiply(string num1, string num2) {
+
+            }
+        };
+    }
+
     namespace task_46 {
         /*
         * https://leetcode.com/permutations/description/
@@ -2926,6 +3039,34 @@ namespace leetcode {
         };
     }
 
+    namespace task_216 {
+        /*
+        * https://leetcode.com/problems/combination-sum-iii/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> combinationSum3(int k, int n) {
+                return combinationSumReq(1, k, n);
+            }
+
+            vector<vector<int>> combinationSumReq(const int from, const int count, const int target) {
+                if (from > target || from == 10 || count == 0)
+                    return vector<vector<int>>();
+                if (from == target && count == 1)
+                    return vector<vector<int>>(1, vector<int>(1, target));
+
+                auto vectorsWith = combinationSumReq(from + 1, count - 1, target - from);
+                auto vectorsWithout = combinationSumReq(from + 1, count, target);
+                for (auto& vec : vectorsWith)
+                    vec.push_back(from);
+                for (auto& vec : vectorsWithout)
+                    vectorsWith.push_back(vec);
+
+                return vectorsWith;
+            }
+        };
+    }
+
     namespace task_221 {
         /*
         * https://leetcode.com/problems/maximal-square/description/
@@ -2952,6 +3093,22 @@ namespace leetcode {
                         if (max_size < square_matrix[i][j])
                             max_size = square_matrix[i][j];
                 return max_size * max_size;
+            }
+        };
+    }
+
+    namespace task_231 {
+        /*
+        * https://leetcode.com/problems/power-of-two/description/
+        */
+        class Solution {
+        public:
+            bool isPowerOfTwo(int n) {
+                if (n < 1)
+                    return false;
+                while (n % 2 == 0)
+                    n >>= 1;
+                return n == 1;
             }
         };
     }
@@ -3436,6 +3593,38 @@ namespace leetcode {
                 }
 
                 return -1;
+            }
+        };
+    }
+
+    namespace task_415 {
+        /*
+        * https://leetcode.com/problems/add-strings/description/
+        */
+        class Solution {
+        public:
+            string addStrings(string num1, string num2) {
+                int l1 = num1.length() - 1;
+                int l2 = num2.length() - 1;
+                int x = 0;
+                int plus10 = 0;
+                std::string answer;
+
+                while (l1 >= 0 || l2 >= 0 || plus10 > 0) {
+                    int digit1 = (l1 >= 0) ? num1[l1] - '0' : 0;
+                    int digit2 = (l2 >= 0) ? num2[l2] - '0' : 0;
+
+                    x = digit1 + digit2 + plus10;
+                    plus10 = x / 10;
+                    x %= 10;
+                    answer.push_back(x + '0');
+
+                    if (l1 >= 0) l1--;
+                    if (l2 >= 0) l2--;
+                }
+
+                reverse(answer.begin(), answer.end());
+                return answer;
             }
         };
     }
