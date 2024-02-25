@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -2036,7 +2037,69 @@ namespace leetcode {
         class Solution {
         public:
             string multiply(string num1, string num2) {
+                if (num1 == "0" || num2 == "0")
+                    return "0";
 
+                size_t size1 = num1.size();
+                size_t size2 = num2.size();
+
+                for (size_t i = 0; i < size1; i++)
+                    num1[i] -= '0';
+                for (size_t i = 0; i < size2; i++)
+                    num2[i] -= '0';
+
+                vector<int> res(num1.size() + num2.size(), 0);
+                char x = 0;
+                char plus10 = 0;
+
+                for (int i = size1 - 1; i >= 0; --i) 
+                    for (int j = size2 - 1; j >= 0; --j) {
+                        res[i + j + 1] += num1[i] * num2[j];
+                        res[i + j] += res[i + j + 1] / 10;
+                        res[i + j + 1] %= 10;
+                    }
+            
+                
+                size_t i = 0;
+                string answer = "";
+                while (res[i] == 0) i++;
+                while (i < res.size()) answer.push_back(res[i++] + '0');
+
+                return answer;
+            }
+        };
+    }
+
+    namespace task_45 {
+        /*
+        * https://leetcode.com/problems/jump-game-ii/description/
+        */
+        class Solution {
+        public:
+            int jump(vector<int>& nums) {
+                for (int i = 1; i < nums.size(); i++)
+                    nums[i] = max(nums[i] + i, nums[i - 1]);
+
+                int i = 0;
+                int ans = 0;
+
+                while (i < nums.size() - 1) {
+                    ans++;
+                    i = nums[i];
+                }
+
+                return ans;
+            }
+
+            int jump_first(vector<int>& nums) {
+                const size_t size = nums.size();
+                vector<int> steps(size, INT32_MAX);
+                steps[0] = 0;
+                for (size_t i = 1; i < size; i++)
+                    for (int j = i - 1; j >= 0; j--)
+                        if (nums[j] + j >= i && steps[j] < steps[i] - 1)
+                            steps[i] = steps[j] + 1;
+                return steps.back();
             }
         };
     }
@@ -2154,6 +2217,22 @@ namespace leetcode {
                         matrix[size - i - 1][size - j - 1] = matrix[j][size - i - 1];
                         matrix[j][size - i - 1] = tmp;
                     }
+            }
+        };
+    }
+
+    namespace task_55 {
+        /*
+        * https://leetcode.com/problems/jump-game/description/
+        */
+        class Solution {
+        public:
+            bool canJump(vector<int>& nums) {
+                size_t maxPos = 0;
+                for (size_t i = 0; i < nums.size() && i <= maxPos; ++i)
+                    maxPos = max(maxPos, nums[i] + i);
+
+                return maxPos >= nums.size() - 1;
             }
         };
     }
@@ -4267,6 +4346,36 @@ namespace leetcode {
         };
     }
 
+    namespace task_787 {
+        /*
+        * https://leetcode.com/problems/cheapest-flights-within-k-stops/description/
+        */
+        class Solution {
+        public:
+            int findCheapestPrice(int n, vector<vector<int>>& flights, int src, int dst, int k) {
+                vector<vector<pair<int, int>>> adjacency_list(n);
+                for (const auto& flight : flights)
+                    adjacency_list[flight[0]].push_back({ flight[1], flight[2] });
+
+                vector<int> dist(n, INT32_MAX);
+                queue<vector<int>> q; // from, dist, count flights
+                q.push({ src , 0, 0 });
+                while (!q.empty()) {
+                    auto vertex = q.front();
+                    q.pop();
+                    if (dist[vertex[0]] > vertex[1]) {
+                        dist[vertex[0]] = vertex[1];
+                        if (vertex[2] <= k)
+                            for (const auto& dest : adjacency_list[vertex[0]])
+                                if (dist[dest.first] > vertex[1] + dest.second)
+                                    q.push({ dest.first, vertex[1] + dest.second, vertex[2] + 1 });
+                    }
+                }
+                return dist[dst] == INT32_MAX ? -1 : dist[dst];
+            }
+        };
+    }
+
     namespace task_844 {
         /*
         * https://leetcode.com/problems/backspace-string-compare/description/
@@ -4660,6 +4769,40 @@ namespace leetcode {
         };
     }
 
+    namespace task_1306 {
+        /*
+        * https://leetcode.com/problems/jump-game-iii/description/
+        */
+        class Solution {
+        public:
+            bool canReach(vector<int>& arr, int start) {
+                size_t size = arr.size();
+                vector<int> visited(size);
+                stack<int> vertexes;
+                vertexes.push(start);
+                while (!vertexes.empty()) {
+                    auto v = vertexes.top();
+                    vertexes.pop();
+                    if (!visited[v]) {
+                        visited[v] = 1;
+                        if (arr[v]) {
+                            if (v + arr[v] < size)
+                                vertexes.push(v + arr[v]);
+                            if (v - arr[v] >= 0)
+                                vertexes.push(v - arr[v]);
+                        }
+                    }
+                }
+
+                for (size_t i = 0; i < size; i++) 
+                    if (arr[i] == 0 && visited[i] != 0)
+                        return true;
+
+                return false;
+            }
+        };
+    }
+
     namespace task_1312 {
         /*
         * https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/description/
@@ -4924,6 +5067,43 @@ namespace leetcode {
                     swap(ptr_k->next, ptr_j->next);
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_1871 {
+        /*
+        * https://leetcode.com/problems/jump-game-iii/description/
+        */
+        class Solution {
+        public:
+            bool canReach(string s, int minJump, int maxJump) {
+                int size = s.size();
+                queue<int> vertexes;
+                vertexes.push(0);
+                int max_visited = 0;
+                while (!vertexes.empty()) {
+                    auto v = vertexes.front();
+                    vertexes.pop();
+                    int end = min(v + maxJump, size - 1);
+                    int start = min(end + 1, max(max_visited + 1, v + minJump));
+                    int soft_start = min(end + 1, max(start, v + maxJump + 1 - minJump));
+
+                    for (int i = soft_start; i >= start; --i)
+                        if (s[i] == '0') {
+                            max_visited = i;
+                            vertexes.push(i);
+                            break;
+                        }
+
+                    for (int i = soft_start + 1; i <= end; ++i)
+                        if (s[i] == '0') {
+                            max_visited = i;
+                            vertexes.push(i);
+                        }
+                }
+
+                return max_visited == size - 1;
             }
         };
     }
