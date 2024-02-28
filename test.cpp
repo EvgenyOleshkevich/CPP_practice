@@ -13,8 +13,9 @@
 #include "leetcode.h"
 #include "some_test_code.h"
 using namespace std;
+using namespace leetcode;
 using namespace leetcode::utils;
-using namespace leetcode::task_1871;
+using namespace leetcode::task_50;
 
 int main() {
     vector<int> v1({ 0,3,0,6,3,3,4 });
@@ -29,9 +30,9 @@ int main() {
     //mat_char{2} = { '1','1','1','1','1' };
     //mat_char{3} = { '1','0','0','1','0' };
 
-    vector<string> words({ "leet","code" });
+    vector<string> words({ "eat","tea","tan","ate","nat","bat" });
     Solution k;
-    cout << k.canReach("0101001110", 2, 4) << endl;
+    cout << k.myPow(2, 14) << endl;
 
     return 0;
 }

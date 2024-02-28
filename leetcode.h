@@ -30,6 +30,16 @@ namespace leetcode {
         ListNode(int x, ListNode* next) : val(x), next(next) {}
     };
 
+    struct TreeNode {
+        int val;
+        TreeNode* left;
+        TreeNode* right;
+        TreeNode() : val(0), left(nullptr), right(nullptr) {}
+        TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+        TreeNode(int x, TreeNode* left, TreeNode* right) : val(x), left(left), right(right) {}
+
+    };
+
     namespace utils {
         ListNode* vector2list(const vector<int>& v) {
             auto head = new ListNode();
@@ -2221,6 +2231,66 @@ namespace leetcode {
         };
     }
 
+    namespace task_49 {
+        /*
+        * https://leetcode.com/problems/group-anagrams/
+        */
+        class Solution {
+        public:
+            vector<vector<string>> groupAnagrams(vector<string>& strs) {
+                vector<pair<string, size_t>> copy;
+                for (size_t i = 0; i < strs.size(); i++) {
+                    copy.push_back({ strs[i], i });
+                    sort(copy.back().first.begin(), copy.back().first.end());
+                }
+
+                sort(copy.begin(), copy.end());
+                vector<vector<string>> answer(1);
+                string curr = copy[0].first;
+                for (const auto& c : copy) {
+                    if (curr != c.first) {
+                        curr = c.first;
+                        answer.push_back(vector<string>());
+                    }
+                    answer.back().push_back(strs[c.second]);
+                }
+                return answer;
+            }
+        };
+    }
+
+    namespace task_50 {
+        /*
+        * https://leetcode.com/problems/powx-n/description/
+        */
+        class Solution {
+        public:
+            double myPow(double x, int n) {
+                if (n < 0) {
+                    x = 1 / x;
+                    if (n == INT32_MIN) {
+                        n = n / 2;
+                        x = x * x;
+                    }
+                    n = -n;
+                }
+                double acc_odd = 1;
+                double acc_even = x;
+                while (n > 0) {
+                    if (n % 2 == 0) {
+                        acc_even *= acc_even;
+                        n >>= 1;
+                    }
+                    else {
+                        --n;
+                        acc_odd *= acc_even;
+                    }
+                }
+                return acc_odd;
+            }
+        };
+    }
+
     namespace task_55 {
         /*
         * https://leetcode.com/problems/jump-game/description/
@@ -3793,6 +3863,34 @@ namespace leetcode {
         };
     }
 
+    namespace task_513 {
+        /*
+        * https://leetcode.com/problems/find-bottom-left-tree-value/description/
+        */
+        class Solution {
+        public:
+            int findBottomLeftValue(TreeNode* root) {
+                int last_level = 0;
+                int value = root->val;
+                queue<pair<TreeNode*, int>> q;
+                q.push({ root, 0 });
+                while (!q.empty()) {
+                    auto node = q.front();
+                    q.pop();
+                    if (last_level < node.second) {
+                        last_level = node.second;
+                        value = node.first->val;
+                    }
+                    if (node.first->left)
+                        q.push({ node.first->left, node.second + 1 });
+                    if (node.first->right)
+                        q.push({ node.first->right, node.second + 1 });
+                }
+                return value;
+            }
+        };
+    }
+
     namespace task_516 {
         /*
         * https://leetcode.com/problems/longest-palindromic-subsequence/description/
@@ -3893,6 +3991,50 @@ namespace leetcode {
                     }
                 }
                 return nums[l + 1];
+            }
+        };
+    }
+
+    namespace task_543 {
+        /*
+        * https://leetcode.com/problems/diameter-of-binary-tree/description/
+        */
+        class Solution {
+        public:
+            int diameterOfBinaryTree(TreeNode* root) {
+                int max_length = 0;
+                stack<TreeNode*> st;
+                st.push(root);
+                TreeNode* node = root;
+                TreeNode* extra = new TreeNode(0);
+                TreeNode* prev = extra;
+
+                while (!st.empty()) {
+                    node = st.top();
+                    if (prev == node->right) {
+                        int left_depth = node->left ? node->left->val : -1;
+                        int right_depth = node->right ? node->right->val : -1;
+                        max_length = max(max_length, left_depth + right_depth + 2);
+                        node->val = 1 + max(left_depth, right_depth);
+                        prev = node;
+                        st.pop();
+                    }
+                    else if (!node->left || prev == node->left) {
+                        if (node->right) {
+                            prev = node;
+                            st.push(node->right);
+                        }
+                        else
+                            prev = node->right;
+                    }
+                    else {
+                        prev = node;
+                        st.push(node->left);
+                    }
+                }
+
+                delete extra;
+                return max_length;
             }
         };
     }
