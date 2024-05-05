@@ -2291,6 +2291,71 @@ namespace leetcode {
         };
     }
 
+    namespace task_53 {
+        /*
+        * https://leetcode.com/problems/maximum-subarray/description/
+        */
+        class Solution {
+        public:
+            int maxSubArray(vector<int>& nums) {
+                int prev_sum = 0;
+                int max_sum = INT_MIN;
+                for (size_t n : nums) {
+                    if (prev_sum > 0)
+                        prev_sum += n;
+                    else
+                        prev_sum = n;
+                    max_sum = max(max_sum, prev_sum);
+                }
+                return max_sum;
+            }
+        };
+    }
+
+    namespace task_54 {
+        /*
+        * https://leetcode.com/problems/spiral-matrix/description/
+        */
+        class Solution {
+        public:
+            vector<int> spiralOrder(vector<vector<int>>& matrix) {
+                int left = 0, right = matrix[0].size(), up = 0, down = matrix.size();
+                size_t size = right * down;
+                vector<int> res;
+                while (res.size() != size) {
+                    int j = left;
+                    int i = up;
+                    for (; j < right; j++)
+                        res.push_back(matrix[i][j]);
+                    if (res.size() == size)
+                        break;
+                    ++i;
+                    --j;
+                    for (; i < down; i++)
+                        res.push_back(matrix[i][j]);
+                    if (res.size() == size)
+                        break;
+                    --i;
+                    --j;
+                    for (; j >= left; j--)
+                        res.push_back(matrix[i][j]);
+                    if (res.size() == size)
+                        break;
+                    --i;
+                    ++j;
+                    for (; i > up; i--)
+                        res.push_back(matrix[i][j]);
+
+                    ++left;
+                    ++up;
+                    --right;
+                    --down;
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_55 {
         /*
         * https://leetcode.com/problems/jump-game/description/
@@ -2303,6 +2368,131 @@ namespace leetcode {
                     maxPos = max(maxPos, nums[i] + i);
 
                 return maxPos >= nums.size() - 1;
+            }
+        };
+    }
+
+    namespace task_56 {
+        /*
+        * https://leetcode.com/problems/merge-intervals/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> merge(vector<vector<int>>& intervals) {
+                sort(intervals.begin(), intervals.end());
+                vector<vector<int>> merged_intervals;
+                for (size_t i = 0; i < intervals.size(); i++)
+                {
+                    int start = intervals[i][0];
+                    int end = intervals[i][1];
+                    ++i;
+                    for (; i < intervals.size() && end >= intervals[i][0]; i++)
+                        end = max(end, intervals[i][1]);
+                    --i;
+                    merged_intervals.push_back({ start , end });
+                }
+                return merged_intervals;
+            }
+        };
+    }
+
+    namespace task_57 {
+        /*
+        * https://leetcode.com/problems/insert-interval/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> insert(vector<vector<int>>& intervals, vector<int>& newInterval) {
+                int start = newInterval[0];
+                int end = newInterval[1];
+                size_t i = 0;
+                for (; i < intervals.size(); i++)
+                    if (intervals[i][1] >= start)
+                        break;
+
+                if (i == intervals.size()) {
+                    intervals.push_back(newInterval);
+                    return intervals;
+                }
+
+                if (intervals[i][0] > end) {
+                    intervals.emplace(intervals.begin() + i, newInterval);
+                    return intervals;
+                }
+
+                if (intervals[i][1] >= end) {
+                    intervals[i][0] = min(intervals[i][0], start);
+                    return intervals;
+                }
+
+                size_t j = i + 1;
+                for (; j < intervals.size(); j++)
+                    if (intervals[j][0] > end)
+                        break;
+                start = min(intervals[i][0], start);
+                end = max(intervals[j - 1][1], end);
+                intervals.erase(intervals.begin() + i, intervals.begin() + j);
+                intervals.emplace(intervals.begin() + i, vector<int>({ start , end }));
+
+                return intervals;
+            }
+        };
+    }
+
+    namespace task_58 {
+        /*
+        * https://leetcode.com/problems/length-of-last-word/
+        */
+        class Solution {
+        public:
+            int lengthOfLastWord(string s) {
+                int i = s.size() - 1;
+                while (s[i] == ' ')
+                    --i;
+                int j = i - 1;
+                for (; j >= 0 && s[j] != ' '; --j) {}
+                return i - j;
+            }
+        };
+    }
+
+    namespace task_59 {
+        /*
+        * https://leetcode.com/problems/spiral-matrix-ii/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> generateMatrix(int n) {
+                vector<vector<int>> matrix(n, vector<int>(n));
+                int left = 0, right = n, up = 0, down = n;
+                int c = 0;
+                size_t size = n * n;
+                while (c != size) {
+                    int j = left;
+                    int i = up;
+                    for (; j < right; j++)
+                        matrix[i][j] = ++c;
+                    if (c == size)
+                        break;
+                    ++i;
+                    --j;
+                    for (; i < down; i++)
+                        matrix[i][j] = ++c;
+                    --i;
+                    --j;
+                    for (; j >= left; j--)
+                        matrix[i][j] = ++c;
+                    --i;
+                    ++j;
+                    for (; i > up; i--)
+                        matrix[i][j] = ++c;
+
+                    ++left;
+                    ++up;
+                    --right;
+                    --down;
+                }
+                return matrix;
             }
         };
     }
@@ -4105,6 +4295,66 @@ namespace leetcode {
         };
     }
 
+    namespace task_621 {
+        /*
+        * https://leetcode.com/problems/task-scheduler/
+        */
+        class Solution {
+        public:
+            int leastInterval(vector<char>& tasks, int n) {
+                if (n == 0)
+                    return tasks.size();
+
+                vector<int> sorted_tasks(26);
+                for (auto v : tasks)
+                    ++sorted_tasks[v - 'A'];
+                sort(sorted_tasks.begin(), sorted_tasks.end(), greater<int>());
+
+                while (sorted_tasks.back() == 0)
+                    sorted_tasks.pop_back();
+
+                ++n;
+                if (sorted_tasks.size() <= n)
+                    return leastInterval2(sorted_tasks, n);
+
+                std::priority_queue<int> queue;
+                std::queue<int> wait_queue;
+                int sum = 0;
+                for (auto v : sorted_tasks) {
+                    sum += v;
+                    queue.push(v);
+                }
+
+                int count = 0;
+                while (sum != 0) {
+                    if (wait_queue.size() == n) {
+                        queue.push(wait_queue.front());
+                        wait_queue.pop();
+                    }
+                    if (queue.top() > 0) {
+                        wait_queue.push(queue.top() - 1);
+                        --sum;
+                    }
+                    else {
+                        wait_queue.push(queue.top());
+                    }
+
+                    queue.pop();
+                    ++count;
+                }
+                return count;
+            }
+
+            int leastInterval2(const vector<int>& tasks, const int n) {
+                int count_max = 1;
+                for (; count_max < tasks.size(); count_max++)
+                    if (tasks[count_max] != tasks[count_max - 1])
+                        break;
+                return (tasks[0] - 1) * n + count_max;
+            }
+        };
+    }
+
     namespace task_633 {
         /*
         * https://leetcode.com/problems/sum-of-square-numbers/
@@ -4330,6 +4580,38 @@ namespace leetcode {
                 if (max_length < length)
                     max_length = length;
                 return max_length;
+            }
+        };
+    }
+
+    namespace task_697 {
+        /*
+        * https://leetcode.com/problems/degree-of-an-array/description/
+        */
+        class Solution {
+        public:
+            int findShortestSubArray(vector<int>& nums) {
+                const size_t size = nums.size();
+                const size_t max_value = 50000;
+                vector<int> degres(max_value);
+                vector<int> starts(max_value, -1);
+                vector<int> ends(max_value);
+
+                int max_degree = 1;
+                for (size_t i = 0; i < size; i++) {
+                    if (starts[nums[i]] == -1)
+                        starts[nums[i]] = i;
+                    ends[nums[i]] = i;
+                    ++degres[nums[i]];
+
+                    max_degree = max(max_degree, degres[nums[i]]);
+                }
+
+                int min_length = size;
+                for (size_t i = 0; i < size; i++)
+                    if (degres[nums[i]] == max_degree)
+                        min_length = min(min_length, ends[nums[i]] - starts[nums[i]] + 1);
+                return min_length;
             }
         };
     }
@@ -4592,6 +4874,75 @@ namespace leetcode {
                         r = i + 1;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_885 {
+        /*
+        * https://leetcode.com/problems/spiral-matrix-iii/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> spiralMatrixIII(int rows, int cols, int rStart, int cStart) {
+                int c = 0;
+                size_t size = rows * cols;
+                vector<vector<int>> matrix(rows, vector<int>(cols));
+                vector<vector<int>> res;
+                int i, i_end;
+                int j, j_end;
+                int cycle = 0;
+                while (true) {
+                    i = rStart - cycle;
+                    j = max(cStart - cycle, 0);
+                    j_end = min(cStart + cycle + 2, cols);
+                    if (i >= 0) {
+                        for (; j < j_end; j++) {
+                            res.push_back(vector<int>{i, j});
+                            matrix[i][j] = ++c;
+                        }
+                        if (c == size)
+                            break;
+                    }
+
+                    i = max(i + 1, 0);
+                    i_end = min(rStart + cycle + 2, rows);
+                    j = cStart + cycle + 1;
+                    if (j < cols) {
+                        for (; i < i_end; i++) {
+                            res.push_back(vector<int>{i, j});
+                            matrix[i][j] = ++c;
+                        }
+                        if (c == size)
+                            break;
+                    }
+
+                    i = rStart + cycle + 1;
+                    j = min(j - 1, cols - 1);
+                    j_end = max(cStart - cycle - 2, -1);
+                    if (i < rows) {
+                        for (; j > j_end; j--) {
+                            res.push_back(vector<int>{i, j});
+                            matrix[i][j] = ++c;
+                        }
+                        if (c == size)
+                            break;
+                    }
+
+                    i = min(i - 1, rows - 1);
+                    i_end = max(rStart - cycle - 1, -1);
+                    j = cStart - cycle - 1;
+                    if (j >= 0) {
+                        for (; i > i_end; i--) {
+                            res.push_back(vector<int>{i, j});
+                            matrix[i][j] = ++c;
+                        }
+                        if (c == size)
+                            break;
+                    }
+                    ++cycle;
+                }
+                return matrix;
             }
         };
     }
@@ -4996,6 +5347,30 @@ namespace leetcode {
         };
     }
 
+    namespace task_1318 {
+        /*
+        * https://leetcode.com/problems/minimum-flips-to-make-a-or-b-equal-to-c/description/
+        */
+        class Solution {
+        public:
+            int minFlips(int a, int b, int c) {
+                int count = 0;
+                int a_or_b = a | b;
+                for (size_t i = 0; i < 30; i++)
+                {
+                    if ((a_or_b & 1) != (c & 1)) {
+                        count += (a & 1) + (b & 1) + (c & 1);
+                    }
+                    a >>= 1;
+                    b >>= 1;
+                    c >>= 1;
+                    a_or_b >>= 1;
+                }
+                return count;
+            }
+        };
+    }
+
     namespace task_1351 {
         /*
         * https://leetcode.com/problems/count-negative-numbers-in-a-sorted-matrix/description/
@@ -5148,6 +5523,53 @@ namespace leetcode {
         };
     }
 
+    namespace task_1609 {
+        /*
+        * https://leetcode.com/problems/even-odd-tree/description/
+        */
+        class Solution {
+        public:
+            bool isEvenOddTree(TreeNode* root) {
+                int last_level = 0;
+                int value = root->val;
+                TreeNode* node = nullptr;
+                queue<TreeNode*> odd;
+                queue<TreeNode*> even;
+                odd.push(root);
+                while (!odd.empty()) {
+                    value = INT32_MIN;
+                    while (!odd.empty()) {
+                        node = odd.front();
+                        odd.pop();
+                        if (!(node->val % 2) || value >= node->val)
+                            return false;
+                        value = node->val;
+                        if (node->left)
+                            even.push(node->left);
+                        if (node->right)
+                            even.push(node->right);
+                    }
+
+                    if (even.empty())
+                        break;
+                    value = INT32_MAX;
+                    while (!even.empty()) {
+                        node = even.front();
+                        even.pop();
+                        if (node->val % 2 || value <= node->val)
+                            return false;
+                        value = node->val;
+                        if (node->left)
+                            odd.push(node->left);
+                        if (node->right)
+                            odd.push(node->right);
+                    }
+                }
+                return true;
+            }
+        };
+    }
+
     namespace task_1721 {
         /*
         * https://leetcode.com/problems/swapping-nodes-in-a-linked-list/description/
@@ -5250,6 +5672,28 @@ namespace leetcode {
         };
     }
 
+    namespace task_1884 {
+        /*
+        * https://leetcode.com/problems/egg-drop-with-2-eggs-and-n-floors/description/
+        */
+        class Solution {
+        public:
+            int twoEggDrop(int n) {
+                return ceil((sqrt(1 + (n << 3)) - 1) / 2);
+            }
+
+            int twoEggDrop2(int n) {
+                int i = 1, steps = 0;
+                while (n > 0) {
+                    n -= i;
+                    ++i;
+                    ++steps;
+                }
+                return steps;
+            }
+        };
+    }
+
     namespace task_1901 {
         /*
         * https://leetcode.com/problems/find-a-peak-element-ii/
@@ -5314,6 +5758,29 @@ namespace leetcode {
                         l = i;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_1953 {
+        /*
+        * https://leetcode.com/problems/maximum-number-of-weeks-for-which-you-can-work/description/
+        */
+        class Solution {
+        public:
+            long long numberOfWeeks(vector<int>& milestones) {
+                long long max_value = 1;
+                long long sum = 0;
+                for (auto v : milestones) {
+                    sum += v;
+                    if (max_value < v)
+                        max_value = v;
+                }
+
+                sum -= max_value;
+                return sum < max_value ?
+                    (sum << 1) + 1 :
+                    sum + max_value;
             }
         };
     }
@@ -5477,6 +5944,25 @@ namespace leetcode {
         };
     }
 
+    namespace task_2220 {
+        /*
+        * https://leetcode.com/problems/minimum-bit-flips-to-convert-number/description/
+        */
+        class Solution {
+        public:
+            int minBitFlips(int start, int goal) {
+                int count = 0;
+                start ^= goal;
+                while (start != 0)
+                {
+                    count += start & 1;
+                    start >>= 1;
+                }
+                return count;
+            }
+        };
+    }
+
     namespace task_2300 {
         /*
         * https://leetcode.com/problems/successful-pairs-of-spells-and-potions/description/
@@ -5508,6 +5994,48 @@ namespace leetcode {
                         l = i;
                 }
                 return nums.size() - r;
+            }
+        };
+    }
+
+    namespace task_2326 {
+        /*
+        * https://leetcode.com/problems/spiral-matrix-iv/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> spiralMatrix(int m, int n, ListNode* head) {
+                int left = 0, right = n, up = 0, down = m;
+                vector<vector<int>> matrix(m, vector<int>(n, -1));
+
+                while (head) {
+                    int j = left;
+                    int i = up;
+                    for (; head && j < right; j++, head = head->next)
+                        matrix[i][j] = head->val;
+
+                    ++i;
+                    --j;
+                    for (; head && i < down; i++, head = head->next)
+                        matrix[i][j] = head->val;
+
+                    --i;
+                    --j;
+                    for (; head && j >= left; j--, head = head->next)
+                        matrix[i][j] = head->val;
+
+                    --i;
+                    ++j;
+                    for (; head && i > up; i--, head = head->next)
+                        matrix[i][j] = head->val;
+
+                    ++left;
+                    ++up;
+                    --right;
+                    --down;
+                }
+
+                return matrix;
             }
         };
     }
@@ -5549,6 +6077,51 @@ namespace leetcode {
                 }
 
                 return max(count_neg, size - r);
+            }
+        };
+    }
+
+    namespace task_2643 {
+        /*
+        * https://leetcode.com/problems/row-with-maximum-ones/description/
+        */
+        class Solution {
+        public:
+            vector<int> rowAndMaximumOnes(vector<vector<int>>& mat) {
+                int max_count = 0;
+                int max_row = 0;
+
+                for (size_t i = 0; i < mat.size(); i++) {
+                    int count = 0;
+                    for (size_t j = 0; j < mat[i].size(); j++)
+                        if (mat[i][j] == 1)
+                            ++count;
+                    if (max_count < count) {
+                        max_count = count;
+                        max_row = i;
+                    }
+                }
+                return { max_row, max_count };
+            }
+        };
+    }
+
+    namespace task_2997 {
+        /*
+        * https://leetcode.com/problems/minimum-number-of-operations-to-make-array-xor-equal-to-k/description/
+        */
+        class Solution {
+        public:
+            int minOperations(vector<int>& nums, int k) {
+                int count = 0;
+                for (const int num : nums)
+                    k ^= num;
+                while (k != 0)
+                {
+                    count += k & 1;
+                    k >>= 1;
+                }
+                return count;
             }
         };
     }
