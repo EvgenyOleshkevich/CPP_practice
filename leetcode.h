@@ -2532,6 +2532,38 @@ namespace leetcode {
         };
     }
 
+    namespace task_61
+    {
+        /*
+        * https://leetcode.com/problems/rotate-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* rotateRight(ListNode* head, int k) {
+                if (!head || !head->next)
+                    return head;
+
+                ListNode* tail = head;
+                size_t size = 1;
+                while (tail->next) {
+                    ++size;
+                    tail = tail->next;
+                }
+                k %= size;
+                if (k == 0)
+                    return head;
+                tail->next = head;
+                k = size - k;
+                for (size_t i = 0; i < k; i++) {
+                    tail = tail->next;
+                }
+                head = tail->next;
+                tail->next = nullptr;
+                return head;
+            }
+        };
+    }
+
     namespace task_62 {
         /*
         * https://leetcode.com/problems/unique-paths/description/
@@ -2622,6 +2654,68 @@ namespace leetcode {
                         grid[i][j] += min(grid[i][j - 1], grid[i - 1][j]);
 
                 return grid[m - 1][n - 1];
+            }
+        };
+    }
+
+    namespace task_66
+    {
+        /*
+        * https://leetcode.com/problems/plus-one/description/
+        */
+        class Solution {
+        public:
+            vector<int> plusOne(vector<int>& digits) {
+                int i = digits.size() - 1;
+                bool add = true;
+                for (; add && i >= 0; --i) {
+                    ++digits[i];
+                    add = digits[i] == 10;
+                    if (add)
+                        digits[i] = 0;
+                }
+
+                if (add && i == -1)
+                    digits.emplace(digits.begin(), 1);
+                return digits;
+            }
+        };
+    }
+
+    namespace task_67
+    {
+        /*
+        * https://leetcode.com/problems/add-binary/description/
+        */
+        class Solution {
+        public:
+            string addBinary(string a, string b) {
+                if (a.size() < b.size())
+                    swap(a, b);
+                int i = a.size() - 1;
+
+                char add = 0;
+                int sum = 0;
+                for (int j = b.size() - 1; j >= 0; --j, --i) {
+                    sum = a[i] + b[j] + add - ('0' << 1);
+                    add = sum >> 1;
+                    sum &= 1;
+                    a[i] = sum + '0';
+                }
+
+                if (!add)
+                    return a;
+
+                for (; add && i >= 0; --i) {
+                    sum = a[i] + add - '0';
+                    add = sum >> 1;
+                    sum &= 1;
+                    a[i] = sum + '0';
+                }
+
+                if (add && i == -1)
+                    a.insert(a.begin(), '1');
+                return a;
             }
         };
     }
@@ -2860,6 +2954,96 @@ namespace leetcode {
         };
     }
 
+    namespace task_82
+    {
+        /*
+        * https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/description/
+        */
+        class Solution {
+        public:
+            ListNode* deleteDuplicates(ListNode* head) {
+                if (!head || !head->next)
+                    return head;
+
+                ListNode* guard = new ListNode(-1000, head);
+                ListNode* ptr = guard;
+                while (ptr->next && ptr->next->next) {
+                    bool isRepeated = false;
+                    while (ptr->next->next && ptr->next->val == ptr->next->next->val) {
+                        ptr->next->next = ptr->next->next->next;
+                        isRepeated = true;
+                    }
+                    if (isRepeated)
+                        ptr->next = ptr->next->next;
+                    else
+                        ptr = ptr->next;
+                }
+                head = guard->next;
+                delete guard;
+                return head;
+            }
+        };
+    }
+
+    namespace task_83
+    {
+        /*
+        * https://leetcode.com/problems/remove-duplicates-from-sorted-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* deleteDuplicates(ListNode* head) {
+                if (!head || !head->next)
+                    return head;
+
+                ListNode* ptr = head;
+                while (ptr->next)
+                    if (ptr->val == ptr->next->val)
+                        ptr->next = ptr->next->next;
+                    else
+                        ptr = ptr->next;
+                return head;
+            }
+        };
+    }
+
+    namespace task_86
+    {
+        /*
+        * https://leetcode.com/problems/partition-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* partition(ListNode* head, int x) {
+                if (!head)
+                    return head;
+
+                ListNode* less_head = new ListNode();
+                ListNode* less = less_head;
+                ListNode* greater_head = new ListNode();
+                ListNode* greater = greater_head;
+                ListNode* ptr = head;
+                while (ptr) {
+                    if (ptr->val < x) {
+                        less->next = ptr;
+                        less = less->next;
+                    }
+                    else {
+                        greater->next = ptr;
+                        greater = greater->next;
+                    }
+                    ptr = ptr->next;
+                }
+                greater->next = nullptr;
+                less->next = greater_head->next;
+                less = less_head->next;
+                delete less_head;
+                delete greater_head;
+                return less;
+            }
+        };
+    }
+
     namespace task_92 {
         /*
         * https://leetcode.com/problems/reverse-linked-list-ii/description/
@@ -2903,6 +3087,57 @@ namespace leetcode {
                     delete guard;
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_109
+    {
+        /*
+        * https://leetcode.com/problems/convert-sorted-list-to-binary-search-tree/
+        */
+        class Solution {
+        public:
+            TreeNode* sortedListToBST(ListNode* head) {
+                if (!head)
+                    return nullptr;
+
+                vector<int> vec;
+                while (head) {
+                    vec.push_back(head->val);
+                    head = head->next;
+                }
+                sort(vec.begin(), vec.end());
+                int l = 0;
+                int r = vec.size();
+                int m = (l + r) >> 1;
+
+                auto root = new TreeNode(vec[m]);
+                TreeNode* node = nullptr;
+                stack<pair<vector<int>, TreeNode*>> stack;
+                if (m - l > 0)
+                    stack.push({ {l, m, 0}, root });
+                if (r - m - 1 > 0)
+                    stack.push({ {m + 1, r, 1}, root });
+
+                while (!stack.empty()) {
+                    auto el = stack.top();
+                    stack.pop();
+                    l = el.first[0];
+                    r = el.first[1];
+                    m = (l + r) >> 1;
+                    node = new TreeNode(vec[m]);
+                    if (el.first[2])
+                        el.second->right = node;
+                    else
+                        el.second->left = node;
+
+                    if (m - l > 0)
+                        stack.push({ {l, m, 0}, node });
+                    if (r - m - 1 > 0)
+                        stack.push({ {m + 1, r, 1}, node });
+                }
+                return root;
             }
         };
     }
@@ -6040,6 +6275,35 @@ namespace leetcode {
         };
     }
 
+    namespace task_2487
+    {
+        /*
+        * https://leetcode.com/problems/remove-nodes-from-linked-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* removeNodes(ListNode* head) {
+                stack<int> stack;
+                while (head) {
+                    stack.push(head->val);
+                    head = head->next;
+                }
+                int max_val = stack.top();
+                int val;
+                stack.pop();
+                head = new ListNode(max_val);
+                while (!stack.empty()) {
+                    val = stack.top();
+                    stack.pop();
+                    if (val >= max_val)
+                        head = new ListNode(val, head);
+                    max_val = max(max_val, val);
+                }
+                return head;
+            }
+        };
+    }
+
     namespace task_2529 {
         /*
         * https://leetcode.com/problems/maximum-count-of-positive-integer-and-negative-integer/description/
@@ -6102,6 +6366,63 @@ namespace leetcode {
                     }
                 }
                 return { max_row, max_count };
+            }
+        };
+    }
+
+    namespace task_2816
+    {
+        /*
+        * https://leetcode.com/problems/double-a-number-represented-as-a-linked-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* doubleItFast(ListNode* head) {
+                ListNode* ptr = head;
+                if (head->val > 4)
+                    head = new ListNode(1, head);
+
+                int remainder = 0;
+                int sum = 0;
+                for (; ptr->next; ptr = ptr->next)
+                    ptr->val = ((ptr->val << 1) + (ptr->next->val > 4 ? 1 : 0)) % 10;
+                ptr->val = (ptr->val << 1) % 10;
+
+                return head;
+            }
+
+            ListNode* doubleIt(ListNode* head) {
+                head = rotate(head);
+
+                int remainder = 0;
+                int sum = 0;
+                ListNode* ptr = head;
+                for (; ptr->next; ptr = ptr->next) {
+                    sum = (ptr->val << 1) + remainder;
+                    ptr->val = sum % 10;
+                    remainder = sum / 10;
+                }
+                sum = (ptr->val << 1) + remainder;
+                ptr->val = sum % 10;
+                remainder = sum / 10;
+                if (remainder != 0)
+                    ptr->next = new ListNode(remainder);
+
+                return rotate(head);
+            }
+
+            ListNode* rotate(ListNode* head) {
+                ListNode* next = head->next;
+                ListNode* tmp = nullptr;
+                head->next = nullptr;
+                while (next)
+                {
+                    tmp = next->next;
+                    next->next = head;
+                    head = next;
+                    next = tmp;
+                }
+                return head;
             }
         };
     }
