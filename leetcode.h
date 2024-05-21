@@ -40,6 +40,26 @@ namespace leetcode {
 
     };
 
+    struct Node {
+        int val;
+        Node* left;
+        Node* right;
+        Node* next;
+
+        Node() : val(0), left(nullptr), right(nullptr), next(nullptr) {}
+        Node(int x) : val(x), left(nullptr), right(nullptr), next(nullptr) {}
+        Node(int x, Node* left, Node* right, Node* next) : val(x), left(left), right(right), next(next) {}
+    };
+
+    struct NodeRandom {
+        int val;
+        NodeRandom* next;
+        NodeRandom* random;
+
+        NodeRandom() : val(0), next(nullptr), random(nullptr) {}
+        NodeRandom(int x) : val(x), next(nullptr), random(nullptr) {}
+    };
+
     namespace utils {
         ListNode* vector2list(const vector<int>& v) {
             auto head = new ListNode();
@@ -2954,6 +2974,75 @@ namespace leetcode {
         };
     }
 
+    namespace task_78 {
+        /*
+        * https://leetcode.com/problems/subsets/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> subsets(vector<int>& nums) {
+                size_t size = nums.size();
+                vector<vector<int>> res(1 << size);
+                for (size_t i = 0; i < size; i++) {
+                    size_t count_pieces = 1 << (i + 1);
+                    size_t size_of_piece = 1 << (size - i - 1);
+                    size_t t = 0;
+                    for (size_t j = 0; j < count_pieces; j++)
+                        if (j & 1)
+                            for (size_t k = 0; k < size_of_piece; k++, t++)
+                                res[t].push_back(nums[i]);
+                        else
+                            t += size_of_piece;
+                }
+                return res;
+            }
+
+            vector<vector<int>> subsets_recursion(vector<int>& nums) {
+                vector<vector<int>> result;
+                vector<int> path;
+                backtrack(nums, 0, path, result);
+                return result;
+            }
+
+            void backtrack(vector<int>& nums, int start, vector<int>& path, vector<vector<int>>& result) {
+                result.push_back(path);
+                for (int i = start; i < nums.size(); i++) {
+                    path.push_back(nums[i]);
+                    backtrack(nums, i + 1, path, result);
+                    path.pop_back();
+                }
+            }
+
+            vector<vector<int>> subsets_bit_manipulation(vector<int>& nums) {
+                vector<vector<int>> result;
+                int n = nums.size();
+                for (int i = 0; i < (1 << n); i++) {
+                    vector<int> subset;
+                    for (int j = 0; j < n; j++) {
+                        if ((i & (1 << j)) > 0) {
+                            subset.push_back(nums[j]);
+                        }
+                    }
+                    result.push_back(subset);
+                }
+                return result;
+            }
+
+            vector<vector<int>> subsets_iterative_way(vector<int>& nums) {
+                vector<vector<int>> result = { {} }; // Add the empty subset
+                for (int num : nums) {
+                    int size = result.size();
+                    for (int i = 0; i < size; i++) {
+                        vector<int> subset = result[i];
+                        subset.push_back(num);
+                        result.push_back(subset);
+                    }
+                }
+                return result;
+            }
+        };
+    }
+
     namespace task_82
     {
         /*
@@ -3040,6 +3129,63 @@ namespace leetcode {
                 delete less_head;
                 delete greater_head;
                 return less;
+            }
+        };
+    }
+
+    namespace task_88 {
+        /*
+        * https://leetcode.com/problems/merge-sorted-array/description/
+        */
+        class Solution {
+        public:
+            void mergeSaveMemory(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+                if (n == 0)
+                    return;
+                if (m == 0) {
+                    swap(nums1, nums2);
+                    return;
+                }
+                for (size_t i = 0; i < m; ++i)
+                    nums1[m + n - 1 - i] = nums1[m - 1 - i];
+
+                int i = n, j = 0, k = 0;
+                while (i < m + n && j < n) {
+                    if (nums1[i] < nums2[j]) {
+                        nums1[k] = nums1[i];
+                        ++i;
+                    }
+                    else {
+                        nums1[k] = nums2[j];
+                        ++j;
+                    }
+                    ++k;
+                }
+                for (; j < n; ++j, ++k)
+                    nums1[k] = nums2[j];
+            }
+
+            void mergeFast(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+                if (n == 0)
+                    return;
+                vector<int> copy(m);
+                copy.assign(nums1.begin(), nums1.begin() + m);
+                int i = 0, j = 0, k = 0;
+                while (i < m && j < n) {
+                    if (copy[i] < nums2[j]) {
+                        nums1[k] = copy[i];
+                        ++i;
+                    }
+                    else {
+                        nums1[k] = nums2[j];
+                        ++j;
+                    }
+                    ++k;
+                }
+                for (; i < m; ++i, ++k)
+                    nums1[k] = copy[i];
+                for (; j < n; ++j, ++k)
+                    nums1[k] = nums2[j];
             }
         };
     }
@@ -3142,6 +3288,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_114 {
+        /*
+        * https://leetcode.com/problems/flatten-binary-tree-to-linked-list/description/
+        */
+        class Solution {
+        public:
+            void flatten(TreeNode* root) {
+                if (!root)
+                    return;
+
+                TreeNode* node = nullptr;
+                stack<TreeNode*> stack;
+                if (root->right)
+                    stack.push(root->right);
+                if (root->left)
+                    stack.push(root->left);
+                root->left = nullptr;
+
+                while (!stack.empty()) {
+                    auto node = stack.top();
+                    stack.pop();
+                    root->right = node;
+                    root = node;
+                    if (root->right)
+                        stack.push(root->right);
+                    if (root->left)
+                        stack.push(root->left);
+                    root->left = nullptr;
+                }
+            }
+        };
+    }
+
     namespace task_115 {
         /*
         * https://leetcode.com/problems/distinct-subsequences/description/
@@ -3162,6 +3341,77 @@ namespace leetcode {
                     for (size_t i = j; i < size1 + 1 + j - size2; i++)
                         result[i][j] += result[i - 1][j] + (s[i] == t[j] ? result[i - 1][j - 1] : 0);
                 return result.back().back();
+            }
+        };
+    }
+
+    namespace task_116 {
+        /*
+        * https://leetcode.com/problems/populating-next-right-pointers-in-each-node/
+        */
+        class Solution {
+        public:
+            Node* connect(Node* root) {
+                if (!root)
+                    return root;
+                queue<Node*> queue;
+                Node* prev = nullptr;
+                int count = 0;
+                int max_count = 1;
+                queue.push(root);
+
+                while (!queue.empty()) {
+                    Node* node = queue.front();
+                    queue.pop();
+                    node->next = prev;
+                    prev = node;
+                    if (node->right)
+                        queue.push(node->right);
+                    if (node->left)
+                        queue.push(node->left);
+                    ++count;
+                    if (count == max_count) {
+                        max_count <<= 1;
+                        count = 0;
+                        prev = nullptr;
+                    }
+                }
+                return root;
+            }
+        };
+    }
+
+    namespace task_117 {
+        /*
+        * https://leetcode.com/problems/populating-next-right-pointers-in-each-node-ii/description/
+        */
+        class Solution {
+        public:
+            Node* connect(Node* root) {
+                if (!root)
+                    return root;
+                queue<Node*> consume_queue;
+                queue<Node*> store_queue;
+                Node* prev = nullptr;
+                consume_queue.push(root);
+
+                while (!consume_queue.empty()) {
+                    prev = nullptr;
+                    while (!consume_queue.empty()) {
+                        Node* node = consume_queue.front();
+                        consume_queue.pop();
+
+                        node->next = prev;
+                        prev = node;
+
+                        if (node->right)
+                            store_queue.push(node->right);
+                        if (node->left)
+                            store_queue.push(node->left);
+                    }
+                    swap(consume_queue, store_queue);
+                }
+                return root;
             }
         };
     }
@@ -3292,6 +3542,38 @@ namespace leetcode {
         };
     }
 
+    namespace task_138 {
+        /*
+        * https://leetcode.com/problems/copy-list-with-random-pointer/
+        */
+        class Solution {
+        public:
+            NodeRandom* copyRandomList(NodeRandom* head) {
+                if (!head)
+                    return head;
+                size_t size = 0;
+                map<NodeRandom*, size_t> node_number;
+                vector<NodeRandom*> nodes;
+                auto ptr = head;
+                while (ptr) {
+                    auto node = new NodeRandom(ptr->val);
+                    nodes.push_back(node);
+                    node_number[ptr] = size;
+                    ptr = ptr->next;
+                    ++size;
+                }
+
+                ptr = head->next;
+                nodes[0]->random = head->random ? nodes[node_number[head->random]] : nullptr;
+                for (size_t i = 1; i < size; i++, ptr = ptr->next) {
+                    nodes[i - 1]->next = nodes[i];
+                    nodes[i]->random = ptr->random ? nodes[node_number[ptr->random]] : nullptr;
+                }
+                return nodes[0];
+            }
+        };
+    }
+
     namespace task_139 {
         /*
         * https://leetcode.com/problems/word-break/description/
@@ -3357,6 +3639,266 @@ namespace leetcode {
                     }
                 }
                 return result;
+            }
+        };
+    }
+
+    namespace task_141 {
+        /*
+        * https://leetcode.com/problems/linked-list-cycle/description/
+        */
+        class Solution {
+        public:
+            bool hasCycle(ListNode* head) {
+                ListNode* node = head;
+                while (node && node->next) {
+                    node = node->next->next;
+                    head = head->next;
+                    if (head == node)
+                        return true;
+                }
+                return false;
+            }
+
+            bool hasCycleSet(ListNode* head) {
+                set<ListNode*> nodes;
+                while (head) {
+                    if (nodes.contains(head))
+                        return true;
+                    nodes.insert(head);
+                    head = head->next;
+                }
+                return false;
+            }
+        };
+    }
+
+    namespace task_142 {
+        /*
+        * https://leetcode.com/problems/linked-list-cycle-ii/description/
+        */
+        class Solution {
+        public:
+            ListNode* detectCycle(ListNode* head) {
+                ListNode* fast = head;
+                ListNode* slow = head;
+                while (fast && fast->next) {
+                    fast = fast->next->next;
+                    slow = slow->next;
+                    if (slow == fast)
+                        break;
+                }
+                if (!fast || !fast->next)
+                    return nullptr;
+                while (head != slow) {
+                    slow = slow->next;
+                    head = head->next;
+                }
+                return head;
+            }
+
+            ListNode* detectCycleSet(ListNode* head) {
+                set<ListNode*> nodes;
+                while (head) {
+                    if (nodes.contains(head))
+                        return head;
+                    nodes.insert(head);
+                    head = head->next;
+                }
+                return nullptr;
+            }
+        };
+    }
+
+    namespace task_143 {
+        /*
+        * https://leetcode.com/problems/reorder-list/
+        */
+        class Solution {
+        public:
+            void reorderList(ListNode* head) {
+                if (!head || !head->next || !head->next->next)
+                    return;
+                ListNode* ptr = head;
+                size_t size = 0;
+                while (ptr) {
+                    ++size;
+                    ptr = ptr->next;
+                }
+                size >>= 1;
+                ptr = head;
+                for (size_t i = 0; i < size; ++i, ptr = ptr->next) {}
+
+                ListNode* next_ptr = ptr->next;
+                ListNode* temp;
+                ptr->next = nullptr;
+                ptr = next_ptr;
+                next_ptr = ptr->next;
+                ptr->next = nullptr;
+                while (next_ptr) {
+                    temp = next_ptr->next;
+                    next_ptr->next = ptr;
+                    ptr = next_ptr;
+                    next_ptr = temp;
+                }
+
+                while (ptr) {
+                    temp = head->next;
+                    head->next = ptr;
+                    ptr = ptr->next;
+                    head->next->next = temp;
+                    head = temp;
+                }
+            }
+        };
+    }
+
+    namespace task_145 {
+        /*
+        * https://leetcode.com/problems/binary-tree-postorder-traversal/
+        */
+        class Solution {
+        public:
+            vector<int> postorderTraversal(TreeNode* root) {
+                vector<int> res;
+                if (!root)
+                    return res;
+
+                stack<TreeNode*> stack;
+                stack.push(root);
+
+                while (!stack.empty()) {
+                    root = stack.top();
+                    stack.pop();
+                    res.push_back(root->val);
+                    if (root->left)
+                        stack.push(root->left);
+                    if (root->right)
+                        stack.push(root->right);
+                }
+                reverse(res.begin(), res.end());
+                return res;
+            }
+        };
+    }
+
+    namespace task_146 {
+        /*
+        * https://leetcode.com/problems/reorder-list/
+        */
+        class LRUCache {
+        public:
+            int capacity;
+            int operations;
+            unordered_map<int, pair<int, int>> map;
+
+            LRUCache(int capacity) : capacity(capacity), operations(0) { }
+
+            int get(int key) {
+                if (auto it = map.find(key); it != map.end()) {
+                    it->second.second = operations;
+                    ++operations;
+                    return it->second.first;
+                }
+                else {
+                    return -1;
+                }
+            }
+
+            void put(int key, int value) {
+                map[key] = { value , operations };
+                ++operations;
+                if (map.size() > capacity) {
+                    value = operations;
+                    for (const auto& [_key, _value] : map)
+                        if (value > _value.second) {
+                            value = _value.second;
+                            key = _key;
+                        }
+                    map.erase(key);
+                }
+            }
+        };
+    }
+
+    namespace task_147 {
+        /*
+        * https://leetcode.com/problems/insertion-sort-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* insertionSortList(ListNode* head) {
+                ListNode* guard = new ListNode(0, head);
+                ListNode* node = head->next;
+                ListNode* temp;
+                head->next = nullptr;
+                while (node)
+                {
+                    temp = node;
+                    node = node->next;
+                    head = guard;
+                    while (head->next && head->next->val < temp->val)
+                        head = head->next;
+                    temp->next = head->next;
+                    head->next = temp;
+                }
+
+                head = guard->next;
+                delete guard;
+                return head;
+            }
+        };
+    }
+
+    namespace task_148 {
+        /*
+        * https://leetcode.com/problems/sort-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* sortList(ListNode* head) {
+                if (!head || !head->next)
+                    return head;
+                ListNode* slow = head;
+                ListNode* fast = head->next;
+                while (fast && fast->next) {
+                    fast = fast->next->next;
+                    slow = slow->next;
+                }
+
+                fast = slow->next;
+                slow->next = nullptr;
+                slow = sortList(head);
+                fast = sortList(fast);
+                head = mergeTwoLists(slow, fast);
+                return head;
+            }
+
+            ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+                auto head = new ListNode();
+                auto res = head;
+
+                while (list1 && list2)
+                {
+                    if (list1->val < list2->val) {
+                        res->next = list1;
+                        list1 = list1->next;
+                    }
+                    else {
+                        res->next = list2;
+                        list2 = list2->next;
+                    }
+                    res = res->next;
+                }
+
+                if (list1)
+                    res->next = list1;
+                else
+                    res->next = list2;
+
+                res = head->next;
+                delete head;
+                return res;
             }
         };
     }
@@ -3434,6 +3976,24 @@ namespace leetcode {
                     if (nums[min] > nums[i])
                         min = i;
                 return nums[min];
+            }
+        };
+    }
+
+    namespace task_160 {
+        /*
+        * https://leetcode.com/problems/intersection-of-two-linked-lists/description/
+        */
+        class Solution {
+        public:
+            ListNode* getIntersectionNode(ListNode* headA, ListNode* headB) {
+                size_t size_a = 0, size_b = 0;
+                for (ListNode* ptr = headA; ptr; ptr = ptr->next, ++size_a) {}
+                for (ListNode* ptr = headB; ptr; ptr = ptr->next, ++size_b) {}
+                for (; size_a > size_b; headA = headA->next, --size_a) {}
+                for (; size_b > size_a; headB = headB->next, --size_b) {}
+                for (; headA && headA != headB; headA = headA->next, headB = headB->next) {}
+                return headA;
             }
         };
     }
@@ -3683,6 +4243,38 @@ namespace leetcode {
                 while (n % 2 == 0)
                     n >>= 1;
                 return n == 1;
+            }
+        };
+    }
+
+    namespace task_234 {
+        /*
+        * https://leetcode.com/problems/palindrome-linked-list/
+        */
+        class Solution {
+        public:
+            bool isPalindrome(ListNode* head) {
+                if (!head->next)
+                    return true;
+                ListNode* ptr = head->next;
+                size_t size = 1;
+                for (; ptr; ptr = ptr->next, ++size) {}
+                ptr = head;
+                ListNode* temp, * next = head->next;
+                ptr->next = nullptr;
+                size_t half = size >> 1;
+                for (size_t i = 1; i < half; ++i) {
+                    temp = next->next;
+                    next->next = ptr;
+                    ptr = next;
+                    next = temp;
+                }
+                if (size & 1)
+                    next = next->next;
+                for (; ptr; ptr = ptr->next, next = next->next)
+                    if (ptr->val != next->val)
+                        return false;
+                return true;
             }
         };
     }
@@ -4498,6 +5090,41 @@ namespace leetcode {
         };
     }
 
+    namespace task_599 {
+        /*
+        * https://leetcode.com/problems/intersection-of-two-linked-lists/description/
+        */
+        class Solution {
+        public:
+            vector<string> findRestaurantMap(vector<string>& list1, vector<string>& list2) {
+                unordered_map<string, int> mp;
+                vector<string> res;
+                int size1 = list1.size(), size2 = list2.size();
+                for (int sum_index = 0; sum_index < size1 + size2 - 1; sum_index++) {
+                    for (int i = max(0, sum_index - size2 + 1); i < size1 && i <= sum_index; i++)
+                        if (list1[i] == list2[sum_index - i])
+                            res.push_back(list1[i]);
+                    if (!res.empty())
+                        return res;
+                }
+                return res;
+            }
+
+            vector<string> findRestaurant(vector<string>& list1, vector<string>& list2) {
+                vector<string> res;
+                int size1 = list1.size(), size2 = list2.size();
+                for (int sum_index = 0; sum_index < size1 + size2 - 1; sum_index++) {
+                    for (int i = max(0, sum_index - size2 + 1); i < size1 && i <= sum_index; i++)
+                        if (list1[i] == list2[sum_index - i])
+                            res.push_back(list1[i]);
+                    if (!res.empty())
+                        return res;
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_611 {
         /*
         * https://leetcode.com/problems/valid-triangle-number/description/
@@ -4526,6 +5153,52 @@ namespace leetcode {
                     sum += (k - j - 1) * (k - j) / 2;
                 }
                 return sum;
+            }
+        };
+    }
+
+    namespace task_617 {
+        /*
+        * https://leetcode.com/problems/merge-two-binary-trees/description/
+        */
+        class Solution {
+        public:
+            TreeNode* mergeTrees(TreeNode* root1, TreeNode* root2) {
+                if (!root1)
+                    return root2;
+                if (!root2)
+                    return root1;
+
+                TreeNode* root = new TreeNode(root1->val + root2->val);
+                TreeNode* node = root;
+                queue<pair<bool, vector<TreeNode*>>> queue;
+                if (root1->left || root2->left)
+                    queue.push({ false, {root1->left, root2->left, node} });
+                if (root1->right || root2->right)
+                    queue.push({ true, {root1->right, root2->right, node} });
+
+                while (!queue.empty()) {
+                    bool isRight = queue.front().first;
+                    const vector<TreeNode*>& ptrs = queue.front().second;
+                    int val1 = ptrs[0] ? ptrs[0]->val : 0;
+                    int val2 = ptrs[1] ? ptrs[1]->val : 0;
+                    node = new TreeNode(val1 + val2);
+                    if (isRight)
+                        ptrs[2]->right = node;
+                    else
+                        ptrs[2]->left = node;
+
+                    TreeNode* left1 = ptrs[0] ? ptrs[0]->left : nullptr;
+                    TreeNode* left2 = ptrs[1] ? ptrs[1]->left : nullptr;
+                    TreeNode* right1 = ptrs[0] ? ptrs[0]->right : nullptr;
+                    TreeNode* right2 = ptrs[1] ? ptrs[1]->right : nullptr;
+                    if (left1 || left2)
+                        queue.push({ false, {left1, left2, node} });
+                    if (right1 || right2)
+                        queue.push({ true, {right1, right2, node} });
+                    queue.pop();
+                }
+                return root;
             }
         };
     }
@@ -5113,6 +5786,96 @@ namespace leetcode {
         };
     }
 
+    namespace task_861 {
+        /*
+        * https://leetcode.com/problems/score-after-flipping-matrix/description/
+        */
+        class Solution {
+        public:
+            int matrixScore(vector<vector<int>>& grid) {
+                const int length = grid.size();
+                const int widht = grid[0].size();
+                int sum = (1 << (widht - 1)) * length;
+
+                for (size_t i = 0; i < length; ++i)
+                    if (!grid[i][0])
+                        for (size_t j = 0; j < widht; ++j)
+                            grid[i][j] ^= 1;
+
+                for (int j = 1; j < widht; ++j) {
+                    int count = 0;
+                    for (size_t i = 0; i < length; ++i)
+                        count += grid[i][j];
+                    sum += (1 << (widht - j - 1)) * max(count, length - count);
+                }
+
+                return sum;
+            }
+
+            int matrixScoreSlow(vector<vector<int>>& grid) {
+                const int length = grid.size();
+                const int widht = grid[0].size();
+                const int min_number = 1 << (widht - 1);
+                const int mask = (1 << widht) - 1;
+                auto numbers = getNumbers(grid);
+                for (int& number : numbers)
+                    if (number < min_number)
+                        number = (~number) & mask;
+
+                for (int j = 1; j < widht; ++j) {
+                    int count = 0;
+                    int inverter = 1 << (widht - j - 1);
+                    for (const int number : numbers)
+                        if (number & inverter)
+                            ++count;
+                    if ((count << 1) < length) {
+                        for (int& number : numbers)
+                            number ^= inverter;
+                    }
+                }
+
+                int sum = 0;
+                for (const int number : numbers)
+                    sum += number;
+                return sum;
+            }
+
+            vector<int> getNumbers(const vector<vector<int>>& grid) {
+                const int length = grid.size();
+                const int widht = grid[0].size();
+                vector<int> numbers(length);
+                for (size_t i = 0; i < length; ++i) {
+                    int number = 0;
+                    for (size_t j = 0; j < widht; ++j)
+                        number += grid[i][j] << (widht - j - 1);
+                    numbers[i] = number;
+                }
+                return numbers;
+            }
+        };
+    }
+
+    namespace task_876 {
+        /*
+        * https://leetcode.com/problems/middle-of-the-linked-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* middleNode(ListNode* head) {
+                ListNode* ptr = head;
+                while (ptr) {
+                    ptr = ptr->next;
+                    if (ptr)
+                        ptr = ptr->next;
+                    else
+                        break;
+                    head = head->next;
+                }
+                return head;
+            }
+        };
+    }
+
     namespace task_885 {
         /*
         * https://leetcode.com/problems/spiral-matrix-iii/description/
@@ -5203,6 +5966,33 @@ namespace leetcode {
                         min_path = matrix.back()[j];
 
                 return min_path;
+            }
+        };
+    }
+
+    namespace task_979 {
+        /*
+        * https://leetcode.com/problems/distribute-coins-in-binary-tree/description/
+        */
+        class Solution {
+        public:
+            int distributeCoins(TreeNode* root) {
+                int moves = 0;
+                if (root->left) {
+                    moves += distributeCoins(root->left);
+                    int coins = root->left->val - 1;
+                    moves += abs(coins);
+                    root->left->val = 1;
+                    root->val += coins;
+                }
+                if (root->right) {
+                    moves += distributeCoins(root->right);
+                    int coins = root->right->val - 1;
+                    moves += abs(coins);
+                    root->right->val = 1;
+                    root->val += coins;
+                }
+                return moves;
             }
         };
     }
@@ -5497,6 +6287,91 @@ namespace leetcode {
         };
     }
 
+    namespace task_1219 {
+        /*
+        * https://leetcode.com/problems/path-with-maximum-gold/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> way; // 0-gold; 1-2 index; 3-direction
+            // 0 - down; 1 - right; 2 - up; 3 - left; 4 - nowhere
+
+            int getMaximumGold(vector<vector<int>>& grid) {
+                way = vector<vector<int>>(25, vector<int>(4));
+                int max_sum = 0;
+                size_t length = grid.size();
+                size_t width = grid[0].size();
+                for (size_t i = 0; i < length; i++)
+                    for (size_t j = 0; j < width; j++)
+                        if (grid[i][j])
+                            max_sum = max(max_sum, dfs(grid, i, j));
+                return max_sum;
+            }
+
+            int dfs(vector<vector<int>>& grid, int start_i, int start_j) {
+                int length = grid.size();
+                int width = grid[0].size();
+                int way_i = 0;
+                int max_sum = 0;
+                way[way_i][0] = grid[start_i][start_j];
+                way[way_i][1] = start_i;
+                way[way_i][2] = start_j;
+                way[way_i][3] = 0;
+                grid[start_i][start_j] = 0;
+                int direction, i, j;
+                while (way_i != -1) {
+                    i = way[way_i][1];
+                    j = way[way_i][2];
+                    direction = way[way_i][3];
+                    ++way_i;
+
+                    if (i + 1 != length && direction < 1 && grid[i + 1][j]) {
+                        way[way_i][0] = grid[i + 1][j];
+                        way[way_i][1] = i + 1;
+                        way[way_i][2] = j;
+                        way[way_i - 1][3] = 1;
+                        grid[i + 1][j] = 0;
+                        continue;
+                    }
+                    else if (j + 1 != width && direction < 2 && grid[i][j + 1]) {
+                        way[way_i][0] = grid[i][j + 1];
+                        way[way_i][1] = i;
+                        way[way_i][2] = j + 1;
+                        way[way_i - 1][3] = 2;
+                        grid[i][j + 1] = 0;
+                        continue;
+                    }
+                    else if (i - 1 != -1 && direction < 3 && grid[i - 1][j]) {
+                        way[way_i][0] = grid[i - 1][j];
+                        way[way_i][1] = i - 1;
+                        way[way_i][2] = j;
+                        way[way_i - 1][3] = 3;
+                        grid[i - 1][j] = 0;
+                        continue;
+                    }
+                    else if (j - 1 != -1 && direction < 4 && grid[i][j - 1]) {
+                        way[way_i][0] = grid[i][j - 1];
+                        way[way_i][1] = i;
+                        way[way_i][2] = j - 1;
+                        way[way_i - 1][3] = 4;
+                        grid[i][j - 1] = 0;
+                        continue;
+                    }
+                    int sum = 0;
+                    for (size_t i = 0; i < way_i; i++)
+                        sum += way[i][0];
+                    max_sum = max(max_sum, sum);
+
+                    --way_i;
+                    grid[i][j] = way[way_i][0];
+                    way[way_i][3] = 0;
+                    --way_i;
+                }
+                return max_sum;
+            }
+        };
+    }
+
     namespace task_1306 {
         /*
         * https://leetcode.com/problems/jump-game-iii/description/
@@ -5602,6 +6477,21 @@ namespace leetcode {
                     a_or_b >>= 1;
                 }
                 return count;
+            }
+        };
+    }
+
+    namespace task_1325 {
+        /*
+        * https://leetcode.com/problems/delete-leaves-with-a-given-value/description/
+        */
+        class Solution {
+        public:
+            TreeNode* removeLeafNodes(TreeNode* root, int target) {
+                if (root->left) root->left = removeLeafNodes(root->left, target);
+                if (root->right) root->right = removeLeafNodes(root->right, target);
+                if (!root->left && !root->right && root->val == target) return nullptr;
+                return root;
             }
         };
     }
@@ -5805,6 +6695,140 @@ namespace leetcode {
         };
     }
 
+    namespace task_1631 {
+        /*
+        * https://leetcode.com/problems/path-with-minimum-effort/
+        */
+        class Solution {
+        public:
+            struct my_comparator
+            {
+                bool operator()(std::vector<int> const& a, std::vector<int> const& b) const {
+                    return a[0] > b[0];
+                }
+            };
+
+            int minimumEffortPath(vector<vector<int>>& heights) {
+                size_t length = heights.size();
+                size_t width = heights[0].size();
+                vector<vector<int>> efforts(length, vector<int>(width, 100000));
+                priority_queue<vector<int>, vector<vector<int>>, my_comparator> queue;
+                queue.push(vector<int>({ 0, 0, 0 }));
+                int i, j, effort, next_effort;
+
+                while (!queue.empty()) {
+                    auto point = queue.top();
+                    queue.pop();
+                    i = point[0];
+                    j = point[1];
+                    effort = point[2];
+                    if (efforts[i][j] < effort)
+                        continue;
+                    efforts[i][j] = effort;
+                    if (i + 1 < length) {
+                        next_effort = max(abs(heights[i][j] - heights[i + 1][j]), effort);
+                        if (next_effort < efforts[i + 1][j])
+                            queue.push(vector<int>({ i + 1, j, next_effort }));
+                    }
+                    if (j + 1 < width) {
+                        next_effort = max(abs(heights[i][j] - heights[i][j + 1]), effort);
+                        if (next_effort < efforts[i][j + 1])
+                            queue.push(vector<int>({ i, j + 1, next_effort }));
+                    }
+                    if (i - 1 > -1) {
+                        next_effort = max(abs(heights[i][j] - heights[i - 1][j]), effort);
+                        if (next_effort < efforts[i - 1][j])
+                            queue.push(vector<int>({ i - 1, j, next_effort }));
+                    }
+                    if (j - 1 > -1) {
+                        next_effort = max(abs(heights[i][j - 1] - heights[i][j - 1]), effort);
+                        if (next_effort < efforts[i][j - 1])
+                            queue.push(vector<int>({ i, j - 1, next_effort }));
+                    }
+                }
+                return efforts[length - 1][width - 1];
+            }
+
+            vector<vector<int>> queue;
+
+            int minimumEffortPath2(vector<vector<int>>& heights) {
+                size_t length = heights.size();
+                size_t width = heights[0].size();
+                if (length == 1 && width == 1)
+                    return 0;
+                queue = vector<vector<int>>(length * width, vector<int>(3));
+                int effort_max = 999999;
+                int effort_min = -1;
+                int effort;
+
+                while (effort_min + 1 != effort_max) {
+                    effort = (effort_max + effort_min) >> 1;
+                    if (dfsSearch(heights, effort, length, width))
+                        effort_max = effort;
+                    else
+                        effort_min = effort;
+                }
+                return effort_max;
+            }
+
+            bool dfsSearch(vector<vector<int>>& grid, const int effort, const size_t length, const size_t width) {
+                int queue_end = 1;
+                int queue_top = 0;
+                int i, j, height;
+                bool res = false;
+                queue[0][0] = 0;
+                queue[0][1] = 0;
+                queue[0][2] = grid[0][0];
+                grid[0][0] = 10000000;
+                while (queue_top != queue_end) {
+                    i = queue[queue_top][0];
+                    j = queue[queue_top][1];
+                    height = queue[queue_top][2];
+                    ++queue_top;
+                    if (i + 1 < length && abs(height - grid[i + 1][j]) <= effort) {
+                        if (i + 1 == length - 1 && j == width - 1) {
+                            res = true;
+                            break;
+                        }
+                        queue[queue_end][0] = i + 1;
+                        queue[queue_end][1] = j;
+                        queue[queue_end][2] = grid[i + 1][j];
+                        grid[i + 1][j] = 10000000;
+                        ++queue_end;
+                    }
+                    if (j + 1 < width && abs(height - grid[i][j + 1]) <= effort) {
+                        if (i == length - 1 && j + 1 == width - 1) {
+                            res = true;
+                            break;
+                        }
+                        queue[queue_end][0] = i;
+                        queue[queue_end][1] = j + 1;
+                        queue[queue_end][2] = grid[i][j + 1];
+                        grid[i][j + 1] = 10000000;
+                        ++queue_end;
+                    }
+                    if (i - 1 > -1 && abs(height - grid[i - 1][j]) <= effort) {
+                        queue[queue_end][0] = i - 1;
+                        queue[queue_end][1] = j;
+                        queue[queue_end][2] = grid[i - 1][j];
+                        grid[i - 1][j] = 10000000;
+                        ++queue_end;
+                    }
+                    if (j - 1 > -1 && abs(height - grid[i][j - 1]) <= effort) {
+                        queue[queue_end][0] = i;
+                        queue[queue_end][1] = j - 1;
+                        queue[queue_end][2] = grid[i][j - 1];
+                        grid[i][j - 1] = 10000000;
+                        ++queue_end;
+                    }
+                }
+                for (size_t i = 0; i < queue_end; i++)
+                    grid[queue[i][0]][queue[i][1]] = queue[i][2];
+                return res;
+            }
+        };
+    }
+
     namespace task_1721 {
         /*
         * https://leetcode.com/problems/swapping-nodes-in-a-linked-list/description/
@@ -5866,6 +6890,27 @@ namespace leetcode {
                     swap(ptr_k->next, ptr_j->next);
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_1863 {
+        /*
+        * https://leetcode.com/problems/sum-of-all-subset-xor-totals/description/
+        */
+        class Solution {
+        public:
+            size_t size;
+
+            int subsetXORSum(vector<int>& nums) {
+                size = nums.size();
+                return subsetXORSum(nums, 0, 0);
+            }
+
+            int subsetXORSum(vector<int>& nums, const size_t from, int acc) {
+                if (from == size)
+                    return acc;
+                return subsetXORSum(nums, from + 1, acc) + subsetXORSum(nums, from + 1, acc ^ nums[from]);
             }
         };
     }
@@ -6109,6 +7154,31 @@ namespace leetcode {
         };
     }
 
+    namespace task_2095 {
+        /*
+        * https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* deleteMiddle(ListNode* head) {
+                if (!head->next)
+                    return nullptr;
+                ListNode* ptr1 = head;
+                ListNode* ptr2 = head->next->next;
+                while (ptr2) {
+                    ptr2 = ptr2->next;
+                    if (ptr2)
+                        ptr2 = ptr2->next;
+                    else
+                        break;
+                    ptr1 = ptr1->next;
+                }
+                ptr1->next = ptr1->next->next;
+                return head;
+            }
+        };
+    }
+
     namespace task_2116 {
         /*
         * https://leetcode.com/problems/check-if-a-parentheses-string-can-be-valid/description/
@@ -6275,6 +7345,20 @@ namespace leetcode {
         };
     }
 
+    namespace task_2331 {
+        /*
+        * https://leetcode.com/problems/evaluate-boolean-binary-tree/description/
+        */
+        class Solution {
+        public:
+            bool evaluateTree(TreeNode* root) {
+                if (root->val == 2) return evaluateTree(root->left) || evaluateTree(root->right);
+                if (root->val == 3) return evaluateTree(root->left) && evaluateTree(root->right);
+                return root->val;
+            }
+        };
+    }
+
     namespace task_2487
     {
         /*
@@ -6370,6 +7454,138 @@ namespace leetcode {
         };
     }
 
+    namespace task_2812 {
+        /*
+        * https://leetcode.com/problems/find-the-safest-path-in-a-grid/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> queue;
+
+            int maximumSafenessFactor(vector<vector<int>>& grid) {
+                size_t size = grid.size();
+                queue = vector<vector<int>>(size * size, vector<int>(3));
+                for (size_t i = 0; i < size; i++)
+                    for (size_t j = 0; j < size; j++)
+                        if (grid[i][j])
+                            grid[i][j] = 0;
+                        else
+                            grid[i][j] = size;
+
+                for (size_t i = 0; i < size; i++)
+                    for (size_t j = 0; j < size; j++)
+                        if (grid[i][j] == 0)
+                            dfsThief(grid, i, j, size);
+
+                int safety_max = min(grid[0][0], grid[size - 1][size - 1]) + 1;
+                int safety_min = 0;
+                int safety;
+
+                while (safety_min + 1 != safety_max) {
+                    safety = (safety_max + safety_min) >> 1;
+                    if (dfsSearch(grid, safety, size))
+                        safety_min = safety;
+                    else
+                        safety_max = safety;
+                }
+                return safety_min;
+            }
+
+            void dfsThief(vector<vector<int>>& grid, int start_i, int start_j, const size_t size) {
+                int queue_end = 1;
+                int queue_top = 0;
+                int i, j, grid_value;
+                queue[0][0] = start_i;
+                queue[0][1] = start_j;
+                while (queue_top != queue_end) {
+                    i = queue[queue_top][0];
+                    j = queue[queue_top][1];
+                    ++queue_top;
+                    grid_value = grid[i][j] + 1;
+                    if (i + 1 < size && grid[i + 1][j] > grid_value) {
+                        grid[i + 1][j] = grid_value;
+                        queue[queue_end][0] = i + 1;
+                        queue[queue_end][1] = j;
+                        ++queue_end;
+                    }
+                    if (j + 1 < size && grid[i][j + 1] > grid_value) {
+                        grid[i][j + 1] = grid_value;
+                        queue[queue_end][0] = i;
+                        queue[queue_end][1] = j + 1;
+                        ++queue_end;
+                    }
+                    if (i - 1 > -1 && grid[i - 1][j] > grid_value) {
+                        grid[i - 1][j] = grid_value;
+                        queue[queue_end][0] = i - 1;
+                        queue[queue_end][1] = j;
+                        ++queue_end;
+                    }
+                    if (j - 1 > -1 && grid[i][j - 1] > grid_value) {
+                        grid[i][j - 1] = grid_value;
+                        queue[queue_end][0] = i;
+                        queue[queue_end][1] = j - 1;
+                        ++queue_end;
+                    }
+                }
+            }
+
+            bool dfsSearch(vector<vector<int>>& grid, const int safety, const size_t size) {
+                int queue_end = 1;
+                int queue_top = 0;
+                int i, j, grid_value;
+                bool res = false;
+                queue[0][0] = 0;
+                queue[0][1] = 0;
+                queue[0][2] = grid[0][0];
+                grid[0][0] = 0;
+                while (queue_top != queue_end) {
+                    i = queue[queue_top][0];
+                    j = queue[queue_top][1];
+                    ++queue_top;
+                    if (i + 1 < size && grid[i + 1][j] >= safety) {
+                        if (i + 1 == size - 1 && j == size - 1) {
+                            res = true;
+                            break;
+                        }
+                        queue[queue_end][0] = i + 1;
+                        queue[queue_end][1] = j;
+                        queue[queue_end][2] = grid[i + 1][j];
+                        grid[i + 1][j] = 0;
+                        ++queue_end;
+                    }
+                    if (j + 1 < size && grid[i][j + 1] >= safety) {
+                        if (i == size - 1 && j + 1 == size - 1) {
+                            res = true;
+                            break;
+                        }
+                        queue[queue_end][0] = i;
+                        queue[queue_end][1] = j + 1;
+                        queue[queue_end][2] = grid[i][j + 1];
+                        grid[i][j + 1] = 0;
+                        ++queue_end;
+                    }
+                    if (i - 1 > -1 && grid[i - 1][j] >= safety) {
+                        queue[queue_end][0] = i - 1;
+                        queue[queue_end][1] = j;
+                        queue[queue_end][2] = grid[i - 1][j];
+                        grid[i - 1][j] = 0;
+                        ++queue_end;
+                    }
+                    if (j - 1 > -1 && grid[i][j - 1] >= safety) {
+                        queue[queue_end][0] = i;
+                        queue[queue_end][1] = j - 1;
+                        queue[queue_end][2] = grid[i][j - 1];
+                        grid[i][j - 1] = 0;
+                        ++queue_end;
+                    }
+                }
+                for (size_t i = 0; i < queue_end; i++)
+                    grid[queue[i][0]][queue[i][1]] = queue[i][2];
+                return res;
+            }
+        };
+    }
+
     namespace task_2816
     {
         /*
@@ -6443,6 +7659,48 @@ namespace leetcode {
                     k >>= 1;
                 }
                 return count;
+            }
+        };
+    }
+
+    namespace task_3068 {
+        /*
+        * https://leetcode.com/problems/find-the-maximum-sum-of-node-values/description/
+        */
+        class Solution {
+        public:
+            long long maximumValueSum(vector<int>& nums, int k, vector<vector<int>>& edges) {
+                long long sum = 0;
+                long long min_positive = INT32_MAX;
+                long long max_negative = INT32_MAX;
+                int count_negative = 0;
+                long long difference;
+
+                for (const int vertex : nums) {
+                    difference = (vertex ^ k) - vertex;
+                    if (difference > 0) {
+                        max_negative = min(max_negative, difference);
+                        sum += vertex ^ k;
+                        ++count_negative;
+                    }
+                    else {
+                        min_positive = min(min_positive, -difference);
+                        sum += vertex;
+                    }
+                }
+
+                if (count_negative & 1)
+                    return min_positive < max_negative ? sum - min_positive : sum - max_negative;
+                return sum;
+            }
+
+            vector<vector<size_t>> getAdjacencyList(const vector<vector<int>>& edges, const size_t length) {
+                vector<vector<size_t>> adjacency_list(length);
+                for (size_t i = 0; i < edges.size(); i++) {
+                    adjacency_list[edges[i][0]].push_back(edges[i][1]);
+                    adjacency_list[edges[i][1]].push_back(edges[i][0]);
+                }
+                return adjacency_list;
             }
         };
     }
