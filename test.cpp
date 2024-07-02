@@ -16,7 +16,7 @@
 using namespace std;
 using namespace leetcode;
 using namespace leetcode::utils;
-using namespace leetcode::task_1442;
+using namespace leetcode::task_2192;
 
 /*
 Solution::Node* nodes(int from, int to) {
@@ -31,25 +31,22 @@ Solution::Node* nodes(int from, int to) {
 }
 */
 int main() {
-    vector<int> v1({ 2,3,1,6,7 });
-    vector<int> v2({ 0, 1, 2, 3 });
-    vector<vector<int>> mat({ {7,6},{7,2},{5,2},{5,1},{8,1},{9,1},{1,11},{0,12},{0,4},{3,4},{11,3},{11,10},{10,13} });
+    vector<int> v1({ 4,2,2,2,4,4,2,2 });
+    vector<int> v2({ 0,0,0 });
+    vector<vector<int>> mat({ {5,1},{2,3},{5,3},{0,2},{3,1},{5,2},{4,0} });
     vector<vector<char>> mat_char(4);
-    vector<string> words1({ "Shogun","Tapioca Express","Burger King","KFC" });
+    vector<string> words1({ "cat","bat","rat" });
     vector<string> words2({ "KNN","KFC","Burger King","Tapioca Express","Shogun" });
-    vector<char> vec({ 'A','A','A','B','B','B','C','D','E','F','G','H','I','J','K' });
-    
-    mat[0] = { 0,1,100 };
-    mat[1] = { 1,2,100 };
-    mat[2] = { 0,2,500 };
+    vector<char> vec({ 'h','e','l','l','o' });
+
     mat_char[0] = { '1','0','1','0','0' };
     mat_char[1] = { '1','0','1','1','1' };
     mat_char[2] = { '1','1','1','1','1' };
     mat_char[3] = { '1','0','0','1','0' };
-    
 
-    Solution k;
-    cout << k.countTriplets(v1) << endl;
+
+    Solution k; // 348
+    cout << k.getAncestors(6, mat) << endl;
 
     return 0;
 }
