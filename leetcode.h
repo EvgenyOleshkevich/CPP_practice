@@ -7853,6 +7853,63 @@ namespace leetcode {
         };
     }
 
+    namespace task_726 {
+        /*
+        * https://leetcode.com/problems/number-of-atoms/description/
+        */
+        class Solution {
+        public:
+            string countOfAtoms(string formula) {
+                size_t i = 0;
+                string res;
+                formula.push_back(')');
+                auto atoms = countOfAtoms(formula, i);
+                for (const auto& [atom, count] : atoms) {
+                    res += atom;
+                    if (count > 1)
+                        res += to_string(count);
+                }
+                return res;
+            }
+
+            map<string, int> countOfAtoms(const string& formula, size_t& i) {
+                map<string, int> atoms;
+                while (formula[i] != ')') {
+                    if (formula[i] == '(') {
+                        auto atoms_bracket = countOfAtoms(formula, ++i);
+                        auto mult = readNumber(formula, ++i);
+                        for (const auto& [atom, count] : atoms_bracket)
+                            if (auto it = atoms.find(atom); it != atoms.end())
+                                it->second += count * mult;
+                            else
+                                atoms[atom] = count * mult;
+                    }
+                    else {
+                        auto atom = readAtom(formula, i);
+                        auto count = readNumber(formula, i);
+                        if (auto it = atoms.find(atom); it != atoms.end())
+                            it->second += count;
+                        else
+                            atoms[atom] = count;
+                    }
+                }
+                return atoms;
+            }
+
+            int readNumber(const string& formula, size_t& i) {
+                size_t from = i;
+                for (; formula[i] >= '0' && formula[i] <= '9'; ++i) {}
+                return from == i ? 1 : stoi(formula.substr(from, i - from));
+            }
+
+            string readAtom(const string& formula, size_t& i) {
+                size_t from = i++;
+                for (; formula[i] >= 'a' && formula[i] <= 'z'; ++i) {}
+                return formula.substr(from, i - from);
+            }
+        };
+    }
+
     namespace task_740 {
         /*
         * https://leetcode.com/problems/delete-and-earn/description/
@@ -9123,6 +9180,37 @@ namespace leetcode {
         };
     }
 
+    namespace task_1190 {
+        /*
+        * https://leetcode.com/problems/reverse-substrings-between-each-pair-of-parentheses/description/
+        */
+        class Solution {
+        public:
+            string reverseParentheses(string s) {
+                string res;
+                size_t size = s.size();
+                for (size_t i = 0; i < size; ++i)
+                    if (s[i] != '(')
+                        res.push_back(s[i]);
+                    else
+                        res += reverseInBracket(s, i);
+                return res;
+            }
+
+            string reverseInBracket(const string& s, size_t& i) {
+                string res;
+                ++i;
+                for (; s[i] != ')'; ++i)
+                    if (s[i] != '(')
+                        res.push_back(s[i]);
+                    else
+                        res += reverseInBracket(s, i);
+                std::reverse(res.begin(), res.end());
+                return res;
+            }
+        };
+    }
+
     namespace task_1208 {
         /*
         * https://leetcode.com/problems/get-equal-substrings-within-budget/description/
@@ -9989,6 +10077,65 @@ namespace leetcode {
         };
     }
 
+    namespace task_1509 {
+        /*
+        * https://leetcode.com/problems/minimum-difference-between-largest-and-smallest-value-in-three-moves/description/
+        */
+        class Solution {
+        public:
+            int minDifference(vector<int>& nums) {
+                const size_t size = nums.size();
+                if (size < 5)
+                    return 0;
+                sort(nums.begin(), nums.end());
+                int min_dif = nums[size - 4] - nums[0];
+                min_dif = min(min_dif, nums[size - 3] - nums[1]);
+                min_dif = min(min_dif, nums[size - 2] - nums[2]);
+                min_dif = min(min_dif, nums[size - 1] - nums[3]);
+                return min_dif;
+            }
+
+            int minDifferenceFast(vector<int>& nums) {
+                int numsSize = nums.size(), minDiff = INT_MAX;
+                if (numsSize <= 4) return 0;
+
+                // Partially sort the first four elements
+                partial_sort(nums.begin(), nums.begin() + 4, nums.end());
+                // Find the 4th largest element
+                nth_element(nums.begin() + 4, nums.begin() + (numsSize - 4),
+                    nums.end());
+                // Sort the last four elements
+                sort(nums.begin() + (numsSize - 4), nums.end());
+
+                // Four scenarios to compute the minimum difference
+                for (int left = 0, right = numsSize - 4; left < 4; left++, right++) {
+                    minDiff = min(minDiff, nums[right] - nums[left]);
+                }
+
+                return minDiff;
+            }
+        };
+    }
+
+    namespace task_1518 {
+        /*
+        * https://leetcode.com/problems/water-bottles/description/
+        */
+        class Solution {
+        public:
+            int numWaterBottles(int numBottles, int numExchange) {
+                int empty = 0, res = 0;
+                while (numBottles + empty >= numExchange) {
+                    res += numBottles;
+                    empty += numBottles;
+                    numBottles = empty / numExchange;
+                    empty %= numExchange;
+                }
+                return res + numBottles;
+            }
+        };
+    }
+
     namespace task_1539 {
         /*
         * https://leetcode.com/problems/kth-missing-positive-number/description/
@@ -10125,6 +10272,27 @@ namespace leetcode {
                 }
                 --union_count;
                 vertexes[union_b] = union_a;
+            }
+        };
+    }
+
+    namespace task_1598 {
+        /*
+        * https://leetcode.com/problems/crawler-log-folder/description/
+        */
+        class Solution {
+        public:
+            int minOperations(vector<string>& logs) {
+                int level = 0;
+                for (const string& str : logs) {
+                    if (str[0] == '.') {
+                        if (str[1] == '.')
+                            level = max(0, level - 1);
+                    }
+                    else
+                        ++level;
+                }
+                return level;
             }
         };
     }
@@ -10329,6 +10497,30 @@ namespace leetcode {
         };
     }
 
+    namespace task_1701 {
+        /*
+        * https://leetcode.com/problems/average-waiting-time/description/
+        */
+        class Solution {
+        public:
+            double averageWaitingTime(vector<vector<int>>& customers) {
+                double wait_time = customers[0][1];
+                int curr_time = customers[0][0] + customers[0][1];
+                size_t size = customers.size();
+                for (size_t i = 1; i < size; ++i)
+                    if (curr_time > customers[i][0]) {
+                        curr_time += customers[i][1];
+                        wait_time += curr_time - customers[i][0];
+                    }
+                    else {
+                        curr_time = customers[i][0] + customers[i][1];
+                        wait_time += customers[i][1];
+                    }
+                return wait_time / size;
+            }
+        };
+    }
+
     namespace task_1713 {
         /*
         * https://leetcode.com/problems/minimum-operations-to-make-a-subsequence/description/
@@ -10380,6 +10572,46 @@ namespace leetcode {
                         l = i;
                 }
                 return r;
+            }
+        };
+    }
+
+    namespace task_1717 {
+        /*
+        * https://leetcode.com/problems/maximum-score-from-removing-substrings/description/
+        */
+        class Solution {
+        public:
+            int maximumGain(string s, int x, int y) {
+                const size_t size = s.size();
+                char first_profit_char, second_profit_char;
+                int count_first, count_second, count_max;
+                if (x > y) {
+                    first_profit_char = 'a';
+                    second_profit_char = 'b';
+                }
+                else {
+                    first_profit_char = 'b';
+                    second_profit_char = 'a';
+                    swap(x, y);
+                }
+                int gain = 0;
+                for (size_t i = 0; i < size; ++i)
+                    if (s[i] == 'a' || s[i] == 'b') {
+                        count_first = 0, count_second = 0, count_max = 0;
+                        for (; i < size && (s[i] == 'a' || s[i] == 'b'); ++i) {
+                            if (s[i] == first_profit_char)
+                                ++count_first;
+                            else {
+                                if (count_first > count_max)
+                                    ++count_max;
+                                ++count_second;
+                            }
+                        }
+                        gain += x * count_max + (min(count_first, count_second) - count_max) * y;
+                        --i;
+                    }
+                return gain;
             }
         };
     }
@@ -10494,6 +10726,35 @@ namespace leetcode {
                     else
                         return sum;
                 return sum;
+            }
+        };
+    }
+
+    namespace task_1823 {
+        /*
+        * https://leetcode.com/problems/water-bottles-ii/
+        */
+        class Solution {
+        public:
+            int findTheWinner(int n, int k) {
+                list<int> l;
+                --k;
+                for (int i = 1; i <= n; ++i)
+                    l.push_back(i);
+                int moves = k % l.size();
+                auto it = l.begin();
+                while (l.size() > 1) {
+                    for (int i = 0; i < moves; ++i) {
+                        if (it == l.end())
+                            it = l.begin();
+                        ++it;
+                    }
+                    if (it == l.end())
+                        it = l.begin();
+                    it = l.erase(it);
+                    moves = k % l.size();
+                }
+                return l.front();
             }
         };
     }
@@ -10741,6 +11002,44 @@ namespace leetcode {
                 for (size_t i = 0; i < size; i++)
                     res += abs(seats[i] - students[i]);
                 return res;
+            }
+        };
+    }
+
+    namespace task_2058 {
+        /*
+        * https://leetcode.com/problems/find-the-minimum-and-maximum-number-of-nodes-between-critical-points/description/
+        */
+        class Solution {
+        public:
+            vector<int> nodesBetweenCriticalPoints(ListNode* head) {
+                int min_dist = INT32_MAX, dist = 0, first_crit = 1, last_crit, i;
+
+                while (head->next && head->next->next) {
+                    if (head->next->val > head->val && head->next->val > head->next->next->val ||
+                        head->next->val < head->val && head->next->val < head->next->next->val)
+                        break;
+                    ++first_crit;
+                    head = head->next;
+                }
+                i = first_crit + 1;
+                head = head->next;
+                while (head->next && head->next->next) {
+                    ++dist;
+                    if (head->next->val > head->val && head->next->val > head->next->next->val ||
+                        head->next->val < head->val && head->next->val < head->next->next->val) {
+                        min_dist = min(min_dist, dist);
+                        last_crit = i;
+                        dist = 0;
+                    }
+                    ++i;
+                    head = head->next;
+                }
+
+                if (min_dist == INT32_MAX)
+                    return { -1, -1 };
+                else
+                    return { min_dist , last_crit - first_crit };
             }
         };
     }
@@ -11395,6 +11694,19 @@ namespace leetcode {
         };
     }
 
+    namespace task_2582 {
+        /*
+        * https://leetcode.com/problems/pass-the-pillow/description/
+        */
+        class Solution {
+        public:
+            int passThePillow(int n, int time) {
+                time %= (n - 1) << 1;
+                return time < n ? 1 + time : 2 * n - time - 1;
+            }
+        };
+    }
+
     namespace task_2597 {
         /*
         * https://leetcode.com/problems/the-number-of-beautiful-subsets/description/
@@ -11490,6 +11802,65 @@ namespace leetcode {
                     }
                 }
                 return { max_row, max_count };
+            }
+        };
+    }
+
+    namespace task_2751 {
+        /*
+        * https://leetcode.com/problems/robot-collisions/description/
+        */
+        class Solution {
+        public:
+            vector<int> survivedRobotsHealths(vector<int>& positions, vector<int>& healths, string directions) {
+                size_t size = positions.size();
+                if (size == 1)
+                    return { healths[0] };
+                list<size_t> sorted_positions;
+                vector<pair<int, size_t>> pos(size);
+                for (size_t i = 0; i < size; ++i)
+                    pos[i] = { positions[i], i };
+                sort(pos.begin(), pos.end());
+                for (const pair<int, size_t>& p : pos)
+                    sorted_positions.push_back(p.second);
+                bool hasChanged;
+                do {
+                    hasChanged = false;
+                    auto left = sorted_positions.begin();
+                    auto right = next(left);
+                    while (left != sorted_positions.end() && right != sorted_positions.end()) {
+                        if (directions[*left] == 'R' && directions[*right] == 'L') {
+                            if (healths[*left] > healths[*right]) {
+                                --healths[*left];
+                                healths[*right] = 0;
+                                right = sorted_positions.erase(right);
+                            }
+                            else if (healths[*left] < healths[*right]) {
+                                healths[*left] = 0;
+                                --healths[*right];
+                                sorted_positions.erase(left);
+                                --left;
+                            }
+                            else {
+                                healths[*left] = 0;
+                                healths[*right] = 0;
+                                sorted_positions.erase(left);
+                                left = sorted_positions.erase(right);
+                                right = next(left);
+                            }
+                            hasChanged = true;
+                        }
+                        else {
+                            ++left;
+                            ++right;
+                        }
+                    }
+                } while (hasChanged && sorted_positions.size() > 1);
+                vector<int> res;
+                for (const int h : healths)
+                    if (h != 0)
+                        res.push_back(h);
+                return res;
             }
         };
     }
@@ -11820,6 +12191,24 @@ namespace leetcode {
                     adjacency_list[edges[i][1]].push_back(edges[i][0]);
                 }
                 return adjacency_list;
+            }
+        };
+    }
+
+    namespace task_3100 {
+        /*
+        * https://leetcode.com/problems/water-bottles-ii/
+        */
+        class Solution {
+        public:
+            int maxBottlesDrunk(int numBottles, int numExchange) {
+                int res = numBottles;
+                while (numBottles >= numExchange) {
+                    ++res;
+                    numBottles -= numExchange - 1;
+                    ++numExchange;
+                }
+                return res;
             }
         };
     }

@@ -16,7 +16,7 @@
 using namespace std;
 using namespace leetcode;
 using namespace leetcode::utils;
-using namespace leetcode::task_2192;
+using namespace leetcode::task_726;
 
 /*
 Solution::Node* nodes(int from, int to) {
@@ -44,9 +44,9 @@ int main() {
     mat_char[2] = { '1','1','1','1','1' };
     mat_char[3] = { '1','0','0','1','0' };
 
-
+    auto head = vector2list({ 5,3,1,2,5,1,2 });
     Solution k; // 348
-    cout << k.getAncestors(6, mat) << endl;
+    cout << k.countOfAtoms("Mg(OH)2") << endl;
 
     return 0;
 }
