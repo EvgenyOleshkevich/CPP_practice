@@ -3775,6 +3775,48 @@ namespace leetcode {
         };
     }
 
+    namespace task_108
+    {
+        /*
+        * https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/description/
+        */
+        class Solution {
+        public:
+            TreeNode* sortedArrayToBST(vector<int>& nums) {
+                int l = 0;
+                int r = nums.size();
+                int m = (l + r) >> 1;
+
+                auto root = new TreeNode(nums[m]);
+                TreeNode* node = nullptr;
+                stack<pair<vector<int>, TreeNode*>> stack;
+                if (m - l > 0)
+                    stack.push({ {l, m, 0}, root });
+                if (r - m - 1 > 0)
+                    stack.push({ {m + 1, r, 1}, root });
+
+                while (!stack.empty()) {
+                    auto el = stack.top();
+                    stack.pop();
+                    l = el.first[0];
+                    r = el.first[1];
+                    m = (l + r) >> 1;
+                    node = new TreeNode(nums[m]);
+                    if (el.first[2])
+                        el.second->right = node;
+                    else
+                        el.second->left = node;
+
+                    if (m - l > 0)
+                        stack.push({ {l, m, 0}, node });
+                    if (r - m - 1 > 0)
+                        stack.push({ {m + 1, r, 1}, node });
+                }
+                return root;
+            }
+        };
+    }
+
     namespace task_109
     {
         /*
@@ -9036,6 +9078,90 @@ namespace leetcode {
         };
     }
 
+    namespace task_1110 {
+        /*
+        * https://leetcode.com/delete-nodes-and-return-forest/description/
+        */
+        class Solution {
+        public:
+            vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
+                unordered_set<int> set_to_delete(to_delete.begin(), to_delete.end());
+                stack<pair<TreeNode*, int>> stack; // node; 0 - delete, 1 - is root, 2 - is node;
+                stack.push({ root, set_to_delete.contains(root->val) ? 0 : 1 });
+                vector<TreeNode*> roots;
+                while (!stack.empty()) {
+                    auto node = stack.top();
+                    stack.pop();
+                    if (node.second == 0) {
+                        if (node.first->left)
+                            stack.push({ node.first->left, set_to_delete.contains(node.first->left->val) ? 0 : 1 });
+                        if (node.first->right)
+                            stack.push({ node.first->right, set_to_delete.contains(node.first->right->val) ? 0 : 1 });
+                    }
+                    else {
+                        if (node.second == 1)
+                            roots.push_back(node.first);
+                        if (node.first->left)
+                            if (set_to_delete.contains(node.first->left->val)) {
+                                stack.push({ node.first->left, 0 });
+                                node.first->left = nullptr;
+                            }
+                            else
+                                stack.push({ node.first->left, 2 });
+                        if (node.first->right)
+                            if (set_to_delete.contains(node.first->right->val)) {
+                                stack.push({ node.first->right, 0 });
+                                node.first->right = nullptr;
+                            }
+                            else
+                                stack.push({ node.first->right, 2 });
+                    }
+                }
+
+                return roots;
+            }
+
+            vector<TreeNode*> delNodesVector(TreeNode* root, vector<int>& to_delete) {
+                vector<int> set_to_delete(1001);
+                for (const int n : to_delete)
+                    set_to_delete[n] = 1;
+                stack<pair<TreeNode*, int>> stack; // node; 0 - delete, 1 - is root, 2 - is node;
+                stack.push({ root, set_to_delete[root->val] ? 0 : 1 });
+                vector<TreeNode*> roots;
+                while (!stack.empty()) {
+                    auto node = stack.top();
+                    stack.pop();
+                    if (node.second == 0) {
+                        if (node.first->left)
+                            stack.push({ node.first->left, set_to_delete[node.first->left->val] ? 0 : 1 });
+                        if (node.first->right)
+                            stack.push({ node.first->right, set_to_delete[node.first->right->val] ? 0 : 1 });
+                    }
+                    else {
+                        if (node.second == 1)
+                            roots.push_back(node.first);
+                        if (node.first->left)
+                            if (set_to_delete[node.first->left->val]) {
+                                stack.push({ node.first->left, 0 });
+                                node.first->left = nullptr;
+                            }
+                            else
+                                stack.push({ node.first->left, 2 });
+                        if (node.first->right)
+                            if (set_to_delete[node.first->right->val]) {
+                                stack.push({ node.first->right, 0 });
+                                node.first->right = nullptr;
+                            }
+                            else
+                                stack.push({ node.first->right, 2 });
+                    }
+                }
+
+                return roots;
+            }
+        };
+    }
+
     namespace task_1122 {
         /*
         * https://leetcode.com/problems/problems/relative-sort-array/description/
@@ -9752,6 +9878,36 @@ namespace leetcode {
         };
     }
 
+    namespace task_1380
+    {
+        /*
+        * https://leetcode.com/problems/lucky-numbers-in-a-matrix/description/
+        */
+        class Solution {
+        public:
+            vector<int> luckyNumbers(vector<vector<int>>& matrix) {
+                const size_t m = matrix.size(), n = matrix[0].size();
+                vector<int> res;
+                for (size_t i = 0; i < m; ++i) {
+                    int min_val = matrix[i][0];
+                    int min_j = 0;
+                    for (size_t j = 1; j < n; ++j)
+                        if (min_val > matrix[i][j]) {
+                            min_val = matrix[i][j];
+                            min_j = j;
+                        }
+
+                    int max_val = min_val;
+                    for (size_t k = 0; k < m; ++k)
+                        max_val = max(max_val, matrix[k][min_j]);
+                    if (max_val == min_val)
+                        res.push_back(min_val);
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_1382
     {
         /*
@@ -10136,6 +10292,121 @@ namespace leetcode {
         };
     }
 
+    namespace task_1530
+    {
+        /*
+        * https://leetcode.com/problems/number-of-good-leaf-nodes-pairs/description/
+        */
+        class Solution {
+        public:
+
+            int countPairsDFS(TreeNode* root, int distance) {
+                vector<TreeNode*> leafs;
+                queue<TreeNode*> queue;
+                int count = 0, dist;
+                queue.push(root);
+                while (queue.empty()) {
+                    TreeNode* node = queue.front();
+                    queue.pop();
+                    if (node->left)
+                        queue.push(node->left);
+                    if (node->right)
+                        queue.push(node->right);
+                    else if (!node->left)
+                        leafs.push_back(node);
+                }
+
+                for (TreeNode* leaf : leafs) {
+                    dist = 0;
+                    while (queue.empty() && dist < distance) {
+                        TreeNode* node = queue.front();
+                        queue.pop();
+                        if (node->left)
+                            queue.push(node->left);
+                        if (node->right)
+                            queue.push(node->right);
+                        else if (!node->left)
+                            ++count;
+                    }
+                }
+
+                return count >> 1;
+            }
+
+            int max_dist;
+            int count;
+
+            int countPairs(TreeNode* root, int distance) {
+                count = 0;
+                max_dist = distance;
+                getLeafsdistance(root);
+                return count;
+            }
+
+            vector<int> getLeafsdistance(TreeNode* root) {
+                if (root->left && root->right) {
+                    auto left = getLeafsdistance(root->left);
+                    auto right = getLeafsdistance(root->right);
+                    if (!left.empty() && !right.empty())
+                        return merge(left, right);
+                    else if (!left.empty()) {
+                        plusDist(left);
+                        return left;
+                    }
+                    else if (!right.empty()) {
+                        plusDist(right);
+                        return right;
+                    }
+                    else
+                        return {};
+                }
+                else if (root->left) {
+                    auto leafs = getLeafsdistance(root->left);
+                    plusDist(leafs);
+                    return leafs;
+                }
+                else if (root->right) {
+                    auto leafs = getLeafsdistance(root->right);
+                    plusDist(leafs);
+                    return leafs;
+                }
+                return { 1 };
+            }
+
+            void plusDist(vector<int>& vec) {
+                for (int& dist : vec)
+                    ++dist;
+            }
+
+            vector<int> merge(const vector<int>& left, const vector<int>& right) {
+                int left_i = 0, right_i = right.size() - 1;
+                for (; left_i < left.size() && right_i >= 0; ++left_i) {
+                    for (; right_i >= 0 && left[left_i] + right[right_i] > max_dist; --right_i) {}
+                    count += right_i + 1;
+                }
+                vector<int> merged;
+                left_i = 0, right_i = 0;
+                while (left_i < left.size() && right_i < right.size()) {
+                    if (left[left_i] < right[right_i]) {
+                        merged.push_back(left[left_i] + 1);
+                        ++left_i;
+                    }
+                    else {
+                        merged.push_back(right[right_i] + 1);
+                        ++right_i;
+                    }
+                }
+                for (; left_i < left.size(); ++left_i)
+                    merged.push_back(left[left_i] + 1);
+                for (; right_i < right.size(); ++right_i)
+                    merged.push_back(right[right_i] + 1);
+                while (!merged.empty() && merged.back() + 1 > max_dist)
+                    merged.pop_back();
+                return merged;
+            }
+        };
+    }
+
     namespace task_1539 {
         /*
         * https://leetcode.com/problems/kth-missing-positive-number/description/
@@ -10293,6 +10564,28 @@ namespace leetcode {
                         ++level;
                 }
                 return level;
+            }
+        };
+    }
+
+    namespace task_1605
+    {
+        /*
+        * https://leetcode.com/problems/find-valid-matrix-given-row-and-column-sums/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> restoreMatrix(vector<int>& rowSum, vector<int>& colSum) {
+                size_t const rows = rowSum.size(), cols = colSum.size();
+                vector<vector<int>> mat(rows, vector<int>(cols));
+                for (size_t i = 0; i < rows; i++)
+                    for (size_t j = 0; j < cols; j++) {
+                        int min_sum = min(rowSum[i], colSum[j]);
+                        rowSum[i] -= min_sum;
+                        colSum[j] -= min_sum;
+                        mat[i][j] = min_sum;
+                    }
+                return mat;
             }
         };
     }
@@ -11120,6 +11413,67 @@ namespace leetcode {
         };
     }
 
+    namespace task_2096 {
+        /*
+        * https://leetcode.com/step-by-step-directions-from-a-binary-tree-node-to-another/description/
+        */
+        class Solution {
+        public:
+            string getDirections(TreeNode* root, int startValue, int destValue) {
+                queue<TreeNode*> queue;
+                unordered_map<int, TreeNode*> parents;
+                int start_level = 0, dest_level = 0, level = 0;
+                TreeNode* start = nullptr, * dest = nullptr;
+                string start_path, dest_path;
+                queue.push(root);
+                while (!start || !dest) {
+                    size_t size = queue.size();
+                    for (size_t i = 0; i < size; ++i) {
+                        TreeNode* node = queue.front();
+                        queue.pop();
+                        if (node->val == startValue) {
+                            start_level = level;
+                            start = node;
+                        }
+                        else if (node->val == destValue) {
+                            dest_level = level;
+                            dest = node;
+                        }
+                        if (node->left) {
+                            parents[node->left->val] = node;
+                            queue.push(node->left);
+                        }
+                        if (node->right) {
+                            parents[node->right->val] = node;
+                            queue.push(node->right);
+                        }
+                    }
+                    ++level;
+                }
+
+                if (start_level > dest_level)
+                    start_path = string(start_level - dest_level, 'U');
+                for (; start_level > dest_level; --start_level)
+                    start = parents[start->val];
+                for (; dest_level > start_level; --dest_level) {
+                    TreeNode* parent = parents[dest->val];
+                    dest_path.push_back(parent->left == dest ? 'L' : 'R');
+                    dest = parent;
+                }
+                while (start != dest) {
+                    TreeNode* parent_s = parents[start->val];
+                    TreeNode* parent_d = parents[dest->val];
+                    start_path.push_back('U');
+                    dest_path.push_back(parent_d->left == dest ? 'L' : 'R');
+                    start = parent_s;
+                    dest = parent_d;
+                }
+                reverse(dest_path.begin(), dest_path.end());
+                return start_path + dest_path;
+            }
+        };
+    }
+
     namespace task_2116 {
         /*
         * https://leetcode.com/problems/check-if-a-parentheses-string-can-be-valid/description/
@@ -11312,6 +11666,37 @@ namespace leetcode {
         };
     }
 
+    namespace task_2196 {
+        /*
+        * https://leetcode.com/create-binary-tree-from-descriptions/description/
+        */
+        class Solution {
+        public:
+            TreeNode* createBinaryTree(vector<vector<int>>& descriptions) {
+                map<int, pair<TreeNode*, bool>> nodes;
+                for (const auto& desc : descriptions) {
+                    auto parent = nodes.find(desc[0]);
+                    if (parent == nodes.end())
+                        parent = nodes.insert({ desc[0] , {new TreeNode(desc[0]), true} }).first;
+                    auto child = nodes.find(desc[1]);
+                    if (child == nodes.end())
+                        child = nodes.insert({ desc[1] , {new TreeNode(desc[1]), false} }).first;
+                    else
+                        child->second.second = false;
+
+                    if (desc[2])
+                        parent->second.first->left = child->second.first;
+                    else
+                        parent->second.first->right = child->second.first;
+                }
+                for (const auto& [key, value] : nodes)
+                    if (value.second)
+                        return value.first;
+                return nullptr;
+            }
+        };
+    }
+
     namespace task_2220 {
         /*
         * https://leetcode.com/problems/minimum-bit-flips-to-convert-number/description/
@@ -11492,6 +11877,75 @@ namespace leetcode {
                 }
 
                 return res;;
+            }
+        };
+    }
+
+    namespace task_2392
+    {
+        /*
+        * https://leetcode.com/problems/build-a-matrix-with-conditions/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> buildMatrix(int k, vector<vector<int>>& rowConditions, vector<vector<int>>& colConditions) {
+                ++k;
+                auto rowOrder = topologySort(getAdjacencyList(rowConditions, k), k);
+                if (rowOrder.empty())
+                    return {};
+                auto colOrder = topologySort(getAdjacencyList(colConditions, k), k);
+                if (colOrder.empty())
+                    return {};
+                vector<pair<size_t, size_t>> values(k);
+                --k;
+                for (size_t i = 0; i < k; i++) {
+                    values[rowOrder[i]].first = i;
+                    values[colOrder[i]].second = i;
+                }
+                vector<vector<int>> matrix(k, vector<int>(k));
+                ++k;
+                for (size_t i = 1; i < k; i++)
+                    matrix[values[i].first][values[i].second] = i;
+                return matrix;
+            }
+
+            vector<vector<int>> getAdjacencyList(const vector<vector<int>>& edges, const size_t size) {
+                vector<vector<int>> adjacency_list(size);
+                for (const vector<int>& edge : edges)
+                    adjacency_list[edge[0]].push_back(edge[1]);
+                return adjacency_list;
+            }
+
+            vector<int> topologySort(const vector<vector<int>>& adjacency_list, const size_t size) {
+                vector<int> visited(size);
+                stack<size_t> vertexes;
+                vector<int> sorted;
+                for (size_t i = 1; i < size; ++i)
+                    if (visited[i] == 0) {
+                        vertexes.push(i);
+                        while (!vertexes.empty()) {
+                            size_t vertex = vertexes.top();
+                            if (visited[vertex] == 2) {
+                                vertexes.pop();
+                                continue;
+                            }
+                            if (visited[vertex] == 1) {
+                                visited[vertex] = 2;
+                                sorted.push_back(vertex);
+                                vertexes.pop();
+                                continue;
+                            }
+                            visited[vertex] = 1;
+                            for (const int neighbour : adjacency_list[vertex]) {
+                                if (visited[neighbour] == 1)
+                                    return {};
+                                if (visited[neighbour] == 0)
+                                    vertexes.push(neighbour);
+                            }
+                        }
+                    }
+                reverse(sorted.begin(), sorted.end());
+                return sorted;
             }
         };
     }
