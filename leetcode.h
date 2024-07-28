@@ -8534,6 +8534,61 @@ namespace leetcode {
         };
     }
 
+    namespace task_912 {
+        /*
+        * https://leetcode.com/problems/sort-an-array/description/
+        */
+        class Solution {
+        public:
+            vector<int> sortArray(vector<int>& nums) {
+                sort(nums.begin(), nums.end());
+                return nums;
+            }
+
+            vector<int> MysortArray(vector<int>& nums) {
+                heap_sort(nums);
+                return nums;
+            }
+
+            void heap_sort(std::vector<int>& arr)
+            {
+                build_max_heap(arr);
+                int sz = arr.size();
+                for (int i = arr.size() - 1; i > 0; i--)
+                {
+                    std::swap(arr[0], arr[i]);
+                    sz--;
+                    max_heapify(arr, 0, sz);
+                }
+            }
+
+            void build_max_heap(std::vector<int>& arr)
+            {
+                for (int i = (arr.size() / 2); i >= 0; i--)
+                    max_heapify(arr, i, arr.size());
+            }
+
+            void max_heapify(std::vector<int>& arr, int i, int size_)
+            {
+                int largest, l = (2 * i) + 1, r = l + 1;
+
+                if (l < size_ && arr[l] > arr[i])
+                    largest = l;
+                else
+                    largest = i;
+
+                if (r < size_ && arr[r] > arr[largest])
+                    largest = r;
+
+                if (largest != i)
+                {
+                    std::swap(arr[i], arr[largest]);
+                    max_heapify(arr, largest, size_);
+                }
+            }
+        };
+    }
+
     namespace task_926 {
         /*
         * https://leetcode.com/problems/flip-string-to-monotone-increasing/description/
@@ -9795,6 +9850,51 @@ namespace leetcode {
         };
     }
 
+    namespace task_1334 {
+        /*
+        * https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/description/
+        */
+        class Solution {
+        public:
+            int findTheCity(int n, vector<vector<int>>& edges, int distanceThreshold) {
+                ++distanceThreshold;
+                vector<vector<int>> dist_matrix(n, vector<int>(n, 1000000));
+                for (int i = 0; i < n; i++)
+                    dist_matrix[i][i] = 0;
+                for (const vector<int>& edge : edges) {
+                    dist_matrix[edge[0]][edge[1]] = edge[2];
+                    dist_matrix[edge[1]][edge[0]] = edge[2];
+                }
+                for (int i = 0; i < n; i++)
+                    for (int j = 0; j < n; j++)
+                        for (int k = 0; k < n; k++)
+                            dist_matrix[j][k] = min(dist_matrix[j][k], dist_matrix[j][i] + dist_matrix[i][k]);
+                int min_count = n;
+                int city;
+                for (int i = 0; i < n; i++) {
+                    int count = 0;
+                    for (int j = 0; j < n; j++)
+                        if (dist_matrix[i][j] < distanceThreshold)
+                            ++count;
+                    if (min_count >= count) {
+                        min_count = count;
+                        city = i;
+                    }
+                }
+                return city;
+            }
+
+            vector<vector<int>> floydWarshall(const size_t size) {
+                vector<vector<int>> dist_matrix(size, vector<int>(size, 1000000));
+                for (size_t i = 0; i < size; i++)
+                    for (size_t j = 0; j < size; j++)
+                        for (size_t k = 0; k < size; k++)
+                            dist_matrix[j][k] = min(dist_matrix[j][k], dist_matrix[j][i] + dist_matrix[i][k]);
+                return dist_matrix;
+            }
+        };
+    }
+
     namespace task_1351 {
         /*
         * https://leetcode.com/problems/count-negative-numbers-in-a-sorted-matrix/description/
@@ -10790,6 +10890,26 @@ namespace leetcode {
         };
     }
 
+    namespace task_1636 {
+        /*
+        * https://leetcode.com/problems/sort-the-people/description/
+        */
+        class Solution {
+        public:
+            vector<int> frequencySort(vector<int>& nums) {
+                vector<int> freq(201);
+                for (const int num : nums)
+                    ++freq[num + 100];
+                sort(nums.begin(), nums.end(), [&](const int a, const int b) {
+                    if (freq[a + 100] == freq[b + 100])
+                        return a > b;
+                    return freq[a + 100] < freq[b + 100];
+                    });
+                return nums;
+            }
+        };
+    }
+
     namespace task_1701 {
         /*
         * https://leetcode.com/problems/average-waiting-time/description/
@@ -11281,6 +11401,25 @@ namespace leetcode {
         };
     }
 
+    namespace task_2027 {
+        /*
+        * https://leetcode.com/problems/minimum-moves-to-convert-string/
+        */
+        class Solution {
+        public:
+            int minimumMoves(string s) {
+                int count = 0;
+                size_t size = s.size();
+                for (size_t i = 0; i < size; ++i)
+                    if (s[i] == 'X') {
+                        ++count;
+                        i += 2;
+                    }
+                return count;
+            }
+        };
+    }
+
     namespace task_2037 {
         /*
         * https://leetcode.com/problems/minimum-number-of-moves-to-seat-everyone/description/
@@ -11295,6 +11434,51 @@ namespace leetcode {
                 for (size_t i = 0; i < size; i++)
                     res += abs(seats[i] - students[i]);
                 return res;
+            }
+        };
+    }
+
+    namespace task_2045 {
+        /*
+        * https://leetcode.com/problems/second-minimum-time-to-reach-destination/description/
+        */
+        class Solution {
+        public:
+            int secondMinimum(int n, vector<vector<int>>& edges, int time, int change) {
+                vector<int> visited(n + 1);
+                vector<vector<int>> adjacency_list(n + 1);
+                for (const vector<int>& edge : edges) {
+                    adjacency_list[edge[0]].push_back(edge[1]);
+                    adjacency_list[edge[1]].push_back(edge[0]);
+                }
+                queue<int> queue;
+                queue.push(1);
+                vector<int> added_in_queue(n);
+                int count_added = 0;
+                size_t cycles = 0;
+                for (; visited[n] != 4; ++cycles) {
+                    size_t size = queue.size();
+                    for (size_t i = 0; i < size; ++i) {
+                        int node = queue.front();
+                        queue.pop();
+                        for (const int neighbour : adjacency_list[node])
+                            if (visited[neighbour] == 0 || visited[neighbour] == 2) {
+                                ++visited[neighbour];
+                                added_in_queue[count_added++] = neighbour;
+                                queue.push(neighbour);
+                            }
+                    }
+                    for (size_t i = 0; i < count_added; ++i)
+                        ++visited[added_in_queue[i]];
+                    count_added = 0;
+                }
+                int time_travel = 0;
+                for (size_t i = 0; i < cycles; ++i) {
+                    if (((time_travel / change) & 1) == 1)
+                        time_travel += change - (time_travel % change);
+                    time_travel += time;
+                }
+                return time_travel;
             }
         };
     }
@@ -11567,6 +11751,46 @@ namespace leetcode {
                 ptr = guard->next;
                 delete guard;
                 return ptr;
+            }
+        };
+    }
+
+    namespace task_2191 {
+        /*
+        * https://leetcode.com/problems/sort-the-jumbled-numbers/description/
+        */
+        class Solution {
+        public:
+            vector<int> sortJumbled(vector<int>& mapping, vector<int>& nums) {
+                const int size = nums.size();
+                vector<vector<int>> mapped(size);
+                for (int i = 0; i < size; ++i)
+                    mapped[i] = { transform(nums[i], mapping), i, nums[i] };
+                sort(mapped.begin(), mapped.end());
+                for (int i = 0; i < size; ++i)
+                    nums[i] = mapped[i][2];
+                return nums;
+            }
+
+            vector<int> sortJumbledFaster(vector<int>& mapping, vector<int>& nums) {
+                const size_t size = nums.size();
+                vector<pair<int, size_t>> mapped(size);
+                for (size_t i = 0; i < size; ++i)
+                    mapped[i] = { transform(nums[i], mapping), i };
+                sort(mapped.begin(), mapped.end());
+                for (size_t i = 0; i < size; ++i)
+                    mapped[i].first = nums[mapped[i].second];
+                for (size_t i = 0; i < size; ++i)
+                    nums[i] = mapped[i].first;
+                return nums;
+            }
+
+            int transform(int value, const vector<int>& mapping) {
+                int mult = 10, res = mapping[value % 10];
+                value /= 10;
+                for (; value > 0; value /= 10, mult *= 10)
+                    res += mapping[value % 10] * mult;
+                return res;
             }
         };
     }
@@ -12020,6 +12244,30 @@ namespace leetcode {
                     end++;
                 }
                 return res;
+            }
+        };
+    }
+
+    namespace task_2418 {
+        /*
+        * https://leetcode.com/problems/sort-the-people/description/
+        */
+        class Solution {
+        public:
+            vector<string> sortPeople(vector<string>& names, vector<int>& heights) {
+                const size_t size = heights.size();
+                for (size_t i = 0; i < size - 1; i++) {
+                    int max_height = heights[i];
+                    size_t max_ind = i;
+                    for (size_t j = i + 1; j < size; j++)
+                        if (max_height < heights[j]) {
+                            max_height = heights[j];
+                            max_ind = j;
+                        }
+                    swap(heights[i], heights[max_ind]);
+                    swap(names[i], names[max_ind]);
+                }
+                return names;
             }
         };
     }
@@ -12583,6 +12831,39 @@ namespace leetcode {
                     next = tmp;
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_2976 {
+        /*
+        * https://leetcode.com/problems/minimum-cost-to-convert-string-i/description/
+        */
+        class Solution {
+        public:
+            long long minimumCost(string source, string target, vector<char>& original, vector<char>& changed, vector<int>& cost) {
+                size_t size = 'z' - 'a' + 1, size_orig = cost.size(), size_str = source.size();
+                vector<vector<long long>> dist_matrix(size, vector<long long>(size, INT_MAX));
+
+                for (size_t i = 0; i < size; ++i)
+                    dist_matrix[i][i] = 0;
+                for (size_t i = 0; i < size_orig; ++i)
+                    dist_matrix[original[i] - 'a'][changed[i] - 'a'] = min((long long)cost[i], dist_matrix[original[i] - 'a'][changed[i] - 'a']);
+
+                for (size_t i = 0; i < size; ++i)
+                    for (size_t j = 0; j < size; ++j)
+                        for (size_t k = 0; k < size; ++k)
+                            dist_matrix[j][k] = min(dist_matrix[j][k], dist_matrix[j][i] + dist_matrix[i][k]);
+
+                long long costs = 0;
+                for (size_t i = 0; i < size_str; ++i)
+                    if (source[i] != target[i]) {
+                        long long dist = dist_matrix[source[i] - 'a'][target[i] - 'a'];
+                        if (dist == INT_MAX)
+                            return -1;
+                        costs += dist;
+                    }
+                return costs;
             }
         };
     }
