@@ -8886,6 +8886,70 @@ namespace leetcode {
         };
     }
 
+    namespace task_1105 {
+        /*
+        * https://leetcode.com/problems/filling-bookcase-shelves/description/
+        */
+        class Solution {
+        public:
+            int minHeightShelves(vector<vector<int>>& books, int shelfWidth) { // not pass
+                size_t size = books.size();
+                vector<int> dp(size);
+                dp[0] = books[0][1];
+                int layer_width = books[0][0], layer_height = books[0][1];
+                for (int i = 1; i < size; ++i) {
+                    if (layer_width + books[i][0] <= shelfWidth) {
+                        layer_width += books[i][0];
+                        dp[i] = dp[i - 1] - layer_height;
+                        layer_height = max(layer_height, books[i][1]);
+                        dp[i] += layer_height;
+                    }
+                    else {
+                        layer_width = books[i][0], layer_height = books[i][1];
+                        int height = dp[i - 1] + layer_height;
+                        dp[i] = height;
+                        int new_layer_width = layer_width;
+                        int new_layer_height = layer_height;
+
+                        for (size_t j = i - 1; true; --j) {
+                            new_layer_width += books[j][0];
+                            if (new_layer_width > shelfWidth)
+                                break;
+                            new_layer_height = max(new_layer_height, books[j][1]);
+                            height = dp[j - 1] + new_layer_height;
+                            if (dp[i] > height) {
+                                dp[i] = height;
+                                layer_width = new_layer_width;
+                                layer_height = new_layer_height;
+                            }
+                        }
+                    }
+                }
+                return dp.back();
+            }
+
+            int minHeightShelves2(vector<vector<int>>& books, int shelfWidth) {
+                size_t size = books.size();
+                vector<int> dp(size + 1);
+                dp[0] = 0;
+                dp[1] = books[0][1];
+                for (int i = 1; i < size; ++i) {
+                    int layer_width = books[i][0], layer_height = books[i][1];
+                    dp[i + 1] = dp[i] + layer_height;
+                    for (int j = i - 1; j >= 0; --j) {
+                        layer_width += books[j][0];
+                        if (layer_width > shelfWidth)
+                            break;
+                        layer_height = max(layer_height, books[j][1]);
+                        dp[i + 1] = min(dp[i + 1], dp[j] + layer_height);
+
+                    }
+                }
+                return dp.back();
+            }
+        };
+    }
+
     namespace task_1019 {
         /*
         * https://leetcode.com/problems/next-greater-node-in-linked-list/description/
@@ -10075,6 +10139,40 @@ namespace leetcode {
         };
     }
 
+    namespace task_1395 {
+        /*
+        * https://leetcode.com/problems/count-number-of-teams/description/
+        */
+        class Solution {
+        public:
+            int numTeams(vector<int>& rating) {
+                size_t size = rating.size();
+                vector<int> count_more(size);
+                vector<int> count_less(size);
+                int less = 0, more = 0, teams = 0;
+                for (size_t i = 1; i < size; ++i) {
+                    less = 0, more = 0;
+                    for (size_t j = i + 1; j < size; ++j)
+                        if (rating[i] > rating[j])
+                            ++less;
+                        else
+                            ++more;
+                    count_less[i] = less;
+                    count_more[i] = more;
+                }
+                less = size - 2;
+                more = size - 1;
+                for (size_t i = 0; i < less; ++i)
+                    for (size_t j = i + 1; j < more; ++j)
+                        if (rating[i] > rating[j])
+                            teams += count_less[j];
+                        else
+                            teams += count_more[j];
+                return teams;
+            }
+        };
+    }
+
     namespace task_1404 {
         /*
         * https://leetcode.com/problems/number-of-steps-to-reduce-a-number-in-binary-representation-to-one/description/
@@ -10173,6 +10271,27 @@ namespace leetcode {
                     }
                 }
                 return count;
+            }
+        };
+    }
+
+    namespace task_1460 {
+        /*
+        * https://leetcode.com/problems/make-two-arrays-equal-by-reversing-subarrays/description/
+        *
+        */
+        class Solution {
+        public:
+            bool canBeEqual(vector<int>& target, vector<int>& arr) {
+                unordered_multiset<int> set;
+                for (const int n : target)
+                    set.insert(n);
+                for (const int n : arr)
+                    if (auto it = set.find(n); it != set.end())
+                        set.erase(it);
+                    else
+                        return false;
+                return true;
             }
         };
     }
@@ -10329,6 +10448,33 @@ namespace leetcode {
                     degree >>= 1;
                 }
                 return res;
+            }
+        };
+    }
+
+    namespace task_1508 {
+        /*
+        * https://leetcode.com/problems/range-sum-of-sorted-subarray-sums/description/
+        *
+        */
+        class Solution {
+        public:
+            int rangeSum(vector<int>& nums, int n, int left, int right) {
+                --left;
+                size_t size = n * (n + 1) / 2;
+                vector<int> sums;
+                for (int i = 0; i < n; ++i) {
+                    int sum = 0;
+                    for (int j = i; j < n; ++j) {
+                        sum += nums[j];
+                        sums.push_back(sum);
+                    }
+                }
+                sort(sums.begin(), sums.end());
+                long long sum = 0;
+                for (; left < right; ++left)
+                    sum += sums[left];
+                return sum % 1000000007;
             }
         };
     }
@@ -10906,6 +11052,30 @@ namespace leetcode {
                     return freq[a + 100] < freq[b + 100];
                     });
                 return nums;
+            }
+        };
+    }
+
+    namespace task_1653 {
+        /*
+        * https://leetcode.com/problems/minimum-deletions-to-make-string-balanced/description/
+        */
+        class Solution {
+        public:
+            int minimumDeletions(string s) {
+                int count_a = 0, count_b = 0;
+                for (const char c : s)
+                    if (c == 'a')
+                        ++count_a;
+                int min_delete = count_a;
+                for (const char c : s)
+                    if (c == 'a')
+                        --count_a;
+                    else {
+                        min_delete = min(min_delete, count_a + count_b);
+                        ++count_b;
+                    }
+                return min(min_delete, count_b);
             }
         };
     }
@@ -11728,6 +11898,35 @@ namespace leetcode {
         };
     }
 
+    namespace task_2134 {
+        /*
+        * https://leetcode.com/problems/minimum-swaps-to-group-all-1s-together-ii/description/
+        */
+        class Solution {
+        public:
+            int minSwaps(vector<int>& nums) {
+                size_t i = 0, j = 0, size = nums.size();
+                int count_ones = 0, count_window = 0, count;
+                for (const int n : nums)
+                    if (n)
+                        ++count_ones;
+                for (; j < count_ones; ++j)
+                    if (nums[j])
+                        ++count_window;
+                count = count_ones - count_window;
+                for (size_t i = 0; i < size; ++i, ++j) {
+                    j %= size;
+                    if (nums[j])
+                        ++count_window;
+                    if (nums[i])
+                        --count_window;
+                    count = min(count, count_ones - count_window);
+                }
+                return count;
+            }
+        };
+    }
+
     namespace task_2181 {
         /*
         * https://leetcode.com/problems/merge-nodes-in-between-zeros/description/
@@ -12504,6 +12703,22 @@ namespace leetcode {
                     }
                 }
                 return { max_row, max_count };
+            }
+        };
+    }
+
+    namespace task_2678 {
+        /*
+        * https://leetcode.com/problems/number-of-senior-citizens/description/
+        */
+        class Solution {
+        public:
+            int countSeniors(vector<string>& details) {
+                int count = 0;
+                for (const string& str : details)
+                    if (str[11] > '6' || str[11] == '6' && str[12] > '0')
+                        ++count;
+                return count;
             }
         };
     }
