@@ -3775,6 +3775,35 @@ namespace leetcode {
         };
     }
 
+    namespace task_94 {
+        /*
+        * https://leetcode.com/problems/binary-tree-inorder-traversal/
+        */
+        class Solution {
+        public:
+            vector<int> inorderTraversal(TreeNode* root) {
+                if (!root)
+                    return {};
+                vector<int> res;
+                stack<TreeNode*> nodes;
+                nodes.push(root);
+                while (!nodes.empty()) {
+                    TreeNode* node = nodes.top();
+                    if (node->left && node->left->val != -1000) {
+                        nodes.push(node->left);
+                        continue;
+                    }
+                    res.push_back(node->val);
+                    node->val = -1000;
+                    nodes.pop();
+                    if (node->right)
+                        nodes.push(node->right);
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_108
     {
         /*
@@ -5263,6 +5292,127 @@ namespace leetcode {
                     if (nums[i] == -1)
                         return i;
                 return 0;
+            }
+        };
+    }
+
+    namespace task_273 {
+        /*
+        * https://leetcode.com/integer-to-english-words/description/
+        */
+        class Solution {
+        public:
+            string numberToWords(int num) {
+                if (num == 0)
+                    return "Zero";
+                string res = parse3Numbers(num % 1000);
+                num /= 1000;
+                if (num == 0)
+                    return res;
+                string leftPart = parse3Numbers(num % 1000);
+                if (leftPart.size() > 0)
+                    res = res.size() == 0 ?
+                    leftPart + " Thousand" :
+                    leftPart + " Thousand " + res;
+                num /= 1000;
+                if (num == 0)
+                    return res;
+                leftPart = parse3Numbers(num % 1000);
+                if (leftPart.size() > 0)
+                    res = res.size() == 0 ?
+                    leftPart + " Million" :
+                    leftPart + " Million " + res;
+                num /= 1000;
+                if (num == 0)
+                    return res;
+                return res.size() == 0 ?
+                    parse3Numbers(num % 1000) + " Billion" :
+                    parse3Numbers(num % 1000) + " Billion " + res;
+            }
+
+            string parse3Numbers(int num) {
+                int hundreds = num / 100;
+                num %= 100;
+                string units = num < 20 ?
+                    getNumber1_19(num) :
+                    num % 10 == 0 ?
+                    getNumber20_90(num / 10) :
+                    getNumber20_90(num / 10) + " " + getNumber1_19(num % 10);
+                return hundreds ?
+                    units.size() == 0 ?
+                    getNumber1_19(hundreds) + " Hundred" :
+                    getNumber1_19(hundreds) + " Hundred " + units :
+                    units;
+            }
+
+            string getNumber1_19(const int num) {
+                switch (num)
+                {
+                case 1:
+                    return "One";
+                case 2:
+                    return "Two";
+                case 3:
+                    return "Three";
+                case 4:
+                    return "Four";
+                case 5:
+                    return "Five";
+                case 6:
+                    return "Six";
+                case 7:
+                    return "Seven";
+                case 8:
+                    return "Eight";
+                case 9:
+                    return "Nine";
+                case 10:
+                    return "Ten";
+                case 11:
+                    return "Eleven";
+                case 12:
+                    return "Twelve";
+                case 13:
+                    return "Thirteen";
+                case 14:
+                    return "Fourteen";
+                case 15:
+                    return "Fifteen";
+                case 16:
+                    return "Sixteen";
+                case 17:
+                    return "Seventeen";
+                case 18:
+                    return "Eighteen";
+                case 19:
+                    return "Nineteen";
+                default:
+                    return "";
+                }
+            }
+
+            string getNumber20_90(const int num) {
+                switch (num)
+                {
+                case 2:
+                    return "Twenty";
+                case 3:
+                    return "Thirty";
+                case 4:
+                    return "Forty";
+                case 5:
+                    return "Fifty";
+                case 6:
+                    return "Sixty";
+                case 7:
+                    return "Seventy";
+                case 8:
+                    return "Eighty";
+                case 9:
+                    return "Ninety";
+                default:
+                    return "";
+                }
             }
         };
     }
@@ -8138,6 +8288,53 @@ namespace leetcode {
         };
     }
 
+    namespace task_840 {
+        /*
+        * https://leetcode.com/problems/magic-squares-in-grid/description/
+        */
+        class Solution {
+        public:
+            vector<int> used;
+
+            int numMagicSquaresInside(vector<vector<int>>& grid) {
+                size_t height = grid.size(), width = grid[0].size();
+                used = vector<int>(10);
+                int count = 0;
+                for (size_t i = 2; i < height; ++i)
+                    for (size_t j = 2; j < width; ++j)
+                        if (check(grid, i - 2, j - 2))
+                            ++count;
+                return count;
+            }
+
+            bool check(const vector<vector<int>>& grid, const size_t i, const size_t j) {
+                bool res =
+                    grid[i][j] + grid[i][j + 1] + grid[i][j + 2] == 15 &&
+                    grid[i + 1][j] + grid[i + 1][j + 1] + grid[i + 1][j + 2] == 15 &&
+                    grid[i + 2][j] + grid[i + 2][j + 1] + grid[i + 2][j + 2] == 15 &&
+                    grid[i][j] + grid[i + 1][j] + grid[i + 2][j] == 15 &&
+                    grid[i][j + 1] + grid[i + 1][j + 1] + grid[i + 2][j + 1] == 15 &&
+                    grid[i][j + 2] + grid[i + 1][j + 2] + grid[i + 2][j + 2] == 15 &&
+                    grid[i][j] + grid[i + 1][j + 1] + grid[i + 2][j + 2] == 15 &&
+                    grid[i][j + 2] + grid[i + 1][j + 1] + grid[i + 2][j] == 15;
+                if (res) {
+                    for (size_t a = 0; a < 3; ++a)
+                        for (size_t b = 0; b < 3; ++b) {
+                            if (grid[i + a][j + b] > 9 || grid[i + a][j + b] < 1 || used[grid[i + a][j + b]]) {
+                                a = 3;
+                                res = false;
+                                break;
+                            }
+                            used[grid[i + a][j + b]] = 1;
+                        }
+                    for (int& n : used)
+                        n = 0;
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_844 {
         /*
         * https://leetcode.com/problems/backspace-string-compare/description/
@@ -8446,7 +8643,7 @@ namespace leetcode {
                     }
                     ++cycle;
                 }
-                return matrix;
+                return res;
             }
         };
     }
@@ -8669,6 +8866,70 @@ namespace leetcode {
                         nums[i] += dif;;
                     }
                 return count;
+            }
+        };
+    }
+
+    namespace task_959 {
+        /*
+        * https://leetcode.com/problems/regions-cut-by-slashes/description/
+        */
+        class Solution {
+        public:
+            int regionsBySlashes(vector<string>& grid) {
+                int size = grid.size() * 3, count = 0;
+                auto newGrid = makeGrid(grid);
+                for (int i = 0; i < size; ++i)
+                    for (int j = 0; j < size; ++j)
+                        if (newGrid[i][j]) {
+                            ++count;
+                            markRegion(newGrid, i, j, size);
+                        }
+                return count;
+            }
+
+            vector<vector<int>> makeGrid(vector<string>& gridOrig) {
+                size_t sizeOrig = gridOrig.size(), size = sizeOrig * 3;
+                vector<vector<int>> grid(size, vector<int>(size, 1));
+                for (int i = 0; i < sizeOrig; ++i)
+                    for (int j = 0; j < sizeOrig; ++j)
+                        if (gridOrig[i][j] == '/') {
+                            grid[i * 3][j * 3 + 2] = 0;
+                            grid[i * 3 + 1][j * 3 + 1] = 0;
+                            grid[i * 3 + 2][j * 3] = 0;
+                        }
+                        else if (gridOrig[i][j] == '\\') {
+                            grid[i * 3][j * 3] = 0;
+                            grid[i * 3 + 1][j * 3 + 1] = 0;
+                            grid[i * 3 + 2][j * 3 + 2] = 0;
+                        }
+                return grid;
+            }
+
+            void markRegion(vector<vector<int>>& grid, int i, int j, const int size) {
+                queue<pair<int, int>> queue;
+                queue.push({ i, j });
+                grid[i][j] = 'x';
+                while (!queue.empty()) {
+                    auto& pos = queue.front();
+                    if (pos.first + 1 != size && grid[pos.first + 1][pos.second]) {
+                        grid[pos.first + 1][pos.second] = 0;
+                        queue.push({ pos.first + 1, pos.second });
+                    }
+                    if (pos.second + 1 != size && grid[pos.first][pos.second + 1]) {
+                        grid[pos.first][pos.second + 1] = 0;
+                        queue.push({ pos.first, pos.second + 1 });
+                    }
+                    if (pos.first - 1 != -1 && grid[pos.first - 1][pos.second]) {
+                        grid[pos.first - 1][pos.second] = 0;
+                        queue.push({ pos.first - 1, pos.second });
+                    }
+                    if (pos.second - 1 != -1 && grid[pos.first][pos.second - 1]) {
+                        grid[pos.first][pos.second - 1] = 0;
+                        queue.push({ pos.first, pos.second - 1 });
+                    }
+                    queue.pop();
+                }
             }
         };
     }
@@ -10735,6 +10996,85 @@ namespace leetcode {
         };
     }
 
+    namespace task_1568 {
+        /*
+        * https://leetcode.com/problems/minimum-number-of-days-to-disconnect-island/description/
+        */
+        class Solution {
+        public:
+            int minDays(vector<vector<int>>& grid) {
+                size_t m = grid.size(), n = grid[0].size(), count_lands = 0, size_first = 0;
+                int min_degree = 4;
+                for (size_t i = 0; i < m; ++i)
+                    for (size_t j = 0; j < n; ++j)
+                        if (grid[i][j]) {
+                            if (size_first == 0)
+                                size_first = sizeOfLand(grid, i, j, m, n);
+                            ++count_lands;
+                            min_degree = min(min_degree,
+                                (i > 0 ? grid[i - 1][j] : 0) +
+                                (i + 1 < m ? grid[i + 1][j] : 0) +
+                                (j > 0 ? grid[i][j - 1] : 0) +
+                                (j + 1 < n ? grid[i][j + 1] : 0));
+                        }
+                if (size_first != count_lands)
+                    return 0;
+                if (count_lands < 3)
+                    return count_lands;
+                if (min_degree == 1)
+                    return min_degree;
+
+                for (size_t i = 0; i < m; ++i)
+                    for (size_t j = 0; j < n; ++j)
+                        if (grid[i][j]) {
+                            grid[i][j] = 0;
+                            size_t land_size = (i > 0 && grid[i - 1][j]) ?
+                                sizeOfLand(grid, i - 1, j, m, n) :
+                                (i + 1 < m && grid[i + 1][j]) ?
+                                sizeOfLand(grid, i + 1, j, m, n) :
+                                (j > 0 && grid[i][j - 1]) ?
+                                sizeOfLand(grid, i, j + 1, m, n) :
+                                sizeOfLand(grid, i, j - 1, m, n);
+                            if (land_size + 1 < count_lands)
+                                return 1;
+                            grid[i][j] = 1;
+                        }
+                return 2;
+            }
+
+            size_t sizeOfLand(vector<vector<int>>& grid, size_t i, size_t j, size_t m, size_t n) {
+                vector<pair<size_t, size_t>> retrun_back;
+                queue<pair<size_t, size_t>> queue;
+                grid[i][j] = 0;
+                queue.push({ i, j });
+                while (!queue.empty()) {
+                    auto pos = queue.front();
+                    queue.pop();
+                    if (pos.first + 1 != m && grid[pos.first + 1][pos.second]) {
+                        grid[pos.first + 1][pos.second] = 0;
+                        queue.push({ pos.first + 1, pos.second });
+                    }
+                    if (pos.second + 1 != n && grid[pos.first][pos.second + 1]) {
+                        grid[pos.first][pos.second + 1] = 0;
+                        queue.push({ pos.first, pos.second + 1 });
+                    }
+                    if (pos.first > 0 && grid[pos.first - 1][pos.second]) {
+                        grid[pos.first - 1][pos.second] = 0;
+                        queue.push({ pos.first - 1, pos.second });
+                    }
+                    if (pos.second > 0 && grid[pos.first][pos.second - 1]) {
+                        grid[pos.first][pos.second - 1] = 0;
+                        queue.push({ pos.first, pos.second - 1 });
+                    }
+                    retrun_back.push_back(pos);
+                }
+                for (const auto& pos : retrun_back)
+                    grid[pos.first][pos.second] = 1;
+                return retrun_back.size();
+            }
+        };
+    }
+
     namespace task_1579 {
         /*
         * https://leetcode.com/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/description/
@@ -11649,6 +11989,28 @@ namespace leetcode {
                     time_travel += time;
                 }
                 return time_travel;
+            }
+        };
+    }
+
+    namespace task_2053 {
+        /*
+        * https://leetcode.com/problems/kth-distinct-string-in-an-array/description/
+        */
+        class Solution {
+        public:
+            string kthDistinct(vector<string>& arr, int k) {
+                unordered_multiset<string> set;
+                for (const string& str : arr)
+                    set.insert(str);
+                int count = 0;
+                for (const string& str : arr)
+                    if (set.count(str) == 1) {
+                        ++count;
+                        if (count == k)
+                            return str;
+                    }
+                return "";
             }
         };
     }
@@ -13141,6 +13503,26 @@ namespace leetcode {
                     adjacency_list[edges[i][1]].push_back(edges[i][0]);
                 }
                 return adjacency_list;
+            }
+        };
+    }
+
+    namespace task_3016 {
+        /*
+        * https://leetcode.com/problems/minimum-number-of-pushes-to-type-word-ii/description/
+        */
+        class Solution {
+        public:
+            int minimumPushes(string word) {
+                size_t size = 'z' - 'a' + 1;
+                vector<int> counts(size);
+                for (const char c : word)
+                    ++counts[c - 'a'];
+                sort(counts.begin(), counts.end(), greater<int>());
+                int count = 0;
+                for (size_t i = 0; i < size && counts[i] > 0; ++i)
+                    count += counts[i] * (i / 8 + 1);
+                return count;
             }
         };
     }
