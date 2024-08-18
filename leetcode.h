@@ -3804,6 +3804,52 @@ namespace leetcode {
         };
     }
 
+    namespace task_100 {
+        /*
+        * https://leetcode.com/same-tree/description/
+        */
+        class Solution {
+        public:
+            bool isSameTree(TreeNode* p, TreeNode* q) {
+                if (!p) {
+                    if (q)
+                        return false;
+                    return true;
+                }
+                else if (!q)
+                    return false;
+                stack<TreeNode*> pStack, qStack;
+                pStack.push(p);
+                qStack.push(q);
+                while (!pStack.empty()) {
+                    p = pStack.top();
+                    pStack.pop();
+                    q = qStack.top();
+                    qStack.pop();
+                    if (p->val != q->val)
+                        return false;
+                    if (p->left) {
+                        if (!q->left)
+                            return false;
+                        pStack.push(p->left);
+                        qStack.push(q->left);
+                    }
+                    else if (q->left)
+                        return false;
+                    if (p->right) {
+                        if (!q->right)
+                            return false;
+                        pStack.push(p->right);
+                        qStack.push(q->right);
+                    }
+                    else if (q->right)
+                        return false;
+                }
+                return true;
+            }
+        };
+    }
+
     namespace task_108
     {
         /*
@@ -5255,6 +5301,53 @@ namespace leetcode {
                     else
                         b ^= n;
                 return { a , b };
+            }
+        };
+    }
+
+    namespace task_263 {
+        /*
+        * https://leetcode.com/problems/ugly-number/description/
+        */
+        class Solution {
+        public:
+            bool isUgly(int n) {
+                if (n < 1)
+                    return false;
+                if (n < 7)
+                    return true;
+                while (n % 2 == 0)
+                    n >>= 1;
+                while (n % 3 == 0)
+                    n /= 3;
+                while (n % 5 == 0)
+                    n /= 5;
+                return n == 1;
+            }
+        };
+    }
+
+    namespace task_264 {
+        /*
+        * https://leetcode.com/problems/ugly-number-ii/description/
+        */
+        class Solution {
+        public:
+
+            int nthUglyNumber(int n) {
+                if (n < 7)
+                    return n;
+                long long number = 1;
+                set<long long> numbers{ 1 };
+                for (int i = 0; i < n; i++) {
+                    number = *numbers.begin();
+                    numbers.erase(numbers.begin());
+
+                    numbers.insert(number * 2);
+                    numbers.insert(number * 3);
+                    numbers.insert(number * 5);
+                }
+                return number;
             }
         };
     }
@@ -7307,6 +7400,40 @@ namespace leetcode {
         };
     }
 
+    namespace task_624 {
+        /*
+        * https://leetcode.com/problems/maximum-distance-in-arrays/description/
+        */
+        class Solution {
+        public:
+            int maxDistance(vector<vector<int>>& arrays) {
+                size_t size = arrays.size(), min_index, max_index;
+                int first_min = INT32_MAX, second_min = INT32_MAX, first_max = INT32_MIN, second_max = INT32_MIN;
+                for (size_t i = 0; i < size; ++i) {
+                    int min_el = arrays[i][0], max_el = arrays[i].back();
+                    if (first_min > min_el) {
+                        second_min = first_min;
+                        first_min = min_el;
+                        min_index = i;
+                    }
+                    else if (second_min > min_el)
+                        second_min = min_el;
+
+                    if (first_max < max_el) {
+                        second_max = first_max;
+                        first_max = max_el;
+                        max_index = i;
+                    }
+                    else if (second_max < max_el)
+                        second_max = max_el;
+                }
+                return max_index != min_index ?
+                    first_max - first_min :
+                    max(first_max - second_min, second_max - first_min);
+            }
+        };
+    }
+
     namespace task_633 {
         /*
         * https://leetcode.com/problems/sum-of-square-numbers/
@@ -7762,6 +7889,51 @@ namespace leetcode {
                     if (degres[nums[i]] == max_degree)
                         min_length = min(min_length, ends[nums[i]] - starts[nums[i]] + 1);
                 return min_length;
+            }
+        };
+    }
+
+    namespace task_703 {
+        /*
+        * https://leetcode.com/kth-largest-element-in-a-stream/description/
+        */
+        class KthLargest { // Heap 97%, 17%
+        public:
+            priority_queue<int, vector<int>, greater<int>> minHeap;
+            int k;
+            KthLargest(int k, vector<int>& nums) {
+                this->k = k;
+
+                for (const int num : nums)
+                    minHeap.push(num);
+                while (minHeap.size() > k)
+                    minHeap.pop();
+            }
+
+            int add(int val) {
+                minHeap.push(val);
+                if (minHeap.size() > k)
+                    minHeap.pop();
+                return minHeap.top();
+            }
+        };
+
+        class KthLargestSet { // Set 5%, 5%
+        public:
+            multiset<int> nums;
+            int k;
+            KthLargestSet(int k, vector<int>& nums) : nums(nums.begin(), nums.end()), k(k) {
+                while (this->nums.size() > k)
+                    this->nums.erase(this->nums.begin());
+            }
+
+            int add(int val) {
+                nums.insert(val);
+                if (nums.size() > k)
+                    nums.erase(nums.begin());
+                auto it = nums.end();
+                advance(it, -k);
+                return *it;
             }
         };
     }
@@ -8485,6 +8657,38 @@ namespace leetcode {
                         r = i + 1;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_860 {
+        /*
+        * https://leetcode.com/lemonade-change/description/
+        */
+        class Solution {
+        public:
+            bool lemonadeChange(vector<int>& bills) {
+                int count_5 = 0, count_10 = 0;
+                for (const int bill : bills) {
+                    if (bill == 5)
+                        ++count_5;
+                    else if (bill == 10) {
+                        if (count_5 == 0)
+                            return false;
+                        ++count_10;
+                        --count_5;
+                    }
+                    else {
+                        if (count_5 > 0 && count_10 > 0) {
+                            --count_10;
+                            --count_5;
+                        }
+                        else if (count_5 > 2)
+                            count_5 -= 3;
+                        else return false;
+                    }
+                }
+                return true;
             }
         };
     }
@@ -11846,6 +12050,48 @@ namespace leetcode {
                         l = i;
                 }
                 return l + 1;
+            }
+        };
+    }
+
+    namespace task_1937 {
+        /*
+        * https://leetcode.com/problems/maximum-number-of-points-with-cost/description/
+        */
+        class Solution {
+        public:
+            long long maxPoints(vector<vector<int>>& points) {
+                size_t m = points.size(), n = points[0].size();
+                vector<long long> prev_points_row(n), cur_points_row(n);
+                for (size_t i = 0; i < n; ++i)
+                    prev_points_row[i] = points[0][i];
+                for (size_t i = 1; i < m; ++i) {
+                    long long max_points = 0;
+                    for (size_t j = 0; j < n; ++j, --max_points) {
+                        if (prev_points_row[j] > max_points) {
+                            cur_points_row[j] = prev_points_row[j];
+                            max_points = prev_points_row[j];
+                        }
+                        else
+                            cur_points_row[j] = max_points;
+                    }
+                    max_points = 0;
+                    for (int j = n - 1; j > -1; --j, --max_points) {
+                        if (prev_points_row[j] > max_points) {
+                            cur_points_row[j] = max(cur_points_row[j], prev_points_row[j]);
+                            max_points = prev_points_row[j];
+                        }
+                        else
+                            cur_points_row[j] = max(cur_points_row[j], max_points);
+                    }
+                    for (size_t j = 0; j < n; ++j)
+                        cur_points_row[j] += points[i][j];
+                    swap(prev_points_row, cur_points_row);
+                }
+                long long max_points = 0;
+                for (const long long points : prev_points_row)
+                    max_points = max(max_points, points);
+                return max_points;
             }
         };
     }
