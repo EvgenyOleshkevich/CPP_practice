@@ -3850,6 +3850,56 @@ namespace leetcode {
         };
     }
 
+    namespace task_101 {
+        /*
+        * https://leetcode.com/same-tree/description/
+        */
+        class Solution {
+        public:
+            bool isSymmetric(TreeNode* root) {
+                return isSameTree(root->left, root->right);
+            }
+
+            bool isSameTree(TreeNode* p, TreeNode* q) { // from task 100
+                if (!p) {
+                    if (q)
+                        return false;
+                    return true;
+                }
+                else if (!q)
+                    return false;
+                stack<TreeNode*> pStack, qStack;
+                pStack.push(p);
+                qStack.push(q);
+                while (!pStack.empty()) {
+                    p = pStack.top();
+                    pStack.pop();
+                    q = qStack.top();
+                    qStack.pop();
+                    if (p->val != q->val)
+                        return false;
+                    if (p->left) {
+                        if (!q->right)
+                            return false;
+                        pStack.push(p->left);
+                        qStack.push(q->right);
+                    }
+                    else if (q->right)
+                        return false;
+                    if (p->right) {
+                        if (!q->left)
+                            return false;
+                        pStack.push(p->right);
+                        qStack.push(q->left);
+                    }
+                    else if (q->left)
+                        return false;
+                }
+                return true;
+            }
+        };
+    }
+
     namespace task_108
     {
         /*
@@ -6724,6 +6774,23 @@ namespace leetcode {
         };
     }
 
+    namespace task_476 {
+        /*
+        * https://leetcode.com/problems/number-complement/description/
+        */
+        class Solution {
+        public:
+            int findComplement(int num) {
+                int rev_num = ~num, mask = num;
+                do {
+                    mask |= num;
+                    num >>= 1;
+                } while (num > 0);
+                return rev_num & mask;
+            }
+        };
+    }
+
     namespace task_502 {
         /*
         * https://leetcode.com/problems/ipo/description/
@@ -7140,6 +7207,143 @@ namespace leetcode {
         };
     }
 
+    namespace task_564 {
+        /*
+        * https://leetcode.com/problems/find-the-closest-palindrome/description/
+        */
+        class Solution {
+        public:
+            string nearestPalindromic(string n) {
+                size_t size = n.size(), mid = size >> 1;
+                if (size == 1) {
+                    --n[0];
+                    return n;
+                }
+                bool isPalindromic = true;
+                for (size_t i = 0; i < mid; ++i)
+                    if (n[i] != n[size - i - 1]) {
+                        isPalindromic = false;
+                        break;
+                    }
+
+                if (isPalindromic) { // if n is already palindrom
+                    bool isAll9 = true;
+                    for (size_t i = 0; i < size; ++i)
+                        if (n[i] != '9') {
+                            isAll9 = false;
+                            break;
+                        }
+                    if (isAll9) {
+                        for (size_t i = 1; i < size; ++i)
+                            n[i] = '0';
+                        n[0] = '1';
+                        n.push_back('1');
+                        return n;
+                    }
+
+                    if (size & 1) { // if size is odd
+                        if (n[mid] != '0') // if mid is more than 0 then decrease it
+                            --n[mid];
+                        else if (n[mid + 1] != '0') // if mid is 0 and neighboring are not
+                            ++n[mid];
+                        else { // if several 0 in the middle
+                            n[mid] = '9';
+                            size_t i = 1;
+                            for (; n[mid + i] == '0'; i++) {
+                                n[mid + i] = '9';
+                                n[mid - i] = '9';
+                            }
+                            --n[mid + i];
+                            --n[mid - i];
+                            if (n[0] == '0') {
+                                n[size - 1] = '9';
+                                n.erase(0, 1);
+                            }
+                        }
+                    }
+                    else { // if size is even
+                        if (n[mid] != '0') { // if mid is more than 0 then decrease it
+                            if (n == "11")
+                                return "9";
+                            --n[mid];
+                            --n[mid - 1];
+                        }
+                        else { // if several 0 in the middle
+                            size_t i = 0;
+                            for (; n[mid + i] == '0'; i++) {
+                                n[mid + i] = '9';
+                                n[mid - i - 1] = '9';
+                            }
+                            --n[mid + i];
+                            --n[mid - i - 1];
+                            if (n[0] == '0') {
+                                n[size - 1] = '9';
+                                n.erase(0, 1);
+                            }
+                        }
+                    }
+                    return n;
+                }
+
+                if (n[0] == '1') { // if n is 1000...000
+                    bool isRound = true;
+                    for (size_t i = 1; i < size; i++)
+                        if (n[i] != '0') {
+                            isRound = false;
+                            break;
+                        }
+                    if (isRound)
+                        return string(size - 1, '9');
+                }
+
+                auto orig_n = stoll(n);
+
+                for (size_t i = 0; i < mid; i++)
+                    n[size - i - 1] = n[i];
+
+                char prev_char = n[mid];
+                if (size & 1) {
+                    auto n0 = abs(orig_n - stoll(n)), n1 = n0, n2 = n0;
+                    if (n[mid] < '9') {
+                        ++n[mid];
+                        n1 = abs(orig_n - stoll(n));
+                        if (n1 < n0) {
+                            n0 = n1;
+                            prev_char = n[mid];
+                        }
+                        --n[mid];
+                    }
+                    if (n[mid] > '0') {
+                        --n[mid];
+                        n2 = abs(orig_n - stoll(n));
+                        if (n2 <= n0)
+                            prev_char = n[mid];
+                    }
+                    n[mid] = prev_char;
+                }
+                else {
+                    auto n1 = abs(orig_n - stoll(n));
+
+                    if (prev_char >= '5') {
+                        --n[mid];
+                        --n[mid - 1];
+                    }
+                    else {
+                        ++n[mid];
+                        ++n[mid - 1];
+                    }
+                    auto n2 = abs(orig_n - stoll(n));
+                    if (n1 < n2 || n1 == n2 && prev_char < n[mid]) {
+                        n[mid] = prev_char;
+                        n[mid - 1] = prev_char;
+                    }
+                }
+
+                return n;
+            }
+        };
+    }
+
     namespace task_583 {
         /*
         * https://leetcode.com/problems/delete-operation-for-two-strings/description/
@@ -7170,6 +7374,54 @@ namespace leetcode {
                         result[i][j] = min(min(result[i][j - 1] + 1, result[i - 1][j] + 1),
                             result[i - 1][j - 1] + (word1[i] == word2[j] ? 0 : 2));
                 return result.back().back();
+            }
+        };
+    }
+
+    namespace task_592 {
+        /*
+        * https://leetcode.com/problems/number-complement/description/
+        */
+        class Solution {
+        public:
+            const int common_denominator = 3628800;
+
+            string fractionAddition(string expression) {
+                int multiplier = 1, search_from = 0;
+                size_t size = expression.size(), next_operation_pos = 0;
+                if (expression[0] == '-') {
+                    multiplier = -1;
+                    search_from = 1;
+                }
+                int number = 0;
+                while (next_operation_pos < size) {
+                    next_operation_pos = min(size, min(expression.find('-', search_from), expression.find('+', search_from)));
+                    number += parseFraction(expression.substr(search_from, next_operation_pos - search_from)) * multiplier;
+                    search_from = next_operation_pos + 1;
+                    multiplier = next_operation_pos < size&& expression[next_operation_pos] == '+' ? 1 : -1;
+                }
+                if (number == 0)
+                    return "0/1";
+                int gcd = GCD(abs(number), common_denominator);
+                number /= gcd;
+                int denominator = common_denominator / gcd;
+                return to_string(number) + '/' + to_string(denominator);
+            }
+
+            int GCD(int x, int y) {
+                while (x != y) {
+                    if (x > y)
+                        x -= y;
+                    else
+                        y -= x;
+                }
+                return x;
+            }
+
+            int parseFraction(string fraction) {
+                size_t slach = fraction.find('/');
+                int denominator = stoi(fraction.substr(slach + 1));
+                return stoi(fraction.substr(0, slach)) * common_denominator / denominator;
             }
         };
     }
@@ -7743,6 +7995,26 @@ namespace leetcode {
         };
     }
 
+    namespace task_650 {
+        /*
+        * https://leetcode.com/problems/2-keys-keyboard/description/
+        */
+        class Solution {
+        public:
+            int minSteps(int n) {
+                if (n == 1)
+                    return 0;
+                if (n < 6)
+                    return n;
+                int square = sqrt(n) + 1;
+                for (int i = 2; i < square; i++)
+                    if (n % i == 0)
+                        return minSteps(n / i) + i;
+                return n;
+            }
+        };
+    }
+
     namespace task_658 {
         /*
         * https://leetcode.com/problems/find-k-closest-elements/description/
@@ -7783,6 +8055,57 @@ namespace leetcode {
                         l = i;
                 }
                 return l;
+            }
+        };
+    }
+
+    namespace task_664 {
+        /*
+        * https://leetcode.com/problems/strange-printer/description/
+        */
+        class Solution {
+        public:
+            int strangePrinter(string s) {
+                int res = 0, size = s.size();
+                vector<vector<int>> dp(size, vector<int>(size, size));
+                for (int i = 0; i < size; ++i)
+                    dp[i][i] = 1;
+                for (int length = 1; length < size; ++length) {
+                    for (int i = 0; i < size - length; ++i) {
+                        for (int split = 0; split < length; ++split)
+                            if (s[i + split] == s[i + length])
+                                dp[i][i + length] = min(
+                                    dp[i][i + length],
+                                    dp[i][i + split] + dp[i + split + 1][i + length] - 1);
+                            else
+                                dp[i][i + length] = min(
+                                    dp[i][i + length],
+                                    dp[i][i + split] + dp[i + split + 1][i + length]);
+                    }
+                }
+
+                return dp[0].back();
+            }
+
+            int strangePrinterNotWorks(string s) { // NotWorks :(
+                vector<int> left_appearance('z' - 'a' + 1, -1);
+                int res = 0, size = s.size();
+                for (int i = 0; i < size; ++i) {
+                    char c = s[i] - 'a';
+                    if (left_appearance[c] == -1) {
+                        left_appearance[c] = i;
+                        ++res;
+                        continue;
+                    }
+                    int left_pos = left_appearance[c];
+                    for (int j = i - 1; j > left_pos; --j)
+                        if (left_appearance[s[j] - 'a'] < left_pos) {
+                            left_appearance[c] = i;
+                            ++res;
+                            break;
+                        }
+                }
+                return res;
             }
         };
     }
@@ -8783,6 +9106,37 @@ namespace leetcode {
         };
     }
 
+    namespace task_877 {
+        /*
+        * https://leetcode.com/problems/stone-game/description/
+        */
+        class Solution {
+        public:
+            bool stoneGame(vector<int>& piles) {
+                size_t size = piles.size(), gains_size = size >> 1;
+                vector<vector<int>> gains(gains_size);
+                gains[0] = vector<int>(size - 1);
+                for (size_t i = 1; i < size; ++i)
+                    gains[0][i - 1] = max(piles[i - 1], piles[i]) - min(piles[i - 1], piles[i]);
+                for (size_t i = 1; i < gains_size; ++i) {
+                    size_t interval_size = ((i + 1) << 1) - 1;
+                    for (size_t j = 0; j < size - interval_size; j++) {
+                        int gain_ll = piles[j] - piles[j + 1] + gains[i - 1][j + 2];
+                        int gain_lr = piles[j] - piles[j + interval_size] + gains[i - 1][j + 1];
+                        int gain_rl = piles[j + interval_size] - piles[j] + gains[i - 1][j + 1];
+                        int gain_rr = piles[j + interval_size] - piles[j + interval_size - 1] + gains[i - 1][j];
+                        gains[i].push_back(max(max(max(gain_ll, gain_lr), gain_rl), gain_rr));
+                    }
+                }
+                return gains.back()[0] > 0;
+            }
+
+            bool stoneGameFast(vector<int>& piles) { // it works
+                return true;
+            }
+        };
+    }
+
     namespace task_885 {
         /*
         * https://leetcode.com/problems/spiral-matrix-iii/description/
@@ -9415,6 +9769,25 @@ namespace leetcode {
         };
     }
 
+    namespace task_1009 {
+        /*
+        * https://leetcode.com/problems/complement-of-base-10-integer/
+        */
+        class Solution {
+        public:
+            int bitwiseComplement(int n) {
+                if (n == 0)
+                    return 1;
+                int rev_num = ~n, mask = n;
+                do {
+                    mask |= n;
+                    n >>= 1;
+                } while (n > 0);
+                return rev_num & mask;
+            }
+        };
+    }
+
     namespace task_1019 {
         /*
         * https://leetcode.com/problems/next-greater-node-in-linked-list/description/
@@ -9796,6 +10169,48 @@ namespace leetcode {
                     cur = temp;
                 }
                 return cur;
+            }
+        };
+    }
+
+    namespace task_1140 {
+        /*
+        * https://leetcode.com/problems/stone-game/description/
+        */
+        class Solution {
+        public:
+            vector<unordered_map<int, int>> possible_gain;
+            vector<int> remain_sum;
+            size_t size;
+            int sum;
+
+            int stoneGameII(vector<int>& piles) {
+                size = piles.size();
+                sum = 0;
+                for (const int n : piles)
+                    sum += n;
+                possible_gain = vector<unordered_map<int, int>>(size);
+                remain_sum = vector<int>(size);
+                remain_sum[0] = sum;
+                for (size_t i = 1; i < size; i++)
+                    remain_sum[i] = remain_sum[i - 1] - piles[i - 1];
+                fillGains(piles, 0, 2);
+                return possible_gain[0][2];
+            }
+
+            void fillGains(const vector<int>& piles, const int from, int m) {
+                if (from + m >= size) {
+                    possible_gain[from][m] = remain_sum[from];
+                    return;
+                }
+                int max_gain = 0;
+                for (int x = 1; x <= m; ++x) {
+                    int next_m = max(m, x << 1);
+                    if (!possible_gain[from + x].contains(next_m))
+                        fillGains(piles, from + x, next_m);
+                    max_gain = max(max_gain, remain_sum[from] - possible_gain[from + x][next_m]);
+                }
+                possible_gain[from][m] = max_gain;
             }
         };
     }
