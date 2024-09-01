@@ -52,6 +52,23 @@ namespace leetcode {
         Node(int x, Node* left, Node* right, Node* next) : val(x), left(left), right(right), next(next) {}
     };
 
+    class NodeNTree {
+    public:
+        int val;
+        vector<NodeNTree*> children;
+
+        NodeNTree() {}
+
+        NodeNTree(int _val) {
+            val = _val;
+        }
+
+        NodeNTree(int _val, vector<NodeNTree*> _children) {
+            val = _val;
+            children = _children;
+        }
+    };
+
     struct NodeRandom {
         int val;
         NodeRandom* next;
@@ -3900,6 +3917,34 @@ namespace leetcode {
         };
     }
 
+    namespace task_104 {
+        /*
+        * https://leetcode.com/maximum-depth-of-binary-tree/description/
+        */
+        class Solution {
+        public:
+            int maxDepth(TreeNode* root) {
+                if (!root)
+                    return 0;
+                queue<TreeNode*> queue({ root });
+                int depth = 0;
+                while (!queue.empty()) {
+                    ++depth;
+                    int size = queue.size();
+                    for (int i = 0; i < size; ++i) {
+                        root = queue.front();
+                        queue.pop();
+                        if (root->right)
+                            queue.push(root->right);
+                        if (root->left)
+                            queue.push(root->left);
+                    }
+                }
+                return depth;
+            }
+        };
+    }
+
     namespace task_108
     {
         /*
@@ -7378,6 +7423,33 @@ namespace leetcode {
         };
     }
 
+    namespace task_590 {
+        /*
+        * https://leetcode.com/problems/n-ary-tree-postorder-traversal/description/
+        */
+        class Solution {
+        public:
+            vector<int> postorder(NodeNTree* root) {
+                vector<int> res;
+                if (!root)
+                    return res;
+
+                stack<NodeNTree*> stack;
+                stack.push(root);
+
+                while (!stack.empty()) {
+                    root = stack.top();
+                    stack.pop();
+                    res.push_back(root->val);
+                    for (auto node : root->children)
+                        stack.push(node);
+                }
+                reverse(res.begin(), res.end());
+                return res;
+            }
+        };
+    }
+
     namespace task_592 {
         /*
         * https://leetcode.com/problems/number-complement/description/
@@ -9428,6 +9500,54 @@ namespace leetcode {
         };
     }
 
+    namespace task_947 {
+        /*
+        * https://leetcode.com/problems/most-stones-removed-with-same-row-or-column/description/
+        */
+        class Solution {
+        public:
+            int removeStones(vector<vector<int>>& stones) {
+                unordered_map<int, vector<size_t>> rows, cols;
+                size_t size = stones.size();
+                vector<char> visited(size);
+                for (size_t i = 0; i < size; ++i) {
+                    if (auto it = rows.find(stones[i][0]); it != rows.end())
+                        it->second.push_back(i);
+                    else
+                        rows[stones[i][0]] = { i };
+                    if (auto it = cols.find(stones[i][1]); it != cols.end())
+                        it->second.push_back(i);
+                    else
+                        cols[stones[i][1]] = { i };
+                }
+                size_t count_components = 0;
+                for (size_t i = 0; i < size; ++i)
+                    if (visited[i] == 0) {
+                        ++count_components;
+                        stack<size_t> vertexes({ i });
+                        visited[i] = 1;
+                        while (!vertexes.empty()) {
+                            size_t vertex = vertexes.top();
+                            vertexes.pop();
+                            int coordinate = stones[vertex][0];
+                            for (const size_t v : rows[coordinate])
+                                if (visited[v] == 0) {
+                                    visited[v] = 1;
+                                    vertexes.push(v);
+                                }
+                            coordinate = stones[vertex][1];
+                            for (const size_t v : cols[coordinate])
+                                if (visited[v] == 0) {
+                                    visited[v] = 1;
+                                    vertexes.push(v);
+                                }
+                        }
+                    }
+                return size - count_components;
+            }
+        };
+    }
+
     namespace task_959 {
         /*
         * https://leetcode.com/problems/regions-cut-by-slashes/description/
@@ -11399,6 +11519,38 @@ namespace leetcode {
         };
     }
 
+    namespace task_1514 {
+        /*
+        * https://leetcode.com/problems/path-with-maximum-probability/description/
+        */
+        class Solution {
+        public:
+            double maxProbability(int n, vector<vector<int>>& edges, vector<double>& succProb, int start_node, int end_node) {
+                size_t size = edges.size();
+                vector<vector<pair<double, int>>> adjacency_list(n);
+                for (size_t i = 0; i < size; ++i) {
+                    adjacency_list[edges[i][0]].push_back({ succProb[i], edges[i][1] });
+                    adjacency_list[edges[i][1]].push_back({ succProb[i], edges[i][0] });
+                }
+
+                vector<double> vertexes(n);
+                priority_queue<pair<double, int>> queue;
+                queue.push({ 1, start_node });
+                while (!queue.empty()) {
+                    auto node = queue.top();
+                    queue.pop();
+                    if (vertexes[node.second] >= node.first)
+                        continue;
+                    vertexes[node.second] = node.first;
+                    for (const auto& neighbor : adjacency_list[node.second])
+                        if (vertexes[neighbor.second] < neighbor.first * node.first)
+                            queue.push({ neighbor.first * node.first , neighbor.second });
+                }
+                return vertexes[end_node];
+            }
+        };
+    }
+
     namespace task_1518 {
         /*
         * https://leetcode.com/problems/water-bottles/description/
@@ -12469,6 +12621,52 @@ namespace leetcode {
         };
     }
 
+    namespace task_1905 {
+        /*
+        * https://leetcode.com/problems/count-sub-islands/description/
+        */
+        class Solution {
+        public:
+            int countSubIslands(vector<vector<int>>& grid1, vector<vector<int>>& grid2) {
+                size_t m = grid1.size(), n = grid1[0].size();
+                int count = 0;
+                for (size_t i = 0; i < m; ++i)
+                    for (size_t j = 0; j < n; ++j) {
+                        if (grid2[i][j]) {
+                            bool isSubisland = true;
+                            stack<pair<size_t, size_t>> nodes({ pair<size_t, size_t>({i, j}) });
+                            grid2[i][j] = 0;
+                            while (!nodes.empty()) {
+                                size_t a = nodes.top().first, b = nodes.top().second;
+                                nodes.pop();
+                                if (grid1[a][b] == 0)
+                                    isSubisland = false;
+                                if (a > 0 && grid2[a - 1][b]) {
+                                    grid2[a - 1][b] = 0;
+                                    nodes.push({ a - 1, b });
+                                }
+                                if (a + 1 < m && grid2[a + 1][b]) {
+                                    grid2[a + 1][b] = 0;
+                                    nodes.push({ a + 1, b });
+                                }
+                                if (b > 0 && grid2[a][b - 1]) {
+                                    grid2[a][b - 1] = 0;
+                                    nodes.push({ a, b - 1 });
+                                }
+                                if (b + 1 < n && grid2[a][b + 1]) {
+                                    grid2[a][b + 1] = 0;
+                                    nodes.push({ a, b + 1 });
+                                }
+                            }
+                            if (isSubisland)
+                                ++count;
+                        }
+                    }
+                return count;
+            }
+        };
+    }
+
     namespace task_1937 {
         /*
         * https://leetcode.com/problems/maximum-number-of-points-with-cost/description/
@@ -12568,6 +12766,24 @@ namespace leetcode {
                         l = i;
                 }
                 return r;
+            }
+        };
+    }
+
+    namespace task_2022 {
+        /*
+        * https://leetcode.com/convert-1d-array-into-2d-array/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> construct2DArray(vector<int>& original, int m, int n) {
+                int size = original.size();
+                if (m * n != size)
+                    return vector<vector<int>>();
+                vector<vector<int>> res(m, vector<int>(n));
+                for (int i = 0; i < size; ++i)
+                    res[i / n][i % n] = original[i];
+                return res;
             }
         };
     }
@@ -13742,6 +13958,228 @@ namespace leetcode {
                     if (str[11] > '6' || str[11] == '6' && str[12] > '0')
                         ++count;
                 return count;
+            }
+        };
+    }
+
+    namespace task_2699 {
+        /*
+        * https://leetcode.com/problems/n-ary-tree-postorder-traversal/description/
+        */
+        class Solution {
+        public:
+            const int INF = 2e9;
+
+            vector<vector<int>> modifiedGraphEdges(int nodeCount,
+                vector<vector<int>>& edges,
+                int source, int destination,
+                int target) {
+                // Step 1: Compute the initial shortest distance from source to
+                // destination
+                long long currentShortestDistance =
+                    runDijkstra(edges, nodeCount, source, destination);
+
+                // If the current shortest distance is less than the target, return an
+                // empty result
+                if (currentShortestDistance < target) return {};
+
+                bool matchesTarget = (currentShortestDistance == target);
+
+                // Step 2: Iterate through each edge to adjust its weight if necessary
+                for (vector<int>& edge : edges) {
+                    // Skip edges that already have a positive weight
+                    if (edge[2] > 0) continue;
+
+                    // Set edge weight to a large value if current distance matches
+                    // target else set to 1
+                    edge[2] = matchesTarget ? INF : 1;
+
+                    // Step 3: If current shortest distance does not match target
+                    if (!matchesTarget) {
+                        // Compute the new shortest distance with the updated edge
+                        // weight
+                        long long newDistance =
+                            runDijkstra(edges, nodeCount, source, destination);
+                        // If the new distance is within the target range, update edge
+                        // weight to match target
+                        if (newDistance <= target) {
+                            matchesTarget = true;
+                            edge[2] += target - newDistance;
+                        }
+                    }
+                }
+
+                // Return modified edges if the target distance is achieved, otherwise
+                // return an empty result
+                return matchesTarget ? edges : vector<vector<int>>{};
+            }
+
+            // Dijkstra's algorithm to find the shortest path distance
+            long long runDijkstra(const vector<vector<int>>& edges, int nodeCount,
+                int sourceNode, int destinationNode) {
+                // Step 1: Initialize adjacency matrix and distance arrays
+                vector<vector<long long>> adjMatrix(nodeCount,
+                    vector<long long>(nodeCount, INF));
+                vector<long long> minDistance(nodeCount, INF);
+                vector<bool> visited(nodeCount, false);
+
+                // Set the distance to the source node as 0
+                minDistance[sourceNode] = 0;
+
+                // Step 2: Fill the adjacency matrix with edge weights
+                for (const vector<int>& edge : edges) {
+                    if (edge[2] != -1) {
+                        adjMatrix[edge[0]][edge[1]] = edge[2];
+                        adjMatrix[edge[1]][edge[0]] = edge[2];
+                    }
+                }
+
+                // Step 3: Perform Dijkstra's algorithm
+                for (int i = 0; i < nodeCount; ++i) {
+                    // Find the nearest unvisited node
+                    int nearestUnvisitedNode = -1;
+                    for (int j = 0; j < nodeCount; ++j) {
+                        if (!visited[j] &&
+                            (nearestUnvisitedNode == -1 ||
+                                minDistance[j] < minDistance[nearestUnvisitedNode])) {
+                            nearestUnvisitedNode = j;
+                        }
+                    }
+                    // Mark the nearest node as visited
+                    visited[nearestUnvisitedNode] = true;
+
+                    // Update the minimum distance for each adjacent node
+                    for (int v = 0; v < nodeCount; ++v) {
+                        minDistance[v] =
+                            min(minDistance[v], minDistance[nearestUnvisitedNode] +
+                                adjMatrix[nearestUnvisitedNode][v]);
+                    }
+                }
+
+                // Return the shortest distance to the destination node
+                return minDistance[destinationNode];
+            }
+
+            vector<vector<int>> myModifiedGraphEdges(int n, vector<vector<int>>& edges, int source, int destination, int target) {
+                int size = edges.size();
+                vector<vector<vector<int>>> adjacency_list(n); // {vertex, dist, index in edges}
+                vector<int> isNegative(size);
+                for (int i = 0; i < size; ++i)
+                    if (edges[i][2] == -1)
+                        isNegative[i] = 1;
+                    else {
+                        adjacency_list[edges[i][0]].push_back({ edges[i][1], edges[i][2], i });
+                        adjacency_list[edges[i][1]].push_back({ edges[i][0], edges[i][2], i });
+                    }
+                auto distances = dijkstraShort(n, adjacency_list, source, destination);
+                int dist = distances[destination];
+                if (dist < target)
+                    return {};
+                else if (dist == target) {
+                    for (int i = 0; i < size; ++i)
+                        if (edges[i][2] == -1)
+                            edges[i][2] = 1000000001;
+                    return edges;
+                }
+
+                for (int i = 0; i < size; ++i)
+                    if (edges[i][2] == -1) {
+                        edges[i][2] = 1;
+                        adjacency_list[edges[i][0]].push_back({ edges[i][1], edges[i][2], i });
+                        adjacency_list[edges[i][1]].push_back({ edges[i][0], edges[i][2], i });
+                    }
+
+                auto res = dijkstra(n, adjacency_list, source, destination);
+                dist = target - res.first;
+                const auto& path_vertex = res.second.first;
+                const auto& path_edge = res.second.second;
+                size_t path_size = path_edge.size();
+                if (dist > target)
+                    return {};
+                else if (dist == target) {
+                    for (const int edge : path_edge)
+                        if (isNegative[edge])
+                            isNegative[edge] = 2;
+
+                    for (int i = 0; i < size; ++i)
+                        if (isNegative[i] == 1)
+                            edges[i][2] = 1000000001;
+                    return edges;
+                }
+
+                bool is_not_modified = true;
+                for (const int edge : path_edge)
+                    if (isNegative[edge]) {
+                        isNegative[edge] = 2;
+                        if (is_not_modified) {
+                            edges[edge][2] += target - res.first;
+                            is_not_modified = false;
+                        }
+                    }
+
+                for (int i = 0; i < size; ++i)
+                    if (isNegative[i] == 1)
+                        edges[i][2] = 1000000001;
+                return edges;
+            }
+
+            vector<int> dijkstraShort(
+                const int n,
+                const vector<vector<vector<int>>>& adjacency_list,
+                const int source,
+                const int destination) {
+                vector<int> distances(n, INT32_MAX);
+                priority_queue<pair<int, int>> queue;
+                queue.push({ 0, source });
+                distances[source] = 0;
+                while (!queue.empty()) {
+                    int dist = -queue.top().first, vertex = queue.top().second;
+                    queue.pop();
+                    if (distances[vertex] < dist)
+                        continue;
+                    for (const auto& neighbor : adjacency_list[vertex])
+                        if (distances[neighbor[0]] > dist + neighbor[1]) {
+                            distances[neighbor[0]] = dist + neighbor[1];
+                            queue.push({ -dist - neighbor[1] , neighbor[0] });
+                        }
+                }
+                return distances;
+            }
+
+            pair<int, pair<vector<int>, vector<int>>> dijkstra(
+                const int n,
+                const vector<vector<vector<int>>>& adjacency_list,
+                const int source,
+                const int destination) {
+                vector<int> distances(n, INT32_MAX);
+                vector<int> from_edge(n, -1); // edge number
+                vector<int> from_vertex(n, -1); // vertex number
+                priority_queue<pair<int, int>> queue;
+                queue.push({ 0, source });
+                distances[source] = 0;
+                while (!queue.empty()) {
+                    int dist = -queue.top().first, vertex = queue.top().second;
+                    queue.pop();
+                    if (distances[vertex] < dist)
+                        continue;
+                    if (vertex == destination)
+                        break;
+                    for (const auto& neighbor : adjacency_list[vertex])
+                        if (distances[neighbor[0]] > dist + neighbor[1]) {
+                            distances[neighbor[0]] = dist + neighbor[1];
+                            from_edge[neighbor[0]] = neighbor[2];
+                            from_vertex[neighbor[0]] = vertex;
+                            queue.push({ -dist - neighbor[1] , neighbor[0] });
+                        }
+                }
+                vector<int> path_edge, path_vertex;
+                for (int vertex = destination; vertex != source; vertex = from_vertex[vertex]) {
+                    path_edge.push_back(from_edge[vertex]);
+                    path_vertex.push_back(from_vertex[vertex]);
+                }
+                reverse(path_edge.begin(), path_edge.end());
+                reverse(path_vertex.begin(), path_vertex.end());
+                return { distances[destination], {path_vertex, path_edge} };
             }
         };
     }
