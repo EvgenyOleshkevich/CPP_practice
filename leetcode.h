@@ -4038,6 +4038,49 @@ namespace leetcode {
         };
     }
 
+    namespace task_110 {
+        /*
+        * https://leetcode.com/balanced-binary-tree/description/
+        */
+        class Solution {
+        public:
+            bool isNotBalanced;
+            bool isBalanced(TreeNode* root) {
+                isNotBalanced = false;
+                maxDepth(root);
+                return !isNotBalanced;
+            }
+
+            int maxDepth(TreeNode* root) {
+                if (!root || isNotBalanced)
+                    return 0;
+                int left = maxDepth(root->left), right = maxDepth(root->right);
+                isNotBalanced |= abs(left - right) > 1;
+                return max(left, right) + 1;
+            }
+
+            int maxDepth2(TreeNode* root) {
+                if (!root)
+                    return 0;
+                queue<TreeNode*> queue({ root });
+                int depth = 0;
+                while (!queue.empty()) {
+                    ++depth;
+                    int size = queue.size();
+                    for (int i = 0; i < size; ++i) {
+                        root = queue.front();
+                        queue.pop();
+                        if (root->right)
+                            queue.push(root->right);
+                        if (root->left)
+                            queue.push(root->left);
+                    }
+                }
+                return depth;
+            }
+        };
+    }
+
     namespace task_114 {
         /*
         * https://leetcode.com/problems/flatten-binary-tree-to-linked-list/description/
@@ -9157,6 +9200,145 @@ namespace leetcode {
         };
     }
 
+    namespace task_874 {
+        /*
+        * https://leetcode.com/problems/walking-robot-simulation/description/
+        */
+        class Solution {
+        public:
+            int robotSim(vector<int>& commands, vector<vector<int>>& obstacles) {
+                unordered_map<int, set<int>> x_obstacles, y_obstacles;
+                int max_dist = 0, pos_x = 0, pos_y = 0, direction = 0;
+                for (const vector<int>& obstacle : obstacles) {
+                    if (auto it = x_obstacles.find(obstacle[0]); it != x_obstacles.end())
+                        it->second.insert(obstacle[1]);
+                    else
+                        x_obstacles[obstacle[0]] = { obstacle[1] };
+
+                    if (auto it = y_obstacles.find(obstacle[1]); it != y_obstacles.end())
+                        it->second.insert(obstacle[0]);
+                    else
+                        y_obstacles[obstacle[1]] = { obstacle[0] };
+                }
+
+                for (const int command : commands)
+                    if (command == -1)
+                        direction = (direction + 1) % 4;
+                    else if (command == -2)
+                        direction = (direction + 3) % 4;
+                    else {
+                        switch (direction)
+                        {
+                        case 0: {
+                            if (auto x_it = x_obstacles.find(pos_x); x_it != x_obstacles.end()) {
+                                auto y_it = x_it->second.upper_bound(pos_y);
+                                if (y_it != x_it->second.end() && *y_it <= pos_y + command)
+                                    pos_y = *y_it - 1;
+                                else
+                                    pos_y += command;
+                            }
+                            else
+                                pos_y += command;
+                            break;
+                        }
+                        case 1: {
+                            if (auto y_it = y_obstacles.find(pos_y); y_it != y_obstacles.end()) {
+                                auto x_it = y_it->second.upper_bound(pos_x);
+                                if (x_it != y_it->second.end() && *x_it <= pos_x + command)
+                                    pos_x = *x_it - 1;
+                                else
+                                    pos_x += command;
+                            }
+                            else
+                                pos_x += command;
+                            break;
+                        }
+                        case 2: {
+                            if (auto x_it = x_obstacles.find(pos_x); x_it != x_obstacles.end()) {
+                                auto y_it = x_it->second.lower_bound(pos_y);
+                                if (y_it == x_it->second.begin())
+                                    y_it = x_it->second.end();
+                                else
+                                    --y_it;
+                                if (y_it != x_it->second.end() && *y_it >= pos_y - command)
+                                    pos_y = *y_it + 1;
+                                else
+                                    pos_y -= command;
+                            }
+                            else
+                                pos_y -= command;
+                            break;
+                        }
+                        case 3: {
+                            if (auto y_it = y_obstacles.find(pos_y); y_it != y_obstacles.end()) {
+                                auto x_it = y_it->second.lower_bound(pos_x);
+                                if (x_it == y_it->second.begin())
+                                    x_it = y_it->second.end();
+                                else
+                                    --x_it;
+                                if (x_it != y_it->second.end() && *x_it >= pos_x - command) {
+                                    pos_x = *x_it + 1;
+                                    cout << " minus " << *x_it << endl;
+                                }
+                                else
+                                    pos_x -= command;
+                            }
+                            else
+                                pos_x -= command;
+                            break;
+                        }
+                        }
+                        max_dist = max(max_dist, pos_x * pos_x + pos_y * pos_y);
+                    }
+                return max_dist;
+            }
+
+            // faster
+
+            static const int HASH_MULTIPLIER =
+                60001;  // Slightly larger than 2 * max coordinate value
+
+            // Hash function to convert (x, y) coordinates to a unique integer value
+            int hashCoordinates(int x, int y) { return x + HASH_MULTIPLIER * y; }
+
+            int robotSim2(vector<int>& commands, vector<vector<int>>& obstacles) {
+                // Store obstacles in an unordered_set for efficient lookup
+                unordered_set<int> obstacleSet;
+                for (auto& obstacle : obstacles)
+                    obstacleSet.insert(hashCoordinates(obstacle[0], obstacle[1]));
+
+                // Define direction vectors: North, East, South, West
+                const vector<vector<int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0} };
+                int max_dist = 0, pos_x = 0, pos_y = 0, rotation = 0;
+                // 0: North, 1: East, 2: South, 3: West
+
+                for (const int command : commands) {
+                    if (command == -1) {
+                        rotation = (rotation + 1) % 4;
+                        continue;
+                    }
+                    if (command == -2) {
+                        rotation = (rotation + 3) % 4;
+                        continue;
+                    }
+
+                    const vector<int>& direction = directions[rotation];
+                    for (int step = 0; step < command; step++) {
+                        int next_x = pos_x + direction[0];
+                        int next_y = pos_y + direction[1];
+                        if (obstacleSet.contains(hashCoordinates(next_x, next_y)))
+                            break;
+                        pos_x = next_x;
+                        pos_y = next_y;
+                    }
+                    max_dist = max(max_dist, pos_x * pos_x + pos_y * pos_y);
+                }
+
+                return max_dist;
+            }
+        };
+    }
+
     namespace task_876 {
         /*
         * https://leetcode.com/problems/middle-of-the-linked-list/description/
@@ -11042,6 +11224,48 @@ namespace leetcode {
         };
     }
 
+    namespace task_1367 {
+        /*
+        * https://leetcode.com/problems/linked-list-in-binary-tree/description/
+        */
+        class Solution {
+        public:
+            bool isSubPath(ListNode* head, TreeNode* root) {
+                queue<TreeNode*> queue({ root });
+                while (!queue.empty()) {
+                    root = queue.front();
+                    queue.pop();
+                    if (root->val == head->val) {
+                        bool res = isSubPathReq(head, root);
+                        if (res)
+                            return res;
+                    }
+                    if (root->left)
+                        queue.push(root->left);
+                    if (root->right)
+                        queue.push(root->right);
+                }
+                return false;
+            }
+
+            bool isSubPathReq(ListNode* head, TreeNode* root) {
+                if (!head->next)
+                    return true;
+                if (root->left && root->left->val == head->next->val) {
+                    bool res = isSubPathReq(head->next, root->left);
+                    if (res)
+                        return res;
+                }
+                if (root->right && root->right->val == head->next->val) {
+                    bool res = isSubPathReq(head->next, root->right);
+                    if (res)
+                        return res;
+                }
+                return false;
+            }
+        };
+    }
+
     namespace task_1380
     {
         /*
@@ -12553,6 +12777,25 @@ namespace leetcode {
         };
     }
 
+    namespace task_1894 {
+        /*
+        * https://leetcode.com/problems/find-the-student-that-will-replace-the-chalk/description/
+        */
+        class Solution {
+        public:
+            int chalkReplacer(vector<int>& chalk, int k) {
+                long long sum = 0;
+                for (const int c : chalk)
+                    sum += c;
+                int size = chalk.size(), i = 0;
+                k %= sum;
+                for (; k >= chalk[i]; ++i)
+                    k -= chalk[i];
+                return i;
+            }
+        };
+    }
+
     namespace task_1901 {
         /*
         * https://leetcode.com/problems/find-a-peak-element-ii/
@@ -12709,6 +12952,49 @@ namespace leetcode {
         };
     }
 
+    namespace task_1945 {
+        /*
+        * https://leetcode.com/problems/sum-of-digits-of-string-after-convert/description/
+        */
+        class Solution {
+        public:
+            int getLucky(string s, int k) {
+                string lucky;
+                for (char c : s) {
+                    c -= 'a' - 1;
+                    if (c > 9)
+                        lucky.push_back('0' + c / 10);
+                    lucky.push_back('0' + c % 10);
+                }
+                int n = 0;
+                for (; k > 0; --k) {
+                    n = 0;
+                    for (const char c : lucky)
+                        n += c - '0';
+                    lucky = to_string(n);
+                }
+                return n;
+            }
+
+            int getLuckyFaster(string s, int k) {
+                int n = 0;
+                for (char c : s) {
+                    c -= 'a' - 1;
+                    n += c / 10 + c % 10;
+                }
+                for (; k > 1; --k) {
+                    int new_n = 0;
+                    while (n > 0) {
+                        new_n += n % 10;
+                        n /= 10;
+                    }
+                    n = new_n;
+                }
+                return n;
+            }
+        };
+    }
+
     namespace task_1953 {
         /*
         * https://leetcode.com/problems/maximum-number-of-weeks-for-which-you-can-work/description/
@@ -12803,6 +13089,53 @@ namespace leetcode {
                         i += 2;
                     }
                 return count;
+            }
+        };
+    }
+
+    namespace task_2028 {
+        /*
+        * https://leetcode.com/problems/find-missing-observations/description/
+        */
+        class Solution {
+        public:
+            vector<int> missingRolls(vector<int>& rolls, int mean, int n) {
+                int m = rolls.size();
+                int req_sum = mean * (n + m), sum = 0;
+                for (const int roll : rolls)
+                    sum += roll;
+                req_sum -= sum + n; // substract another rolls fiiled with 1
+                if (0 > req_sum || 5 * n < req_sum)
+                    return {};
+
+                int count_six = req_sum / 5; // 5 because 1 os already substructed
+                vector<int> rolls_n(n, 1);
+                for (int i = 0; i < count_six; i++)
+                    rolls_n[i] = 6;
+                req_sum -= 5 * count_six;
+                rolls_n.back() += req_sum;
+                return rolls_n;
+            }
+
+            vector<int> missingRolls2(vector<int>& rolls, int mean, int n) {
+                int sum = 0;
+                for (int i = 0; i < rolls.size(); i++) {
+                    sum = sum + rolls[i];
+                }
+                // Find the remaining sum.
+                int remainingSum = mean * (n + rolls.size()) - sum;
+                // Check if sum is valid or not.
+                if (remainingSum > 6 * n or remainingSum < n) {
+                    return {};
+                }
+                int distributeMean = remainingSum / n;
+                int mod = remainingSum % n;
+                // Distribute the remaining mod elements in nElements array.
+                vector<int> nElements(n, distributeMean);
+                for (int i = 0; i < mod; i++) {
+                    nElements[i]++;
+                }
+                return nElements;
             }
         };
     }
@@ -14696,6 +15029,33 @@ namespace leetcode {
                     if (nums[i] == 0)
                         return -1;
                 return count;
+            }
+        };
+    }
+
+    namespace task_3217 {
+        /*
+        * https://leetcode.com/problems/remove-linked-list-elements/
+        */
+        class Solution {
+        public:
+            ListNode* modifiedList(vector<int>& nums, ListNode* head) {
+                auto guard = new ListNode(0, head);
+                head = guard;
+                unordered_set set(nums.begin(), nums.end());
+                while (head && head->next) {
+                    if (set.contains(head->next->val)) {
+                        auto temp = head->next->next;
+                        delete head->next;
+                        head->next = temp;
+                    }
+                    else
+                        head = head->next;
+                }
+
+                head = guard->next;
+                delete guard;
+                return head;
             }
         };
     }
