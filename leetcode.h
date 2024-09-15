@@ -4081,6 +4081,65 @@ namespace leetcode {
         };
     }
 
+    namespace task_111 {
+        /*
+        * https://leetcode.com/minimum-depth-of-binary-tree/description/
+        */
+        class Solution {
+        public:
+            int minDepth(TreeNode* root) {
+                if (!root)
+                    return 0;
+                queue<TreeNode*> queue({ root });
+                int depth = 0;
+                while (!queue.empty()) {
+                    ++depth;
+                    int size = queue.size();
+                    for (int i = 0; i < size; ++i) {
+                        root = queue.front();
+                        queue.pop();
+                        if (root->right)
+                            queue.push(root->right);
+                        if (root->left)
+                            queue.push(root->left);
+                        if (!root->left && !root->right)
+                            return depth;
+                    }
+                }
+                return depth;
+            }
+        };
+    }
+
+    namespace task_112 {
+        /*
+        * https://leetcode.com/path-sum/description/
+        */
+        class Solution {
+        public:
+            bool hasPathSum(TreeNode* root, int targetSum) {
+                if (!root)
+                    return false;
+                queue<TreeNode*> queue({ root });
+                while (!queue.empty()) {
+                    root = queue.front();
+                    queue.pop();
+                    if (root->right) {
+                        root->right->val += root->val;
+                        queue.push(root->right);
+                    }
+                    if (root->left) {
+                        root->left->val += root->val;
+                        queue.push(root->left);
+                    }
+                    if (!root->left && !root->right && root->val == targetSum)
+                        return true;
+                }
+                return false;
+            }
+        };
+    }
+
     namespace task_114 {
         /*
         * https://leetcode.com/problems/flatten-binary-tree-to-linked-list/description/
@@ -11006,6 +11065,44 @@ namespace leetcode {
         };
     }
 
+    namespace task_1310 {
+        /*
+        * https://leetcode.com/xor-queries-of-a-subarray/description/
+        */
+        class Solution {
+        public:
+            vector<int> xorQueries(vector<int>& arr, vector<vector<int>>& queries) {
+                size_t size = queries.size();
+                vector<int> answers(size);
+                for (size_t i = 0; i < size; i++) {
+                    int j = queries[i][0], to = queries[i][1] + 1;
+                    int value = 0;
+                    for (; j < to; ++j)
+                        value ^= arr[j];
+                    answers[i] = value;
+                }
+                return answers;
+            }
+
+            vector<int> xorQueriesFaster(vector<int>& arr, vector<vector<int>>& queries) {
+                vector<int> result;
+
+                // Step 1: Convert arr into an in-place prefix XOR array
+                for (int i = 1; i < arr.size(); ++i)
+                    arr[i] ^= arr[i - 1];
+
+                // Step 2: Resolve each query using the prefix XOR array
+                for (const auto& q : queries)
+                    if (q[0] > 0)
+                        result.push_back(arr[q[0] - 1] ^ arr[q[1]]);
+                    else
+                        result.push_back(arr[q[1]]);
+
+                return result;
+            }
+        };
+    }
+
     namespace task_1312 {
         /*
         * https://leetcode.com/problems/minimum-insertion-steps-to-make-a-string-palindrome/description/
@@ -11262,6 +11359,34 @@ namespace leetcode {
                         return res;
                 }
                 return false;
+            }
+        };
+    }
+
+    namespace task_1371 {
+        /*
+        * https://leetcode.com/find-the-longest-substring-containing-vowels-in-even-counts/description/
+        */
+        class Solution {
+        public:
+            int findTheLongestSubstring(string s) {
+                int size = s.size(), length = 0, prefixXOR = 0, character;
+                vector<int> first_position(32, size);
+                first_position[0] = -1;
+                for (int i = 0; i < size; ++i) {
+                    switch (s[i]) {
+                    case 'a': character = 1; break;
+                    case 'e': character = 2; break;
+                    case 'i': character = 4; break;
+                    case 'o': character = 8; break;
+                    case 'u': character = 16; break;
+                    default: character = 0; break;
+                    }
+                    prefixXOR ^= character;
+                    first_position[prefixXOR] = min(i, first_position[prefixXOR]);
+                    length = max(length, i - first_position[prefixXOR]);
+                }
+                return length;
             }
         };
     }
@@ -12411,6 +12536,32 @@ namespace leetcode {
                         ++count_b;
                     }
                 return min(min_delete, count_b);
+            }
+        };
+    }
+
+    namespace task_1684 {
+        /*
+        * https://leetcode.com/path-sum/count-the-number-of-consistent-strings/description/
+        */
+        class Solution {
+        public:
+            int countConsistentStrings(string allowed, vector<string>& words) {
+                vector<int> allowed_hash('z' - 'a' + 1);
+                int count = 0;
+                for (const char c : allowed)
+                    allowed_hash[c - 'a'] = 1;
+                for (const string& word : words) {
+                    bool isConsistent = true;
+                    for (const char c : word)
+                        if (allowed_hash[c - 'a'] == 0) {
+                            isConsistent = false;
+                            break;
+                        }
+                    if (isConsistent)
+                        ++count;
+                }
+                return count;
             }
         };
     }
@@ -14043,6 +14194,32 @@ namespace leetcode {
         };
     }
 
+    namespace task_2419 {
+        /*
+        * https://leetcode.com/path-sum/description/
+        */
+        class Solution {
+        public:
+            int longestSubarray(vector<int>& nums) {
+                int max_el = nums[0], max_len = 0;
+                int size = nums.size();
+                for (int i = 0; i < size; ++i) {
+                    if (max_el < nums[i]) {
+                        max_el = nums[i];
+                        max_len = 0;
+                    }
+                    if (max_el == nums[i]) {
+                        int j = i + 1;
+                        for (; j < size && max_el == nums[j]; ++j) {}
+                        max_len = max(max_len, j - i);
+                        i = j - 1;
+                    }
+                }
+                return max_len;
+            }
+        };
+    }
+
     namespace task_2433 {
         /*
         * https://leetcode.com/problems/find-the-original-array-of-prefix-xor/description/
@@ -14623,6 +14800,42 @@ namespace leetcode {
                 for (size_t i = 0; i < size; ++i)
                     s[indexes[i]] = vowels[i];
                 return s;
+            }
+        };
+    }
+
+    namespace task_2807 {
+        /*
+        * https://leetcode.com/problems/insert-greatest-common-divisors-in-linked-list/description/
+        */
+        class Solution {
+        public:
+            ListNode* insertGreatestCommonDivisors(ListNode* head) {
+                auto ptr = head;
+                while (ptr->next) {
+                    ptr->next = new ListNode(GCD(ptr->val, ptr->next->val), ptr->next);
+                    ptr = ptr->next->next;
+                }
+                return head;
+            }
+
+            int GCD(int x, int y) {
+                while (x != y)
+                    if (x > y)
+                        x -= y;
+                    else
+                        y -= x;
+                return x;
+            }
+
+            int GCD2(int x, int y) {
+                int z = 0;
+                while (x > 0) {
+                    z = x;
+                    x = y % x;
+                    y = z;
+                }
+                return y;
             }
         };
     }
