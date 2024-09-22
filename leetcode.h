@@ -2644,6 +2644,107 @@ namespace leetcode {
         };
     }
 
+    namespace task_51 {
+        /*
+        * https://leetcode.com/problems/n-queens/
+        */
+        class Solution {
+        public:
+            vector<string> chess;
+            vector<vector<char>> prohibitions;
+            vector<vector<string>> answers;
+            size_t size;
+            vector<vector<string>> solveNQueens(int n) {
+                if (n < 4) {
+                    if (n == 1)
+                        return { {"Q"} };
+                    else
+                        return {};
+                }
+                size = n;
+                answers.clear();
+                chess = vector<string>(n, string(n, '.'));
+                prohibitions = vector<vector<char>>{ vector<char>(n, 1), vector<char>(n * 2 - 1, 1), vector<char>(n * 2 - 1, 1) };
+                solveNQueensReq(0);
+                return answers;
+            }
+
+            void solveNQueensReq(size_t line) {
+                if (line == size)
+                    answers.push_back(chess);
+                for (size_t i = 0; i < size; ++i) {
+                    if (prohibitions[0][i] &&
+                        prohibitions[1][i + line] &&
+                        prohibitions[2][size - i - 1 + line]) {
+                        prohibitions[0][i] = 0;
+                        prohibitions[1][i + line] = 0;
+                        prohibitions[2][size - i - 1 + line] = 0;
+                        chess[line][i] = 'Q';
+                        solveNQueensReq(line + 1);
+                        prohibitions[0][i] = 1;
+                        prohibitions[1][i + line] = 1;
+                        prohibitions[2][size - i - 1 + line] = 1;
+                        chess[line][i] = '.';
+                    }
+                }
+            }
+        };
+    }
+
+    namespace task_52 {
+        /*
+        * https://leetcode.com/problems/n-queens-ii/description/
+        */
+        class Solution {// 1,0,0,2,10,4,40,92,352
+        public:
+            vector<vector<char>> prohibitions;
+            int count;
+            size_t size;
+            int totalNQueens(int n) {
+                if (n < 4)
+                    return n == 1 ? 1 : 0;
+                size = n;
+                count = 0;
+                prohibitions = vector<vector<char>>{ vector<char>(n, 1), vector<char>(n * 2 - 1, 1), vector<char>(n * 2 - 1, 1) };
+                solveNQueensReq(0);
+                return count;
+            }
+
+            void solveNQueensReq(size_t line) {
+                if (line == size)
+                    ++count;
+                for (size_t i = 0; i < size; ++i) {
+                    if (prohibitions[0][i] &&
+                        prohibitions[1][i + line] &&
+                        prohibitions[2][size - i - 1 + line]) {
+                        prohibitions[0][i] = 0;
+                        prohibitions[1][i + line] = 0;
+                        prohibitions[2][size - i - 1 + line] = 0;
+                        solveNQueensReq(line + 1);
+                        prohibitions[0][i] = 1;
+                        prohibitions[1][i + line] = 1;
+                        prohibitions[2][size - i - 1 + line] = 1;
+                    }
+                }
+            }
+
+            int totalNQueensSwitch(int n) {
+                switch (n)
+                {
+                case 1: return 1;
+                case 4: return 2;
+                case 5: return 10;
+                case 6: return 4;
+                case 7: return 40;
+                case 8: return 92;
+                case 9: return 352;
+                default:
+                    return 0;
+                }
+            }
+        };
+    }
+
     namespace task_53 {
         /*
         * https://leetcode.com/problems/maximum-subarray/description/
@@ -5057,6 +5158,56 @@ namespace leetcode {
         };
     }
 
+    namespace task_179 {
+        /*
+        * https://leetcode.com/problems/largest-number/description/
+        */
+        class Solution {
+        public:
+            string largestNumber(vector<int>& nums) {
+                vector<string> numbers;
+                for (const int n : nums)
+                    numbers.push_back(to_string(n));
+                sort(numbers.begin(), numbers.end(), [this](const string& a, const string& b) {
+                    if (a.size() > b.size())
+                        return !greater(b, a);
+                    else
+                        return greater(a, b);
+                    });
+                string number;
+                for (const string& n : numbers)
+                    number.append(n);
+                return number[0] == '0' ? "0" : number;
+            }
+
+            bool greater(const string& a, const string& b) {
+                size_t i = 0;
+                size_t a_size = a.size();
+                size_t b_size = b.size();
+                size_t size = a_size + b_size;
+                for (; i < a_size; ++i) {
+                    if (a[i] < b[i])
+                        return false;
+                    if (a[i] > b[i])
+                        return true;
+                }
+                for (; i < b_size; ++i) {
+                    if (b[i - a_size] < b[i])
+                        return false;
+                    if (b[i - a_size] > b[i])
+                        return true;
+                }
+                for (; i < size; ++i) {
+                    if (b[i - a_size] < a[i - b_size])
+                        return false;
+                    if (b[i - a_size] > a[i - b_size])
+                        return true;
+                }
+                return false;
+            }
+        };
+    }
+
     namespace task_188 {
         /*
         * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/description/
@@ -5286,6 +5437,33 @@ namespace leetcode {
         };
     }
 
+    namespace task_214 {
+        /*
+        * https://leetcode.com/problems/shortest-palindrome/description/
+        */
+        class Solution {
+        public:
+            string shortestPalindrome(string s) {
+                size_t size = s.size(), end = size - 1;
+                if (size < 2)
+                    return s;
+
+                for (; end > 0; --end) {
+                    if (s[0] == s[end]) {
+                        size_t to = 1 + end >> 1, i = 1;
+                        for (; i < to && s[i] == s[end - i]; ++i) {}
+                        if (i == to)
+                            break;
+                    }
+                }
+
+                auto left = s.substr(end + 1);
+                reverse(left.begin(), left.end());
+                return left + s;
+            }
+        };
+    }
+
     namespace task_216 {
         /*
         * https://leetcode.com/problems/combination-sum-iii/description/
@@ -5474,6 +5652,87 @@ namespace leetcode {
                         l = i;
                 }
                 return -1;
+            }
+        };
+    }
+
+    namespace task_241 {
+        /*
+        * https://leetcode.com/problems/different-ways-to-add-parentheses/description/
+        */
+        class Solution {
+        public:
+            vector<int> diffWaysToCompute(string expression) {
+                int n = expression.length();
+                // Create a 2D array of lists to store results of subproblems
+                vector<vector<vector<int>>> dp(n, vector<vector<int>>(n));
+
+                initializeBaseCases(expression, dp);
+
+                // Fill the dp table for all possible subexpressions
+                for (int length = 3; length <= n; length++) {
+                    for (int start = 0; start + length - 1 < n; start++) {
+                        int end = start + length - 1;
+                        processSubexpression(expression, dp, start, end);
+                    }
+                }
+
+                // Return the results for the entire expression
+                return dp[0][n - 1];
+            }
+
+            void initializeBaseCases(string& expression,
+                vector<vector<vector<int>>>& dp) {
+                int n = expression.length();
+                // Handle base cases: single digits and two-digit numbers
+                for (int i = 0; i < n; i++) {
+                    if (isdigit(expression[i])) {
+                        // Check if it's a two-digit number
+                        int dig1 = expression[i] - '0';
+                        if (i + 1 < n && isdigit(expression[i + 1])) {
+                            int dig2 = expression[i + 1] - '0';
+                            int number = dig1 * 10 + dig2;
+                            dp[i][i + 1].push_back(number);
+                        }
+                        // Single digit case
+                        dp[i][i].push_back(dig1);
+                    }
+                }
+            }
+
+            void processSubexpression(string& expression,
+                vector<vector<vector<int>>>& dp, int start,
+                int end) {
+                // Try all possible positions to split the expression
+                for (int split = start; split <= end; split++) {
+                    if (isdigit(expression[split])) continue;
+
+                    vector<int> leftResults = dp[start][split - 1];
+                    vector<int> rightResults = dp[split + 1][end];
+
+                    computeResults(expression[split], leftResults, rightResults,
+                        dp[start][end]);
+                }
+            }
+
+            void computeResults(char op, vector<int>& leftResults,
+                vector<int>& rightResults, vector<int>& results) {
+                // Compute results based on the operator at position 'split'
+                for (int leftValue : leftResults) {
+                    for (int rightValue : rightResults) {
+                        switch (op) {
+                        case '+':
+                            results.push_back(leftValue + rightValue);
+                            break;
+                        case '-':
+                            results.push_back(leftValue - rightValue);
+                            break;
+                        case '*':
+                            results.push_back(leftValue * rightValue);
+                            break;
+                        }
+                    }
+                }
             }
         };
     }
@@ -6623,6 +6882,70 @@ namespace leetcode {
         };
     }
 
+    namespace task_386 {
+        /*
+        * https://leetcode.com/problems/lexicographical-numbers/description/
+        */
+        class Solution {
+        public:
+            vector<int> lexicalOrder(int n) {
+                vector<int> numbers;
+                vector<int> bases(5);
+                int last_base;
+                ++n;
+                if (n < 10) {
+                    for (int i = 1; i < n; i++)
+                        numbers.push_back(i);
+                    return numbers;
+                }
+
+                for (int base = 1; base < 10; ++base) {
+                    last_base = 0;
+                    bases[last_base] = base * 10;
+                    numbers.push_back(base);
+                    while (last_base > -1) {
+                        if (bases[last_base] < n) {
+                            numbers.push_back(bases[last_base]);
+                            bases[last_base + 1] = bases[last_base] * 10;
+                            ++last_base;
+                            continue;
+                        }
+                        --last_base;
+                        while (last_base > -1) {
+                            if (bases[last_base] % 10 == 9)
+                                --last_base;
+                            else {
+                                ++bases[last_base];
+                                break;
+                            }
+                        }
+                    }
+                }
+                return numbers;
+            }
+
+            vector<int> lexicalOrder2(int n) {
+                vector<int> lexicographicalNumbers;
+                int currentNumber = 1;
+
+                for (int i = 0; i < n; ++i) {
+                    lexicographicalNumbers.push_back(currentNumber);
+
+                    if (currentNumber * 10 <= n) {
+                        currentNumber *= 10;
+                    }
+                    else {
+                        while (currentNumber % 10 == 9 || currentNumber >= n)
+                            currentNumber /= 10;
+                        currentNumber += 1;
+                    }
+                }
+
+                return lexicographicalNumbers;
+            }
+        };
+    }
+
     namespace task_392 {
         /*
         * https://leetcode.com/problems/is-subsequence/description/
@@ -6802,6 +7125,111 @@ namespace leetcode {
                         l = i;
                 }
                 return r;
+            }
+        };
+    }
+
+    namespace task_440 {
+        /*
+        * https://leetcode.com/problems/k-th-smallest-in-lexicographical-order/description/
+        */
+        class Solution {
+        public:
+            int number;
+            int n;
+            vector<int> counts{ 0,0,0,0,0,0,0,0,0,0 };
+
+            int findKthNumberWithoutReq(int n, int k) {
+                if (n < 10)
+                    return k;
+                vector<int> counts(10);
+                int number = 0, i = 1;
+                for (; i < 10; ++i) {
+                    counts[i] = 1;
+                    long long degree = 10;
+                    while ((i + 1) * degree <= n) {
+                        counts[i] = counts[i] * 10 + 1;
+                        degree *= 10;
+                    }
+                    if (i * degree <= n)
+                        counts[i] += n + 1 - i * degree;
+                    counts[i] += counts[i - 1];
+                    if (k <= counts[i])
+                        break;
+                }
+                number = i;
+                k -= counts[i - 1] + 1;
+
+                while (k > 0) {
+                    i = 0;
+                    for (; i < 10; ++i) {
+                        counts[i] = 1;
+                        long long degree = 10;
+                        while ((number * 10 + i + 1) * degree <= n) {
+                            counts[i] = counts[i] * 10 + 1;
+                            degree *= 10;
+                        }
+                        if ((number * 10 + i) * degree <= n)
+                            counts[i] += n + 1 - (number * 10 + i) * degree;
+                        if (i > 0)
+                            counts[i] += counts[i - 1];
+                        if (k <= counts[i])
+                            break;
+                    }
+                    number = number * 10 + i;
+                    if (i > 0)
+                        k -= counts[i - 1];
+                    --k;
+                }
+                return number;
+            }
+
+            int findKthNumber(int n, int k) {
+                if (n < 10)
+                    return k;
+                this->n = n;
+                int i = 1;
+                for (; i < 10; ++i) {
+                    counts[i] = 1;
+                    long long degree = 10;
+                    while ((i + 1) * degree <= n) {
+                        counts[i] = counts[i] * 10 + 1;
+                        degree *= 10;
+                    }
+                    if (i * degree <= n)
+                        counts[i] += n + 1 - i * degree;
+                    counts[i] += counts[i - 1];
+                    if (k <= counts[i])
+                        break;
+                }
+                number = i;
+                k -= counts[i - 1];
+                findKthNumberReq(k - 1);
+                return number;
+            }
+
+            void findKthNumberReq(int k) {
+                if (k == 0)
+                    return;
+                int i = 0;
+                for (; i < 10; ++i) {
+                    counts[i] = 1;
+                    long long degree = 10;
+                    while ((number * 10 + i + 1) * degree <= n) {
+                        counts[i] = counts[i] * 10 + 1;
+                        degree *= 10;
+                    }
+                    if ((number * 10 + i) * degree <= n)
+                        counts[i] += n + 1 - (number * 10 + i) * degree;
+                    if (i > 0)
+                        counts[i] += counts[i - 1];
+                    if (k <= counts[i])
+                        break;
+                }
+                number = number * 10 + i;
+                if (i > 0)
+                    k -= counts[i - 1];
+                findKthNumberReq(k - 1);
             }
         };
     }
@@ -7150,6 +7578,53 @@ namespace leetcode {
                 root->val = sum;
                 if (root->left)
                     bstToGstReq(root->left);
+            }
+        };
+    }
+
+    namespace task_539 {
+        /*
+        * https://leetcode.com/problems/path-sum/description/
+        */
+        class Solution {
+        public:
+            int findMinDifference(vector<string>& timePoints) { // 41,48%; 88,24%
+                size_t size = timePoints.size();
+                vector<int> times(size);
+                for (size_t i = 0; i < size; ++i)
+                    times[i] = stoi(timePoints[i].substr(0, 2)) * 60 + stoi(timePoints[i].substr(3));
+                sort(times.begin(), times.end());
+                int min_time = times[0] + 24 * 60 - times.back();
+                for (size_t i = 1; i < size; ++i)
+                    min_time = min(min_time, times[i] - times[i - 1]);
+                return min_time;
+            }
+
+            int findMinDifferenceBucketSort(vector<string>& timePoints) { // 99,52%; 77,18%
+                // create buckets array for the times converted to minutes
+                int allTime = 24 * 60;
+                vector<char> minutes(allTime);
+                for (const string& time : timePoints) {
+                    int min = stoi(time.substr(0, 2)) * 60 + stoi(time.substr(3));
+                    if (minutes[min]) return 0;
+                    minutes[min] = 1;
+                }
+                int prevIndex = 0, ans = INT_MAX;
+
+                for (int i = allTime - 1; i >= 0; --i)
+                    if (minutes[i]) {
+                        prevIndex = i - allTime;
+                        break;
+                    }
+
+                // find differences between adjacent elements in sorted array
+                for (int i = 0; i < allTime; i++)
+                    if (minutes[i]) {
+                        ans = min(ans, i - prevIndex);
+                        prevIndex = i;
+                    }
+
+                return ans;
             }
         };
     }
@@ -9446,6 +9921,41 @@ namespace leetcode {
 
             bool stoneGameFast(vector<int>& piles) { // it works
                 return true;
+            }
+        };
+    }
+
+    namespace task_884 {
+        /*
+        * https://leetcode.com/problems/uncommon-words-from-two-sentences/description/
+        */
+        class Solution {
+        public:
+            vector<string> uncommonFromSentences(string s1, string s2) {
+                unordered_multiset<string> set;
+                // first str
+                size_t prev_pos = 0, pos = s1.find(' ');
+                while (pos != string::npos) {
+                    set.insert(s1.substr(prev_pos, pos - prev_pos));
+                    prev_pos = pos + 1;
+                    pos = s1.find(' ', prev_pos);
+                }
+                set.insert(s1.substr(prev_pos));
+                // second str
+                prev_pos = 0, pos = s2.find(' ');
+                while (pos != string::npos) {
+                    set.insert(s2.substr(prev_pos, pos - prev_pos));
+                    prev_pos = pos + 1;
+                    pos = s2.find(' ', prev_pos);
+                }
+                set.insert(s2.substr(prev_pos));
+
+                vector<string> uncommons;
+                for (const string& str : set)
+                    if (set.count(str) == 1)
+                        uncommons.push_back(str);
+
+                return uncommons;
             }
         };
     }
