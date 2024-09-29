@@ -3112,6 +3112,68 @@ namespace leetcode {
         };
     }
 
+    namespace task_65 {
+        /*
+        * https://leetcode.com/problems/valid-number/description/
+        */
+        class Solution {
+        public:
+            bool isNumber(string s) {
+                size_t size = s.size(), from = 0;
+                if (s[0] == '+' || s[0] == '-')
+                    ++from;
+                if (size == 1 && (s[0] < '0' || s[0] > '9'))
+                    return false;
+
+                size_t ePos = size, dotPos = size;
+                for (size_t i = from; i < size; i++) {
+                    if (s[i] == 'e' || s[i] == 'E') {
+                        if (ePos != size)
+                            return false;
+                        ePos = i;
+                    }
+                    else if (s[i] == '.') {
+                        if (dotPos != size)
+                            return false;
+                        dotPos = i;
+                    }
+                }
+
+                if (dotPos != size && dotPos > ePos) // 1e1.1
+                    return false;
+
+                bool res = true;
+                if (ePos != size) {
+                    if (ePos == from || ePos + 1 == size || (ePos == from + 1 && dotPos == from)) // +-e1, 1e, .e1
+                        return false;
+                    if (s[ePos + 1] == '+' || s[ePos + 1] == '-') {
+                        if (ePos + 2 == size) // 1e+
+                            return false;
+                        res &= isInt(s, ePos + 2, size);
+                    }
+                    else
+                        res &= isInt(s, ePos + 1, size);
+                }
+                size = ePos;
+                if (from == dotPos && from + 1 == size) // +.
+                    return false;
+                return res && isDec(s, from, size, dotPos);
+            }
+
+            bool isDec(const string& s, size_t i, const size_t size, const size_t dot) {
+                if (dot >= size)
+                    return isInt(s, i, size);
+                else
+                    return isInt(s, i, dot) && isInt(s, dot + 1, size);
+            }
+
+            bool isInt(const string& s, size_t i, const size_t size) {
+                for (; i < size && s[i] >= '0' && s[i] <= '9'; ++i) {}
+                return i == size;
+            }
+        };
+    }
+
     namespace task_66
     {
         /*
@@ -3213,6 +3275,40 @@ namespace leetcode {
                     cur = temp;
                 }
                 return cur;
+            }
+        };
+    }
+
+    namespace task_71 {
+        /*
+        * https://leetcode.com/problems/simplify-path/description/
+        */
+        class Solution {
+        public:
+            string simplifyPath(string path) {
+                size_t size = path.size(), pos = 1;
+                for (; pos < size && path[pos] == '/'; ++pos) {}
+
+                vector<string> words;
+                for (size_t pos2 = path.find('/', pos); pos < size; pos = pos2, pos2 = path.find('/', pos)) {
+                    string word = path.substr(pos, pos2 - pos);
+                    for (; pos2 < size && path[pos2] == '/'; ++pos2) {}
+                    if (word == ".")
+                        continue;
+                    if (word == "..") {
+                        if (words.size() > 0)
+                            words.pop_back();
+                        continue;
+                    }
+                    words.push_back(word);
+                }
+
+                if (words.size() == 0)
+                    return "/";
+                string canonical_path;
+                for (const string& word : words)
+                    canonical_path += "/" + word;
+                return canonical_path;
             }
         };
     }
@@ -7087,6 +7183,208 @@ namespace leetcode {
         };
     }
 
+    namespace task_432 {
+        /*
+        * https://leetcode.com/problems/all-oone-data-structure/description/
+        */
+        class AllOne {
+        public:
+            unordered_map<string, int> words;
+            map<int, unordered_set<string>> counts;
+            AllOne() { }
+
+            void inc(string key) {
+                auto it = words.find(key);
+                if (it == words.end()) {
+                    words[key] = 1;
+                    auto count_it = counts.begin();
+                    if (count_it != counts.end() && count_it->first == 1)
+                        count_it->second.insert(key);
+                    else
+                        counts[1] = { key };
+                }
+                else {
+                    auto count_it = counts.find(it->second);
+                    count_it->second.erase(key);
+                    if (count_it->second.size() == 0)
+                        counts.erase(count_it);
+                    ++it->second;
+                    counts[it->second].insert(key);
+                }
+            }
+
+            void dec(string key) {
+                auto it = words.find(key);
+                auto count_it = counts.find(it->second);
+                count_it->second.erase(key);
+                if (count_it->second.size() == 0)
+                    counts.erase(count_it);
+                --it->second;
+                if (it->second == 0)
+                    words.erase(it);
+                else
+                    counts[it->second].insert(key);
+            }
+
+            string getMaxKey() {
+                if (counts.size() == 0)
+                    return "";
+                return *(--counts.end())->second.begin();
+            }
+
+            string getMinKey() {
+                if (counts.size() == 0)
+                    return "";
+                return *counts.begin()->second.begin();
+            }
+        };
+
+        class AllOne_leetcode {
+        private:
+            class Node {
+            public:
+                int freq;
+                Node* prev;
+                Node* next;
+                unordered_set<string> keys;
+
+                Node(int freq) : freq(freq), prev(nullptr), next(nullptr) {}
+            };
+
+            Node* head;                        // Dummy head
+            Node* tail;                        // Dummy tail
+            unordered_map<string, Node*> map;  // Mapping from key to its node
+
+            void removeNode(Node* node) {
+                Node* prevNode = node->prev;
+                Node* nextNode = node->next;
+
+                prevNode->next = nextNode;  // Link previous node to next node
+                nextNode->prev = prevNode;  // Link next node to previous node
+
+                delete node;  // Free the memory of the removed node
+            }
+
+        public:
+            // Initialize your data structure here.
+            AllOne_leetcode() {
+                head = new Node(0);  // Create dummy head
+                tail = new Node(0);  // Create dummy tail
+                head->next = tail;   // Link dummy head to dummy tail
+                tail->prev = head;   // Link dummy tail to dummy head
+            }
+
+            // Inserts a new key <Key> with value 1. Or increments an existing key by 1.
+            void inc(string key) {
+                if (map.find(key) != map.end()) {
+                    Node* node = map[key];
+                    int freq = node->freq;
+                    node->keys.erase(key);  // Remove key from current node
+
+                    Node* nextNode = node->next;
+                    if (nextNode == tail || nextNode->freq != freq + 1) {
+                        // Create a new node if next node does not exist or freq is not
+                        // freq + 1
+                        Node* newNode = new Node(freq + 1);
+                        newNode->keys.insert(key);
+                        newNode->prev = node;
+                        newNode->next = nextNode;
+                        node->next = newNode;
+                        nextNode->prev = newNode;
+                        map[key] = newNode;
+                    }
+                    else {
+                        // Increment the existing next node
+                        nextNode->keys.insert(key);
+                        map[key] = nextNode;
+                    }
+
+                    // Remove the current node if it has no keys left
+                    if (node->keys.empty()) {
+                        removeNode(node);
+                    }
+                }
+                else {  // Key does not exist
+                    Node* firstNode = head->next;
+                    if (firstNode == tail || firstNode->freq > 1) {
+                        // Create a new node
+                        Node* newNode = new Node(1);
+                        newNode->keys.insert(key);
+                        newNode->prev = head;
+                        newNode->next = firstNode;
+                        head->next = newNode;
+                        firstNode->prev = newNode;
+                        map[key] = newNode;
+                    }
+                    else {
+                        firstNode->keys.insert(key);
+                        map[key] = firstNode;
+                    }
+                }
+            }
+
+            // Decrements an existing key by 1. If Key's value is 1, remove it from the
+            // data structure.
+            void dec(string key) {
+                if (map.find(key) == map.end()) {
+                    return;  // Key does not exist
+                }
+
+                Node* node = map[key];
+                node->keys.erase(key);
+                int freq = node->freq;
+
+                if (freq == 1) {
+                    // Remove the key from the map if freq is 1
+                    map.erase(key);
+                }
+                else {
+                    Node* prevNode = node->prev;
+                    if (prevNode == head || prevNode->freq != freq - 1) {
+                        // Create a new node if the previous node does not exist or freq
+                        // is not freq - 1
+                        Node* newNode = new Node(freq - 1);
+                        newNode->keys.insert(key);
+                        newNode->prev = prevNode;
+                        newNode->next = node;
+                        prevNode->next = newNode;
+                        node->prev = newNode;
+                        map[key] = newNode;
+                    }
+                    else {
+                        // Decrement the existing previous node
+                        prevNode->keys.insert(key);
+                        map[key] = prevNode;
+                    }
+                }
+
+                // Remove the node if it has no keys left
+                if (node->keys.empty()) {
+                    removeNode(node);
+                }
+            }
+
+            // Returns one of the keys with maximal value.
+            string getMaxKey() {
+                if (tail->prev == head) {
+                    return "";  // No keys exist
+                }
+                return *(tail->prev->keys.begin());  // Return one of the keys from the
+                                                     // tail's previous node
+            }
+
+            // Returns one of the keys with minimal value.
+            string getMinKey() {
+                if (head->next == tail) {
+                    return "";  // No keys exist
+                }
+                return *(
+                    head->next->keys
+                    .begin());  // Return one of the keys from the head's next node
+            }
+        };
+    }
+
     namespace task_436 {
         /*
         * https://leetcode.com/find-right-interval/description/
@@ -8468,6 +8766,69 @@ namespace leetcode {
                 return size == capacity;
             }
         };
+
+        class MyCircularDeque2 {
+        public:
+            deque<int> deq;
+            int max_size;
+
+            MyCircularDeque2(int k) {
+                max_size = k;
+            }
+
+            bool insertFront(int value) {
+                if (deq.size() < max_size) {
+                    deq.push_front(value);
+                    return true;
+                }
+                return false;
+            }
+
+            bool insertLast(int value) {
+                if (deq.size() < max_size) {
+                    deq.push_back(value);
+                    return true;
+                }
+                return false;
+            }
+
+            bool deleteFront() {
+                if (deq.size() > 0) {
+                    deq.pop_front();
+                    return true;
+                }
+                return false;
+            }
+
+            bool deleteLast() {
+                if (deq.size() > 0) {
+                    deq.pop_back();
+                    return true;
+                }
+                return false;
+
+            }
+
+            int getFront() {
+                if (deq.size() > 0)
+                    return deq.front();
+                return -1;
+            }
+
+            int getRear() {
+                if (deq.size() > 0)
+                    return deq.back();
+                return -1;
+            }
+
+            bool isEmpty() {
+                return deq.size() == 0;
+            }
+
+            bool isFull() {
+                return deq.size() == max_size;
+            }
+        };
     }
 
     namespace task_646 {
@@ -9242,6 +9603,90 @@ namespace leetcode {
                 size_t from = i++;
                 for (; formula[i] >= 'a' && formula[i] <= 'z'; ++i) {}
                 return formula.substr(from, i - from);
+            }
+        };
+    }
+
+    namespace task_729 {
+        /*
+        * https://leetcode.com/problems/my-calendar-i/description/
+        */
+        class MyCalendar {
+        public:
+            map<int, int, greater<int>> booking;
+            MyCalendar() { }
+
+            bool book(int start, int end) {
+                auto it = booking.lower_bound(start);
+                if (it != booking.end() && it->second > start)
+                    return false;
+                it = booking.upper_bound(end);
+                if (it != booking.end() && it->second > start)
+                    return false;
+                booking[start] = end;
+                return true;
+            }
+        };
+    }
+
+    namespace task_731 {
+        /*
+        * https://leetcode.com/problems/my-calendar-ii/description/
+        */
+        class MyCalendarTwo {
+        public:
+            map<int, int, greater<int>> booking;
+            map<int, int, greater<int>> double_booking;
+            MyCalendarTwo() { }
+
+            bool book(int start, int end) {
+                auto it = double_booking.lower_bound(start); // check if is there double overlapping
+                if (it != double_booking.end() && it->second > start)
+                    return false;
+                it = double_booking.upper_bound(end);
+                if (it != double_booking.end() && it->second > start)
+                    return false;
+
+                it = booking.lower_bound(end);
+                if (it == booking.end() || it->second < start) { // old interval is before new
+                    booking[start] = end;
+                    return true;
+                }
+                if (it->second == start) { // old interval ends on start of new
+                    it->second = end;
+                    return true;
+                }
+
+                int left = start, right = end;
+                if (it->first == end) { // old interval starts on end of new
+                    right = it->second;
+                    ++it;
+                    booking.erase(end);
+                    if (it == booking.end()) { // if no interval to the left
+                        booking[left] = right;
+                        return true;
+                    }
+                }
+                if (right < it->second) // it will be deleted, we can change it
+                    swap(right, it->second);
+
+                while (it != booking.end() && it->second > start) {
+                    int key = it->first;
+                    int overlap_start = max(it->first, start);
+                    int overlap_end = it->second;
+                    double_booking[overlap_start] = overlap_end;
+                    ++it;
+                    booking.erase(key);
+                    left = min(left, key);
+                }
+
+                if (it != booking.end() && it->second == start) { // unite intervals if old interval ends on start of new
+                    left = it->first;
+                    booking.erase(it);
+                }
+
+                booking[left] = right;
+                return true;
             }
         };
     }
@@ -14680,6 +15125,81 @@ namespace leetcode {
         };
     }
 
+    namespace task_2416 {
+        /*
+        * https://leetcode.com/problems/sum-of-prefix-scores-of-strings/description/
+        */
+        class Solution {
+        public:
+            class TrieNode {
+            public:
+                unordered_map<char, TrieNode*> children;
+                int count = 0;
+            };
+
+            vector<int> sumPrefixScores(vector<string>& words) {
+                size_t size = words.size(), length;
+                vector<int> scores;
+                unordered_map<string, int> prefix_map;
+                TrieNode* root = new TrieNode(), * node;
+
+                for (const string& word : words) {
+                    node = root;
+                    for (const char c : word) {
+                        if (node->children.find(c) == node->children.end())
+                            node->children[c] = new TrieNode();
+                        node = node->children[c];
+                        ++node->count;
+                    }
+                }
+
+                for (const string& word : words) {
+                    length = word.size() + 1;
+                    int score = 0;
+                    node = root;
+                    for (const char c : word) {
+                        node = node->children[c];
+                        score += node->count;
+                    }
+                    scores.push_back(score);
+                }
+
+                return scores;
+            }
+
+            vector<int> sumPrefixScoresHash(vector<string>& words) { // Time Limit Exceeded
+                size_t size = words.size(), length;
+                vector<int> scores;
+                unordered_map<string, int> prefix_map;
+
+                for (const string& word : words) {
+                    length = word.size();
+                    string prefix;
+                    for (size_t i = 0; i < length; i++) {
+                        prefix.push_back(word[i]);
+                        if (auto it = prefix_map.find(prefix); it != prefix_map.end())
+                            ++it->second;
+                        else
+                            prefix_map[prefix] = 1;
+                    }
+                }
+
+                for (const string& word : words) {
+                    length = word.size() + 1;
+                    int score = 0;
+                    string prefix;
+                    for (size_t i = 0; i < length; i++) {
+                        prefix.push_back(word[i]);
+                        score += prefix_map[prefix];
+                    }
+                    scores.push_back(score);
+                }
+
+                return scores;
+            }
+        };
+    }
+
     namespace task_2418 {
         /*
         * https://leetcode.com/problems/sort-the-people/description/
@@ -15204,6 +15724,106 @@ namespace leetcode {
         };
     }
 
+    namespace task_2707 {
+        /*
+        * https://leetcode.com/problems/extra-characters-in-a-string/description/
+        */
+        class Solution {
+        public:
+            int minExtraChar(string s, vector<string>& dictionary) { // 97.13% 97.30%
+                size_t size = s.size();
+                vector<int> dp(size + 1, size);
+                dp[size] = 0;
+
+                for (int i = size - 1; i >= 0; --i) {
+                    dp[i] = dp[i + 1] + 1;
+                    for (const string& str : dictionary)
+                        if (i + str.size() <= size) {
+                            int j = 0;
+                            for (; j < str.size() && s[i + j] == str[j]; ++j) {}
+                            if (j == str.size())
+                                dp[i] = min(dp[i], dp[i + j]);
+                        }
+                }
+                return dp[0];
+            }
+
+            class TrieNode { // 82.77% 32.60%
+            public:
+                unordered_map<char, TrieNode*> children;
+                bool is_word;
+            };
+
+            int minExtraCharTrie(string s, vector<string>& dictionary) {
+                int size = s.size();
+                auto root = buildTrie(dictionary);
+                vector<int> dp(size + 1, size);
+                dp[size] = 0;
+
+                for (int i = size - 1; i >= 0; --i) {
+                    dp[i] = dp[i + 1] + 1;
+                    TrieNode* node = root;
+
+                    for (int j = i; j < size; ++j) {
+                        if (node->children.find(s[j]) == node->children.end())
+                            break;
+                        node = node->children[s[j]];
+                        if (node->is_word)
+                            dp[i] = min(dp[i], dp[j + 1]);
+                    }
+                }
+                return dp[0];
+            }
+
+            int minExtraCharTrieReq(string s, vector<string>& dictionary) {
+                int n = s.length();
+                auto root = buildTrie(dictionary);
+                unordered_map<int, int> memo;
+
+                function<int(int)> dp = [&](int start) {
+                    if (start == n) {
+                        return 0;
+                    }
+                    if (memo.count(start)) {
+                        return memo[start];
+                    }
+                    // To count this character as a left over character 
+                    // move to index 'start + 1'
+                    int ans = dp(start + 1) + 1;
+                    TrieNode* node = root;
+                    for (int end = start; end < n; end++) {
+                        char c = s[end];
+                        if (node->children.find(c) == node->children.end()) {
+                            break;
+                        }
+                        node = node->children[c];
+                        if (node->is_word) {
+                            ans = min(ans, dp(end + 1));
+                        }
+                    }
+
+                    return memo[start] = ans;
+                };
+
+                return dp(0);
+            }
+
+            TrieNode* buildTrie(vector<string>& dictionary) {
+                auto root = new TrieNode();
+                for (const string& word : dictionary) {
+                    auto node = root;
+                    for (const char c : word) {
+                        if (node->children.find(c) == node->children.end())
+                            node->children[c] = new TrieNode();
+                        node = node->children[c];
+                    }
+                    node->is_word = true;
+                }
+                return root;
+            }
+        };
+    }
+
     namespace task_2751 {
         /*
         * https://leetcode.com/problems/robot-collisions/description/
@@ -15678,6 +16298,70 @@ namespace leetcode {
                 for (size_t i = 0; i < size && counts[i] > 0; ++i)
                     count += counts[i] * (i / 8 + 1);
                 return count;
+            }
+        };
+    }
+
+    namespace task_3043 {
+        /*
+        * https://leetcode.com/problems/find-the-length-of-the-longest-common-prefix/description/
+        */
+        class Solution {
+        public:
+            class TrieNode {
+            public:
+                TrieNode* children[10];
+
+                TrieNode() {
+                    for (int i = 0; i < 10; ++i)
+                        children[i] = nullptr;
+                }
+                ~TrieNode() {
+                    for (int i = 0; i < 10; ++i)
+                        if (children[i])
+                            delete children[i];
+                }
+            };
+
+            TrieNode* root;
+
+            int longestCommonPrefix(vector<int>& arr1, vector<int>& arr2) {
+                root = buildTrie(arr1);
+                int length = 0;
+
+                for (const int number : arr2)
+                    length = max(length, findLongestPrefix(number));
+                return length;
+            }
+
+            int findLongestPrefix(int num) {
+                TrieNode* node = root;
+                string str = to_string(num);
+                int len = 0;
+
+                for (char c : str) {
+                    c -= '0';
+                    if (!node->children[c])
+                        break;
+                    node = node->children[c];
+                    ++len;
+                }
+                return len;
+            }
+
+            TrieNode* buildTrie(const vector<int>& numbers) {
+                TrieNode* node, * root = new TrieNode();
+                for (const int number : numbers) {
+                    string str = to_string(number);
+                    node = root;
+                    for (char c : str) {
+                        c -= '0';
+                        if (!node->children[c])
+                            node->children[c] = new TrieNode();
+                        node = node->children[c];
+                    }
+                }
+                return root;
             }
         };
     }
