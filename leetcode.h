@@ -8264,6 +8264,47 @@ namespace leetcode {
         };
     }
 
+    namespace task_567 {
+        /*
+        * https://leetcode.com/problems/problems/permutation-in-string/description/
+        */
+        class Solution {
+        public:
+            bool checkInclusion(string s1, string s2) {
+                size_t size1 = s1.size(), size2 = s2.size(), letters_size = 'z' - 'a' + 1, letters_count = 0;
+                if (size1 > size2)
+                    return false;
+                vector<int> letters1(letters_size), letters2(letters_size);
+                for (const char c : s1)
+                    ++letters1[c - 'a'];
+                size_t i = 0;
+                for (; i < size1; ++i) {
+                    size_t index = s2[i] - 'a';
+                    ++letters2[index];
+                    if (letters2[index] <= letters1[index])
+                        ++letters_count;
+                }
+                if (letters_count == size1)
+                    return true;
+                for (; i < size2; ++i) {
+                    size_t index = s2[i] - 'a';
+                    ++letters2[index];
+                    if (letters2[index] <= letters1[index])
+                        ++letters_count;
+
+                    index = s2[i - size1] - 'a';
+                    --letters2[index];
+                    if (letters2[index] < letters1[index])
+                        --letters_count;
+
+                    if (letters_count == size1)
+                        return true;
+                }
+                return false;
+            }
+        };
+    }
+
     namespace task_583 {
         /*
         * https://leetcode.com/problems/delete-operation-for-two-strings/description/
@@ -9687,6 +9728,143 @@ namespace leetcode {
 
                 booking[left] = right;
                 return true;
+            }
+        };
+    }
+
+    namespace task_732 {
+        /*
+        * https://leetcode.com/problems/my-calendar-iii/description/
+        */
+        class MyCalendarThree {
+        public:
+            map<int, pair<int, int>, greater<int>> booking; // depth-end
+            int max_depth = 1;
+            MyCalendarThree() { }
+
+            int book(int start, int end) { // all time maximum
+                auto it = booking.upper_bound(end);
+                if (it == booking.end()) {
+                    booking[start] = { 1, end };
+                    return max_depth;
+                }
+                if (it->second.second <= start) {
+                    booking[start] = { 1, end };
+                    return max_depth;
+                }
+
+
+                int left = start, right = end;
+                if (it->second.second > end) {
+                    if (it->first < start) {
+                        booking[end] = it->second;
+                        booking[start] = { it->second.first + 1, end };
+                        it->second.second = start;
+                        max_depth = max(max_depth, it->second.first + 1);
+                        return max_depth;
+                    }
+
+                    right = it->second.second;
+                    booking[end] = it->second;
+                    ++it->second.first;
+                    it->second.second = end;
+                    max_depth = max(max_depth, it->second.first);
+                    end = it->first;
+                    ++it;
+                }
+
+                while (it != booking.end() && it->first >= start) {
+                    ++it->second.first;
+                    max_depth = max(max_depth, it->second.first);
+                    if (end > it->second.second)
+                        booking[it->second.second] = { 1, end };
+                    end = it->first;
+                    ++it;
+                }
+
+                if (start != end) {
+                    if (it == booking.end() || it->second.second <= start) {
+                        booking[start] = { 1, end };
+                    }
+                    else {
+                        if (it->second.second < end)
+                            booking[it->second.second] = { 1, end };
+                        booking[start] = { it->second.first + 1, it->second.second };
+                        max_depth = max(max_depth, it->second.first + 1);
+                        it->second.second = start;
+                    }
+                }
+                return max_depth;
+            }
+
+            map<int, pair<int, int>, greater<int>> max_depth_booking; // depth-end
+            int bookMy_not_works(int start, int end) { // maximum among the affected intervals
+                auto it = booking.upper_bound(end);
+                if (it == booking.end()) {
+                    booking[start] = { 1, end };
+                    max_depth_booking[start] = { 1, end };
+                    return 1;
+                }
+                if (it->second.second <= start) {
+                    booking[start] = { 1, end };
+                    max_depth_booking[start] = { 1, end };
+                    return 1;
+                }
+
+
+                int max_depth = 1, left = start, right = end;
+                if (it->second.second > end) {
+                    if (it->first < start) {
+                        booking[end] = it->second;
+                        booking[start] = { it->second.first + 1, end };
+                        it->second.second = start;
+                        auto depth_it = max_depth_booking.lower_bound(it->first);
+                        depth_it->second.first = max(depth_it->second.first, it->second.first + 1);
+                        return depth_it->second.first;
+                    }
+
+                    right = it->second.second;
+                    booking[end] = it->second;
+                    ++it->second.first;
+                    it->second.second = end;
+                    max_depth = max(max_depth, it->second.first);
+                    end = it->first;
+                    ++it;
+                }
+
+                while (it != booking.end() && it->first >= start) {
+                    ++it->second.first;
+                    max_depth = max(max_depth, it->second.first);
+                    if (end > it->second.second)
+                        booking[it->second.second] = { 1, end };
+                    end = it->first;
+                    ++it;
+                }
+
+                if (start != end) {
+                    if (it == booking.end() || it->second.second <= start) {
+                        booking[start] = { 1, end };
+                    }
+                    else {
+                        if (it->second.second < end)
+                            booking[it->second.second] = { 1, end };
+                        booking[start] = { it->second.first + 1, it->second.second };
+                        max_depth = max(max_depth, it->second.first + 1);
+                        it->second.second = start;
+                    }
+                }
+
+                auto depth_it = max_depth_booking.upper_bound(right);
+                right = max(right, depth_it->second.second);
+                while (depth_it != max_depth_booking.end() && depth_it->second.second > start) {
+                    int key = depth_it->first;
+                    max_depth = max(max_depth, depth_it->second.first);
+                    ++depth_it;
+                    max_depth_booking.erase(key);
+                    left = min(left, key);
+                }
+                max_depth_booking[left] = { max_depth , right };
+                return max_depth;
             }
         };
     }
@@ -12148,6 +12326,32 @@ namespace leetcode {
         };
     }
 
+    namespace task_1331 {
+        /*
+        * https://leetcode.com/rank-transform-of-an-array/description/
+        */
+        class Solution {
+        public:
+            vector<int> arrayRankTransform(vector<int>& arr) {
+                size_t size = arr.size();
+                vector<pair<int, size_t>> number_pos(size);
+                for (size_t i = 0; i < size; ++i)
+                    number_pos[i] = { arr[i], i };
+                sort(number_pos.begin(), number_pos.end());
+                int rank = 1;
+                for (size_t i = 0; i < size; ++i, ++rank) {
+                    int value = number_pos[i].first;
+                    arr[number_pos[i].second] = rank;
+                    size_t j = i + 1;
+                    for (; j < size && number_pos[j].first == value; ++j)
+                        arr[number_pos[j].second] = rank;
+                    i = j - 1;
+                }
+                return arr;
+            }
+        };
+    }
+
     namespace task_1334 {
         /*
         * https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/description/
@@ -12372,6 +12576,79 @@ namespace leetcode {
                         res.push_back(min_val);
                 }
                 return res;
+            }
+        };
+    }
+
+    namespace task_1381 {
+        /*
+        * https://leetcode.com/problems/design-a-stack-with-increment-operation/description/
+        */
+        class CustomStack {
+        public:
+            deque<int> deq;
+            size_t capacity;
+
+            CustomStack(int maxSize) {
+                capacity = maxSize;
+            }
+
+            void push(int x) {
+                if (deq.size() < capacity)
+                    deq.push_back(x);
+            }
+
+            int pop() {
+                if (deq.size() != 0) {
+                    int back = deq.back();
+                    deq.pop_back();
+                    return back;
+                }
+                return -1;
+            }
+
+            void increment(int k, int val) {
+                auto it = deq.begin();
+                for (int i = 0; i < k && it != deq.end(); ++i, ++it)
+                    *it += val;
+            }
+        };
+
+        class CustomStack_leetcode {
+        public:
+            vector<int> stackArray;
+            vector<int> incrementArray; // Vector to store increments for lazy propagation
+            int topIndex; // Current top index of the stack
+
+            CustomStack_leetcode(int maxSize) {
+                stackArray.resize(maxSize);
+                incrementArray.resize(maxSize);
+                topIndex = -1;
+            }
+
+            void push(int x) {
+                if (topIndex < (int)(stackArray.size()) - 1)
+                    stackArray[++topIndex] = x;
+            }
+
+            int pop() {
+                if (topIndex == -1) {
+                    return -1;
+                }
+                // Calculate the actual value with increment
+                int result = stackArray[topIndex] + incrementArray[topIndex];
+
+                // Propagate the increment to the element below
+                if (topIndex > 0)
+                    incrementArray[topIndex - 1] += incrementArray[topIndex];
+                incrementArray[topIndex] = 0; // Reset the increment for this position
+                --topIndex;
+                return result;
+            }
+
+            void increment(int k, int val) {
+                if (topIndex != -1) // Apply increment to the topmost element of the range
+                    incrementArray[min(topIndex, k - 1)] += val;
             }
         };
     }
@@ -12711,6 +12988,32 @@ namespace leetcode {
                     }
                 }
                 return bouqeCount;
+            }
+        };
+    }
+
+    namespace task_1497 {
+        /*
+        * https://leetcode.com/problems/problems/check-if-array-pairs-are-divisible-by-k/description/
+        */
+        class Solution {
+        public:
+            bool canArrange(vector<int>& arr, int k) {
+                unordered_map<int, int> remains;
+                for (const int n : arr) ++remains[(n % k + k) % k];
+
+                for (auto& [key, value] : remains) {
+                    if (key == 0) {
+                        if ((value & 1) == 1)
+                            return false;
+                    }
+                    else {
+                        auto it = remains.find(k - key);
+                        if (it == remains.end() || it->second != value)
+                            return false;
+                    }
+                }
+                return true;
             }
         };
     }
@@ -13204,6 +13507,48 @@ namespace leetcode {
                 }
                 --union_count;
                 vertexes[union_b] = union_a;
+            }
+        };
+    }
+
+    namespace task_1590 {
+        /*
+        * https://leetcode.com/problems/problems/make-sum-divisible-by-p/description/
+        */
+        class Solution {
+        public:
+            int minSubarray(vector<int>& nums, int p) {
+                int size = nums.size(), totalSum = 0;
+
+                for (int num : nums)
+                    totalSum = (totalSum + num) % p;
+
+                int target = totalSum % p;
+                if (target == 0) return 0;  // The array is already divisible by p
+
+                // Step 2: Use a hash map to track prefix sum mod p
+                unordered_map<int, int> modMap;
+                modMap[0] =
+                    -1;  // To handle the case where the whole prefix is the answer
+                int currentSum = 0, minLen = size;
+
+                // Step 3: Iterate over the array
+                for (int i = 0; i < size; ++i) {
+                    currentSum = (currentSum + nums[i]) % p;
+
+                    // Calculate what we need to remove
+                    int needed = (currentSum - target + p) % p;
+
+                    // If we have seen the needed remainder, we can consider this
+                    // subarray
+                    if (modMap.find(needed) != modMap.end())
+                        minLen = min(minLen, i - modMap[needed]);
+
+                    // Store the current remainder and index
+                    modMap[currentSum] = i;
+                }
+
+                return minLen == size ? -1 : minLen;
             }
         };
     }
@@ -13750,6 +14095,81 @@ namespace leetcode {
                     else
                         return sum;
                 return sum;
+            }
+        };
+    }
+
+    namespace task_1813 {
+        /*
+        * https://leetcode.com/problems/problems/sentence-similarity-iii/description/
+        */
+        class Solution {
+        public:
+            bool areSentencesSimilar(string sentence1, string sentence2) {
+                size_t pos1 = 0, pos2 = 0, index;
+                vector<string> words1, words2;
+
+                int count = 0;
+                while ((index = sentence1.find(' ', pos1)) != std::string::npos) {
+                    index = sentence1.find(' ', pos1);
+                    words1.push_back(sentence1.substr(pos1, index - pos1));
+                    pos1 = index + 1;
+                }
+                words1.push_back(sentence1.substr(pos1));
+
+                while ((index = sentence2.find(' ', pos2)) != std::string::npos) {
+                    index = sentence2.find(' ', pos2);
+                    words2.push_back(sentence2.substr(pos2, index - pos2));
+                    pos2 = index + 1;
+                }
+                words2.push_back(sentence2.substr(pos2));
+
+                size_t size1 = words1.size(), size2 = words2.size();
+                pos1 = 0, pos2 = 0, index = 0;
+                for (; index < size1 && index < size2 && words1[index] == words2[index]; ++index) {}
+                if (index == size1 || index == size2)
+                    return true;
+
+                if (size1 == size2)
+                    return false;
+
+                if (size1 > size2) {
+                    pos1 = size1 - size2 + index;
+                    for (; index < size2 && words1[pos1] == words2[index]; ++index, ++pos1) {}
+                    return index == size2;
+                }
+                else {
+                    pos2 = size2 - size1 + index;
+                    for (; index < size1 && words1[index] == words2[pos2]; ++index, ++pos2) {}
+                    return index == size1;
+                }
+            }
+
+            bool areSentencesSimilar(string s1, string s2) {
+                // Convert sentences to lists of words
+                stringstream ss1(s1), ss2(s2);
+                string word;
+                vector<string> s1Words, s2Words;
+                while (ss1 >> word) s1Words.push_back(word);
+                while (ss2 >> word) s2Words.push_back(word);
+
+                int start = 0, ends1 = s1Words.size() - 1, ends2 = s2Words.size() - 1;
+
+                // If words in s1 are more than s2, swap them and return the answer.
+                if (s1Words.size() > s2Words.size()) return areSentencesSimilar(s2, s1);
+
+                // Find the maximum words matching from the beginning.
+                while (start < s1Words.size() && s1Words[start] == s2Words[start])
+                    ++start;
+
+                // Find the maximum words matching in the end.
+                while (ends1 >= 0 && s1Words[ends1] == s2Words[ends2]) {
+                    --ends1;
+                    --ends2;
+                }
+
+                // If ends1 index is less than start, then sentence is similar.
+                return ends1 < start;
             }
         };
     }
@@ -15317,6 +15737,46 @@ namespace leetcode {
                     max_val = max(max_val, val);
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_2491 {
+        /*
+        * https://leetcode.com/problems/problems/divide-players-into-teams-of-equal-skill/description/
+        */
+        class Solution {
+        public:
+            long long dividePlayers(vector<int>& skill) {
+                int size = skill.size(), sum = 0;
+                vector<int> counts(1001);
+                for (const int n : skill) {
+                    sum += n;
+                    ++counts[n];
+                }
+                if ((sum * 2) % size != 0)
+                    return -1;
+
+                int team_target = (sum * 2) / size;
+                long long team_score = 0;
+                for (long long i = 1; i < 1001; ++i) {
+                    if (counts[i] == 0)
+                        continue;
+                    if (team_target - i == i) {
+                        if (counts[i] & 1 == 1)
+                            return -1;
+                        team_score += i * i * (counts[i] >> 1);
+                        counts[i] = 0;
+                    }
+                    else {
+                        if (counts[i] != counts[team_target - i])
+                            return -1;
+                        team_score += i * (team_target - i) * counts[i];
+                        counts[i] = 0;
+                        counts[team_target - i] = 0;
+                    }
+                }
+                return team_score;
             }
         };
     }
