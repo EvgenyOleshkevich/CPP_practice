@@ -3347,6 +3347,36 @@ namespace leetcode {
         };
     }
 
+    namespace task_73 {
+        /*
+        * https://leetcode.com/problems/set-matrix-zeroes/
+        */
+        class Solution {
+        public:
+            void setZeroes(vector<vector<int>>& matrix) {
+                size_t m = matrix.size(), n = matrix[0].size();
+                vector<int> rows(m), columns(n);
+                for (size_t i = 0; i < m; ++i) {
+                    for (size_t j = 0; j < n; ++j)
+                        if (matrix[i][j] == 0) {
+                            rows[i] = 1;
+                            columns[j] = 1;
+                        }
+                }
+                for (size_t i = 0; i < m; ++i) {
+                    if (rows[i])
+                        for (size_t j = 0; j < n; ++j)
+                            matrix[i][j] = 0;
+                }
+                for (size_t j = 0; j < n; ++j) {
+                    if (columns[j])
+                        for (size_t i = 0; i < m; ++i)
+                            matrix[i][j] = 0;
+                }
+            }
+        };
+    }
+
     namespace task_74 {
         /*
         * https://leetcode.com/problems/search-a-2d-matrix/description/
@@ -8674,6 +8704,53 @@ namespace leetcode {
         };
     }
 
+    namespace task_632 {
+        /*
+        * https://leetcode.com/smallest-range-covering-elements-from-k-lists/description/
+        */
+        class Solution {
+        public:
+            vector<int> smallestRange(vector<vector<int>>& nums) {
+                vector<pair<int, int>> merged;
+
+                // Merge all lists with their list index
+                for (int i = 0; i < nums.size(); i++) {
+                    for (int num : nums[i]) {
+                        merged.push_back({ num, i });
+                    }
+                }
+
+                // Sort the merged list
+                sort(merged.begin(), merged.end());
+
+                // Two pointers to track the smallest range
+                unordered_map<int, int> freq;
+                int left = 0, count = 0;
+                int rangeStart = 0, rangeEnd = INT_MAX;
+
+                for (int right = 0; right < merged.size(); right++) {
+                    freq[merged[right].second]++;
+                    if (freq[merged[right].second] == 1) count++;
+
+                    // When all lists are represented, try to shrink the window
+                    while (count == nums.size()) {
+                        int curRange = merged[right].first - merged[left].first;
+                        if (curRange < rangeEnd - rangeStart) {
+                            rangeStart = merged[left].first;
+                            rangeEnd = merged[right].first;
+                        }
+
+                        freq[merged[left].second]--;
+                        if (freq[merged[left].second] == 0) count--;
+                        left++;
+                    }
+                }
+
+                return { rangeStart, rangeEnd };
+            }
+        };
+    }
+
     namespace task_633 {
         /*
         * https://leetcode.com/problems/sum-of-square-numbers/
@@ -10790,6 +10867,30 @@ namespace leetcode {
         };
     }
 
+    namespace task_921 {
+        /*
+        * https://leetcode.com/problems/minimum-add-to-make-parentheses-valid/description/
+        */
+        class Solution {
+        public:
+            int minAddToMakeValid(string s) {
+                size_t size = s.size();
+                int opens = 0, closes = 0, add = 0;
+                for (size_t i = 0; i < size; i++) {
+                    if (s[i] == ')')
+                        ++closes;
+                    else
+                        ++opens;
+                    if (closes > opens) {
+                        ++opens;
+                        ++add;
+                    }
+                }
+                return add + max(0, opens - closes);
+            }
+        };
+    }
+
     namespace task_926 {
         /*
         * https://leetcode.com/problems/flip-string-to-monotone-increasing/description/
@@ -10982,6 +11083,58 @@ namespace leetcode {
                     }
                     queue.pop();
                 }
+            }
+        };
+    }
+
+    namespace task_962 {
+        /*
+        * https://leetcode.com/problems/maximum-width-ramp/description/
+        */
+        class Solution {
+        public:
+            int maxWidthRamp(vector<int>& nums) { // best
+                int n = nums.size(), maxWidth = 0;
+                stack<int> indicesStack;
+                for (int i = 0; i < n; ++i) {
+                    if (indicesStack.empty() || nums[indicesStack.top()] > nums[i])
+                        indicesStack.push(i);
+                }
+
+                for (int j = n - 1; j >= 0; --j) {
+                    while (!indicesStack.empty() &&
+                        nums[indicesStack.top()] <= nums[j]) {
+                        maxWidth = max(maxWidth, j - indicesStack.top());
+                        indicesStack.pop();
+                    }
+                }
+
+                return maxWidth;
+            }
+
+            int maxWidthRampMap(vector<int>& nums) {
+                int size = nums.size(), max_width = 0, min_value = nums[0];
+                map<int, int, greater<int>> map{ { min_value , 0} };
+                for (int i = 1; i < size; ++i) {
+                    auto it = map.lower_bound(nums[i]);
+                    if (min_value > nums[i]) {
+                        min_value = nums[i];
+                        map[min_value] = i;
+                    }
+                    max_width = max(max_width, i - map.lower_bound(nums[i])->second);
+                }
+                return max_width;
+            }
+
+            int maxWidthRamp_TLE(vector<int>& nums) { // Time Limit Exceeded on reverse sorted
+                int size = nums.size(), max_width = 0, j;
+                for (int i = 0; i < size; ++i) {
+                    j = i + max_width + 1;
+                    for (; j < size; ++j)
+                        if (nums[i] <= nums[j])
+                            max_width = j - i;
+                }
+                return max_width;
             }
         };
     }
@@ -14145,7 +14298,7 @@ namespace leetcode {
                 }
             }
 
-            bool areSentencesSimilar(string s1, string s2) {
+            bool areSentencesSimilar2(string s1, string s2) {
                 // Convert sentences to lists of words
                 stringstream ss1(s1), ss2(s2);
                 string word;
@@ -14478,6 +14631,38 @@ namespace leetcode {
         };
     }
 
+    namespace task_1942 {
+        /*
+        * https://leetcode.com/problems/the-number-of-the-smallest-unoccupied-chair/description/
+        */
+        class Solution {
+        public:
+            int smallestChair(vector<vector<int>>& times, int targetFriend) {
+                int size = times.size();
+                priority_queue<pair<int, int>> busy_chairs; // time, number
+                priority_queue<int, std::vector<int>, std::greater<int>> free_chairs;
+                for (int i = 0; i < size; ++i) {
+                    times[i].push_back(i);
+                    free_chairs.push(i);
+                }
+                sort(times.begin(), times.end());
+                for (const vector<int>& time : times) {
+                    while (!busy_chairs.empty() && -busy_chairs.top().first <= time[0]) {
+                        free_chairs.push(busy_chairs.top().second);
+                        busy_chairs.pop();
+                    }
+
+                    int chair = free_chairs.top();
+                    free_chairs.pop();
+                    if (targetFriend == time[2])
+                        return chair;
+                    busy_chairs.push({ -time[1], chair });
+                }
+                return 0;
+            }
+        };
+    }
+
     namespace task_1945 {
         /*
         * https://leetcode.com/problems/sum-of-digits-of-string-after-convert/description/
@@ -14540,6 +14725,33 @@ namespace leetcode {
                 return sum < max_value ?
                     (sum << 1) + 1 :
                     sum + max_value;
+            }
+        };
+    }
+
+    namespace task_1963 {
+        /*
+        * https://leetcode.com/problems/minimum-number-of-swaps-to-make-the-string-balanced/description/
+        */
+        class Solution {
+        public:
+            int minSwaps(string s) {
+                size_t size = s.size(), j = size - 1;
+                int opens = 0, closes = 0, swaps = 0;
+                for (size_t i = 0; i < size; i++) {
+                    if (s[i] == ']')
+                        ++closes;
+                    else
+                        ++opens;
+                    if (closes > opens) {
+                        --closes;
+                        ++opens;
+                        ++swaps;
+                        for (; s[j] == ']'; --j) {}
+                        swap(s[i], s[j]);
+                    }
+                }
+                return swaps;
             }
         };
     }
@@ -15545,6 +15757,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_2406 {
+        /*
+        * https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/description/
+        */
+        class Solution {
+        public:
+            int minGroups(vector<vector<int>>& intervals) {
+                priority_queue<int, vector<int>, greater<int>> intervals_ends;
+                sort(intervals.begin(), intervals.end());
+                size_t count_groups = 0;
+                for (const vector<int>& interval : intervals) {
+                    while (!intervals_ends.empty() && intervals_ends.top() < interval[0])
+                        intervals_ends.pop();
+                    intervals_ends.push(interval[1]);
+                    count_groups = max(count_groups, intervals_ends.size());
+                }
+                return count_groups;
+            }
+        };
+    }
+
     namespace task_2416 {
         /*
         * https://leetcode.com/problems/sum-of-prefix-scores-of-strings/description/
@@ -15958,6 +16191,27 @@ namespace leetcode {
                     if (str[11] > '6' || str[11] == '6' && str[12] > '0')
                         ++count;
                 return count;
+            }
+        };
+    }
+
+    namespace task_2696 {
+        /*
+        * https://leetcode.com/problems/minimum-string-length-after-removing-substrings/description/
+        */
+        class Solution {
+        public:
+            int minLength(string s) {
+                size_t size = s.size(), i = 1, count_delete = 0;
+                stack<char> stack;
+                for (const char c : s) {
+                    if (!stack.empty() &&
+                        (stack.top() == 'A' && c == 'B' || stack.top() == 'C' && c == 'D'))
+                        stack.pop();
+                    else
+                        stack.push(c);
+                }
+                return stack.size();
             }
         };
     }
