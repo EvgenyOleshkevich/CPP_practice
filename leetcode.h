@@ -9238,6 +9238,37 @@ namespace leetcode {
         };
     }
 
+    namespace task_670 {
+        /*
+        * https://leetcode.com/problems/longest-happy-string/description/
+        */
+        class Solution {
+        public:
+            int maximumSwap(int num) {
+                string str = to_string(num);
+                size_t size = str.size(), i = 1, j, max_index;
+                for (; i < size && str[i - 1] >= str[i]; ++i) {}
+                if (i == size)
+                    return num;
+
+
+                char max_value = str[i];
+                max_index = i;
+                for (j = i + 1; j < size; ++j) {
+                    if (max_value <= str[j]) {
+                        max_value = str[j];
+                        max_index = j;
+                    }
+                }
+
+                for (j = 0; str[j] >= max_value; ++j) {}
+                swap(str[j], str[max_index]);
+
+                return stoi(str);
+            }
+        };
+    }
+
     namespace task_673 {
         /*
         * https://leetcode.com/problems/number-of-longest-increasing-subsequence/description/
@@ -11682,6 +11713,103 @@ namespace leetcode {
         };
     }
 
+    namespace task_1106 {
+        /*
+        * https://leetcode.com/problems/parsing-a-boolean-expression/description/
+        */
+        class Solution {
+        public:
+            bool parseBoolExpr_stack(string expression) {
+                stack<char> st;
+
+                // Traverse through the expression
+                for (char currChar : expression) {
+                    if (currChar == ',' || currChar == '(')
+                        continue;  // Skip commas and open parentheses
+
+                    // Push operators and boolean values to the stack
+                    if (currChar == 't' || currChar == 'f' || currChar == '!' ||
+                        currChar == '&' || currChar == '|') {
+                        st.push(currChar);
+                    }
+                    // Handle closing parentheses and evaluate the subexpression
+                    else if (currChar == ')') {
+                        bool hasTrue = false, hasFalse = false;
+
+                        // Process the values inside the parentheses
+                        while (st.top() == 't' || st.top() == 'f') {
+                            char topValue = st.top();
+                            st.pop();
+                            if (topValue == 't') hasTrue = true;
+                            if (topValue == 'f') hasFalse = true;
+                        }
+
+                        // Pop the operator and evaluate the subexpression
+                        char op = st.top();
+                        st.pop();
+                        if (op == '!')
+                            st.push(hasTrue ? 'f' : 't');
+                        else if (op == '&')
+                            st.push(hasFalse ? 'f' : 't');
+                        else
+                            st.push(hasTrue ? 't' : 'f');
+                    }
+                }
+
+                // The final result is at the top of the stack
+                return st.top() == 't';
+            }
+
+            bool parseBoolExpr(string expression) {
+                size_t size = expression.size();
+                if (size == 1)
+                    return expression[0] == 't';
+
+                switch (expression[0])
+                {
+                case '!': {
+                    return !parseBoolExpr(expression.substr(2, size - 3));
+                }
+                case '|': {
+                    size_t from = 2, to = get_to(expression, from, size);
+                    while (from != size && !parseBoolExpr(expression.substr(from, to - from)))
+                    {
+                        from = to + 1;
+                        to = get_to(expression, from, size);
+                    }
+
+                    return from != size;
+                }
+                case '&': {
+                    size_t from = 2, to = get_to(expression, from, size);
+                    while (from != size && parseBoolExpr(expression.substr(from, to - from)))
+                    {
+                        from = to + 1;
+                        to = get_to(expression, from, size);
+                    }
+
+                    return from == size;
+                }
+                default:
+                    return false;
+                }
+            }
+
+            size_t get_to(const string& expression, const size_t from, const size_t size) {
+                int count_open = 0, count_close = 0;
+                for (size_t i = from; i < size; i++) {
+                    if (expression[i] == '(')
+                        ++count_open;
+                    else if (expression[i] == ')')
+                        ++count_close;
+                    else if (expression[i] == ',' && count_open == count_close)
+                        return i;
+                }
+                return size - 1;
+            }
+        };
+    }
+
     namespace task_1110 {
         /*
         * https://leetcode.com/delete-nodes-and-return-forest/description/
@@ -12933,6 +13061,40 @@ namespace leetcode {
         };
     }
 
+    namespace task_1405 {
+        /*
+        * https://leetcode.com/problems/longest-happy-string/description/
+        */
+        class Solution {
+        public:
+            string longestDiverseString(int a, int b, int c) {
+                vector<int> counts{ a, b, c };
+                char last = -1, count_last = 0, max_index = -1, max_remain = -1;
+                string res;
+                while (true) {
+                    max_index = -1, max_remain = 0;
+                    for (char i = 0; i < 3; ++i)
+                        if ((i != last || count_last != 2) && max_remain < counts[i]) {
+                            max_remain = counts[i];
+                            max_index = i;
+                        }
+                    if (max_index == -1)
+                        return res;
+                    --counts[max_index];
+                    if (last == max_index) {
+                        ++count_last;
+                    }
+                    else {
+                        last = max_index;
+                        count_last = 1;
+                    }
+                    res.push_back('a' + max_index);
+                }
+                return "";
+            }
+        };
+    }
+
     namespace task_1438 {
         /*
         * https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/description/
@@ -13469,6 +13631,57 @@ namespace leetcode {
                         l = i;
                 }
                 return k + r;
+            }
+        };
+    }
+
+    namespace task_1545 {
+        /*
+        * https://leetcode.com/problems/find-kth-bit-in-nth-binary-string/description/
+        */
+        class Solution {
+        public:
+            char findKthBit(int n, int k) {
+                int degree = 1, _xor = 0;
+                char c = 0;
+                while (degree < k) { degree <<= 1; }
+                while (k != 1) {
+                    while (degree > k) { degree >>= 1; }
+                    if (degree == k)
+                        return '0' + (c ^ (char)1);
+                    c ^= (char)1;
+                    k = (degree << 1) - k;
+                }
+                return '0' + c;
+            }
+
+            char findKthBit_leetcode(int n, int k) {
+                // Find the position of the rightmost set bit in k
+                // This helps determine which "section" of the string we're in
+                int positionInSection = k & -k;
+
+                // Determine if k is in the inverted part of the string
+                // This checks if the bit to the left of the rightmost set bit is 1
+                bool isInInvertedPart = ((k / positionInSection) >> 1 & 1) == 1;
+
+                // Determine if the original bit (before any inversion) would be 1
+                // This is true if k is even (i.e., its least significant bit is 0)
+                bool originalBitIsOne = (k & 1) == 0;
+
+                if (isInInvertedPart) {
+                    // If we're in the inverted part, we need to flip the bit
+                    return originalBitIsOne ? '0' : '1';
+                }
+                else {
+                    // If we're not in the inverted part, return the original bit
+                    return originalBitIsOne ? '1' : '0';
+                }
+            }
+
+            char findKthBit_leetcode_compact(int n, int k) {
+                return (((k / (k & -k)) >> 1 & 1) == 1) ?
+                    (k & 1) == 0 ? '0' : '1' :
+                    (k & 1) == 0 ? '1' : '0';
             }
         };
     }
@@ -14896,6 +15109,47 @@ namespace leetcode {
         };
     }
 
+    namespace task_2044 {
+        /*
+        * https://leetcode.com/problems/count-number-of-maximum-bitwise-or-subsets/description/
+        */
+        class Solution {
+        public:
+            int countMaxOrSubsets(vector<int>& nums) {
+                int maxOR = OR(nums), count = 0;
+                auto sets = subsets(nums);
+                for (const vector<int>& set : sets)
+                    if (maxOR == OR(set))
+                        ++count;
+                return count;
+            }
+
+            vector<vector<int>> subsets(vector<int>& nums) {
+                size_t size = nums.size();
+                vector<vector<int>> res(1 << size);
+                for (size_t i = 0; i < size; i++) {
+                    size_t count_pieces = 1 << (i + 1);
+                    size_t size_of_piece = 1 << (size - i - 1);
+                    size_t t = 0;
+                    for (size_t j = 0; j < count_pieces; j++)
+                        if (j & 1)
+                            for (size_t k = 0; k < size_of_piece; k++, t++)
+                                res[t].push_back(nums[i]);
+                        else
+                            t += size_of_piece;
+                }
+                return res;
+            }
+
+            int OR(const vector<int>& nums) {
+                int OR = 0;
+                for (const int n : nums)
+                    OR |= n;
+                return OR;
+            }
+        };
+    }
+
     namespace task_2045 {
         /*
         * https://leetcode.com/problems/second-minimum-time-to-reach-destination/description/
@@ -16055,6 +16309,28 @@ namespace leetcode {
         };
     }
 
+    namespace task_2530 {
+        /*
+        * https://leetcode.com/problems/two-sum/
+        */
+        class Solution {
+        public:
+            long long maxKelements(vector<int>& nums, int k) {
+                long long score = 0;
+                priority_queue<int> queue;
+                for (const int n : nums)
+                    queue.push(n);
+                for (size_t i = 0; i < k; i++) {
+                    int value = queue.top();
+                    queue.pop();
+                    score += value;
+                    queue.push(value / 3 + (value % 3 == 0 ? 0 : 1));
+                }
+                return score;
+            }
+        };
+    }
+
     namespace task_2542 {
         /*
         * https://leetcode.com/problems/problems/maximum-subsequence-score/description/
@@ -16897,6 +17173,25 @@ namespace leetcode {
                     next = tmp;
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_2938 {
+        /*
+        * https://leetcode.com/problems/separate-black-and-white-balls/description/
+        */
+        class Solution {
+        public:
+            long long minimumSteps(string s) {
+                int count_black = 0;
+                long long moves = 0;
+                for (const char c : s)
+                    if (c == '0')
+                        moves += count_black;
+                    else
+                        ++count_black;
+                return moves;
             }
         };
     }
