@@ -11054,6 +11054,70 @@ namespace leetcode {
         };
     }
 
+    namespace task_951 {
+        /*
+        * https://leetcode.com/problems/cousins-in-binary-tree/description
+        */
+        class Solution {
+        public:
+            bool flipEquiv(TreeNode* root1, TreeNode* root2) {
+                if (!root1)
+                    return !root2;
+                if (!root2)
+                    return false;
+                if (root1->val != root2->val)
+                    return false;
+
+                stack<TreeNode*> stack1, stack2;
+                stack1.push(root1);
+                stack2.push(root2);
+
+                while (!stack1.empty()) {
+                    root1 = stack1.top();
+                    root2 = stack2.top();
+                    stack1.pop();
+                    stack2.pop();
+                    if (root1->left) { // sort children
+                        if (root1->right && root1->left->val < root1->right->val)
+                            swap(root1->left, root1->right);
+                    }
+                    else if (root1->right)
+                        swap(root1->left, root1->right);
+                    if (root2->left) {
+                        if (root2->right && root2->left->val < root2->right->val)
+                            swap(root2->left, root2->right);
+                    }
+                    else if (root2->right)
+                        swap(root2->left, root2->right);
+
+
+                    if (root1->left) {
+                        if (root2->left && root1->left->val == root2->left->val) {
+                            stack1.push(root1->left);
+                            stack2.push(root2->left);
+                        }
+                        else
+                            return false;
+
+                        if (root1->right) {
+                            if (root2->right && root1->right->val == root2->right->val) {
+                                stack1.push(root1->right);
+                                stack2.push(root2->right);
+                            }
+                            else
+                                return false;
+                        }
+                        else if (root2->right)
+                            return false;
+                    }
+                    else if (root2->left)
+                        return false;
+                }
+                return true;
+            }
+        };
+    }
+
     namespace task_959 {
         /*
         * https://leetcode.com/problems/regions-cut-by-slashes/description/
@@ -11269,6 +11333,54 @@ namespace leetcode {
             }
 
             map<int, map<string, string>> data;
+        };
+    }
+
+    namespace task_993 {
+        /*
+        * https://leetcode.com/problems/cousins-in-binary-tree/description
+        */
+        class Solution {
+        public:
+            bool isCousins(TreeNode* root, int x, int y) {
+                queue<TreeNode*> queue;
+                if (root->left) {
+                    root->left->val = 0;
+                    queue.push(root->left);
+                }
+                if (root->right) {
+                    root->right->val = 0;
+                    queue.push(root->right);
+                }
+                size_t level_size = queue.size();
+                while (level_size != 0) {
+                    bool found_one = false, found_at_same_parent;
+                    for (size_t i = 0; i < level_size; ++i) {
+                        root = queue.front();
+                        queue.pop();
+                        if (root->left) {
+                            if (root->left->val == x || root->left->val == y) {
+                                if (found_one)
+                                    return true;
+                                found_one = true;
+                                found_at_same_parent = true;
+                            }
+                            queue.push(root->left);
+                        }
+                        if (root->right) {
+                            if (root->right->val == x || root->right->val == y) {
+                                if (found_one && !found_at_same_parent)
+                                    return true;
+                                found_one = true;
+                            }
+                            queue.push(root->right);
+                        }
+                        found_at_same_parent = false;
+                    }
+                    level_size = queue.size();
+                }
+                return false;
+            }
         };
     }
 
@@ -12051,6 +12163,41 @@ namespace leetcode {
         };
     }
 
+    namespace task_1161 {
+        /*
+        * https://leetcode.com/problems/maximum-level-sum-of-a-binary-tree/description
+        */
+        class Solution {
+        public:
+            int maxLevelSum(TreeNode* root, int k) {
+                queue<TreeNode*> queue;
+                queue.push(root);
+
+                size_t level_size = 1;
+                int level = 1, max_level = 0, sum = 0, max_sum = INT_MIN;
+                while (level_size != 0) {
+                    sum = 0;
+                    for (size_t i = 0; i < level_size; ++i) {
+                        root = queue.front();
+                        queue.pop();
+                        sum += root->val;
+                        if (root->left)
+                            queue.push(root->left);
+                        if (root->right)
+                            queue.push(root->right);
+                    }
+                    if (max_sum < sum) {
+                        max_sum = sum;
+                        max_level = level;
+                    }
+                    level_size = queue.size();
+                    ++level;
+                }
+                return max_level;
+            }
+        };
+    }
+
     namespace task_1171 {
         /*
         * https://leetcode.com/problems/remove-zero-sum-consecutive-nodes-from-linked-list/
@@ -12278,6 +12425,67 @@ namespace leetcode {
         };
     }
 
+    namespace task_1233 {
+        /*
+        * https://leetcode.com/problems/remove-sub-folders-from-the-filesystem/description
+        */
+        class Solution {
+        public:
+            class Trie {
+            public:
+                unordered_map<string, Trie*> children;
+                int index = -1;
+            };
+
+            vector<string> removeSubfolders(vector<string>& folder) {
+                Trie* root = new Trie(), * node = nullptr;
+                int size = folder.size();
+                for (int i = 0; i < size; ++i) {
+                    string item;
+                    stringstream input_stringstream(folder[i]);
+                    node = root;
+                    bool is_new = true;
+
+                    while (getline(input_stringstream, item, '/')) {
+                        if (item.size() > 0) {
+                            auto it = node->children.find(item);
+                            if (it == node->children.end()) {
+                                auto new_node = new Trie();
+                                node->children[item] = new_node;
+                                node = new_node;
+                            }
+                            else {
+                                node = it->second;
+                                if (node->index != -1) {
+                                    is_new = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (is_new)
+                        node->index = i;
+                }
+
+                stack<Trie*> nodes;
+                nodes.push(root);
+                vector<string> folders;
+                while (!nodes.empty()) {
+                    node = nodes.top();
+                    nodes.pop();
+
+                    if (node->index == -1)
+                        for (const auto& [key, value] : node->children)
+                            nodes.push(value);
+                    else
+                        folders.push_back(folder[node->index]);
+                }
+
+                return folders;
+            }
+        };
+    }
+
     namespace task_1248 {
         /*
         * https://leetcode.com/problems/count-number-of-nice-subarrays/description/
@@ -12365,6 +12573,30 @@ namespace leetcode {
             void deleteWord(const string& word) {
                 for (const char letter : word)
                     ++remain_letters[letter - 'a'];
+            }
+        };
+    }
+
+    namespace task_1277 {
+        /*
+        * https://leetcode.com/problems/count-square-submatrices-with-all-ones/description
+        */
+        class Solution {
+        public:
+            int countSquares(vector<vector<int>>& matrix) {
+                int row = matrix.size(), col = matrix[0].size();
+                vector<vector<int>> dp(row + 1, vector<int>(col + 1, 0));
+                int ans = 0;
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                        if (matrix[i][j] == 1) {
+                            dp[i + 1][j + 1] =
+                                min({ dp[i][j + 1], dp[i + 1][j], dp[i][j] }) + 1;
+                            ans += dp[i + 1][j + 1];
+                        }
+                    }
+                }
+                return ans;
             }
         };
     }
@@ -13915,6 +14147,42 @@ namespace leetcode {
                 }
 
                 return minLen == size ? -1 : minLen;
+            }
+        };
+    }
+
+    namespace task_1593 {
+        /*
+        * https://leetcode.com/problems/split-a-string-into-the-max-number-of-unique-substrings/description
+        */
+        class Solution {
+        public:
+            size_t size, max_sub;
+
+            int maxUniqueSplit(string s) {
+                size = s.size();
+                max_sub = 1;
+                unordered_set<string> set;
+                maxUniqueSplit(s, 0, set);
+                return max_sub;
+            }
+
+            void maxUniqueSplit(const string& s, const size_t from, unordered_set<string>& set) {
+                if (set.size() + size - from <= max_sub)
+                    return; // if we can not build more than max_sub with this splitting
+                if (from == size) {
+                    max_sub = max(max_sub, set.size());
+                    return;
+                }
+                int count = 0;
+                for (size_t i = from + 1; i <= size; ++i) {
+                    string sub = s.substr(from, i - from);
+                    if (!set.contains(sub)) {
+                        set.insert(sub);
+                        maxUniqueSplit(s, i, set);
+                        set.erase(sub);
+                    }
+                }
             }
         };
     }
@@ -16179,6 +16447,158 @@ namespace leetcode {
         };
     }
 
+    namespace task_2458 {
+        /*
+        * https://leetcode.com/problems/height-of-binary-tree-after-subtree-removal-queries/description
+        */
+        class Solution {
+        public:
+            vector<int> treeQueries2(TreeNode* root, vector<int>& queries) {
+                int n = 100000;
+                // Vectors to store node depths and heights
+                vector<int> nodeDepths(n + 1, 0);
+                vector<int> subtreeHeights(n + 1, 0);
+
+                // Vectors to store the first and second largest heights at each level
+                vector<int> firstLargestHeight(n + 1, 0);
+                vector<int> secondLargestHeight(n + 1, 0);
+
+                // Perform DFS to calculate depths and heights
+                dfs(root, 0, nodeDepths, subtreeHeights, firstLargestHeight,
+                    secondLargestHeight);
+
+                vector<int> results;
+                results.reserve(queries.size());
+
+                // Process each query
+                for (int queryNode : queries) {
+                    int nodeLevel = nodeDepths[queryNode];
+
+                    // Calculate the height of the tree after removing the query node
+                    if (subtreeHeights[queryNode] == firstLargestHeight[nodeLevel]) {
+                        results.push_back(nodeLevel + secondLargestHeight[nodeLevel] -
+                            1);
+                    }
+                    else {
+                        results.push_back(nodeLevel + firstLargestHeight[nodeLevel] -
+                            1);
+                    }
+                }
+
+                return results;
+            }
+
+        private:
+            // Depth-first search to calculate node depths and subtree heights
+            int dfs(TreeNode* node, int level, vector<int>& nodeDepths,
+                vector<int>& subtreeHeights, vector<int>& firstLargestHeight,
+                vector<int>& secondLargestHeight) {
+                if (node == nullptr) return 0;
+
+                nodeDepths[node->val] = level;
+
+                // Calculate the height of the current subtree
+                int leftHeight = dfs(node->left, level + 1, nodeDepths, subtreeHeights,
+                    firstLargestHeight, secondLargestHeight);
+                int rightHeight =
+                    dfs(node->right, level + 1, nodeDepths, subtreeHeights,
+                        firstLargestHeight, secondLargestHeight);
+                int currentHeight = 1 + max(leftHeight, rightHeight);
+
+                subtreeHeights[node->val] = currentHeight;
+
+                // Update the largest and second largest heights at the current level
+                if (currentHeight > firstLargestHeight[level]) {
+                    secondLargestHeight[level] = firstLargestHeight[level];
+                    firstLargestHeight[level] = currentHeight;
+                }
+                else if (currentHeight > secondLargestHeight[level]) {
+                    secondLargestHeight[level] = currentHeight;
+                }
+
+                return currentHeight;
+            }
+
+            vector<int> treeQueries(TreeNode* root, vector<int>& queries) {
+                int n = 10, m = queries.size(), height = 0, parent;
+
+                vector<int> answers(n + 1);
+                vector<int> depth(n + 1);
+                vector<vector<int>> nodes(n + 1); // parent, height, child-leftm child-right
+                nodes[0] = { 0, 0, 0, 0 };
+                queue<TreeNode*> queue; // node
+                queue.push(root);
+                while (!queue.empty()) {
+                    size_t size = queue.size();
+                    for (size_t i = 0; i < size; ++i) {
+                        TreeNode* node = queue.front();
+                        queue.pop();
+                        if (n < node->val) {
+                            for (; n < node->val; ++n)
+                                depth.push_back(0);
+                        }
+                        depth[node->val] = height;
+                        if (node->left)
+                            queue.push(node->left);
+                        if (node->right)
+                            queue.push(node->right);
+                    }
+                    ++height;
+                }
+
+                /*
+                stack<TreeNode*> stack; // node
+                stack.push(root); \
+                    while (!stack.empty()) {
+                        TreeNode* node = stack.top();
+                        stack.pop();
+                        if (node->left && node->right) {
+
+                        }
+                        parent = queue.front().second;
+                        queue.pop();
+                        if (n < node->val) {
+                            for (; n < node->val; ++n)
+                                nodes.push_back({});
+                        }
+                        nodes[node->val] = { parent, height, node->left ? node->left->val : 0, node->right ? node->right->val : 0 };
+                        if (node->left)
+                            queue.push({ node->left , node->val });
+                        if (node->right)
+                            queue.push({ node->right , node->val });
+                    }
+
+                stack<TreeNode*> stack; // node
+                stack.push(root);\
+                while (!stack.empty()) {
+                    for (size_t i = 0; i < size; ++i) {
+                        TreeNode* node = queue.front().first;
+                        parent = queue.front().second;
+                        queue.pop();
+                        if (n < node->val) {
+                            for (; n < node->val; ++n)
+                                nodes.push_back({});
+                        }
+                        nodes[node->val] = { parent, height, node->left ? node->left->val : 0, node->right ? node->right->val : 0 };
+                        if (node->left)
+                            queue.push({ node->left , node->val });
+                        if (node->right)
+                            queue.push({ node->right , node->val });
+                    }
+                }
+
+                for (const int query : queries) {
+
+                }
+                */
+                return {};
+            }
+
+            void push(vector<vector<int>>& nodes, TreeNode* node, int& n, const int parent, const int height) {
+            }
+        };
+    }
+
     namespace task_2486 {
         /*
         * https://leetcode.com/problems/append-characters-to-string-to-make-subsequence/description/
@@ -16356,6 +16776,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_2583 {
+        /*
+        * https://leetcode.com/problems/kth-largest-sum-in-a-binary-tree/description
+        */
+        class Solution {
+        public:
+            long long kthLargestLevelSum(TreeNode* root, int k) {
+                queue<TreeNode*> queue;
+                queue.push(root);
+                vector<long long> sums;
+                size_t level_size = 1;
+                while (level_size != 0) {
+                    long long sum = 0;
+                    for (size_t i = 0; i < level_size; ++i) {
+                        root = queue.front();
+                        queue.pop();
+                        sum += root->val;
+                        if (root->left)
+                            queue.push(root->left);
+                        if (root->right)
+                            queue.push(root->right);
+                    }
+                    sums.push_back(sum);
+                    level_size = queue.size();
+                }
+                if (sums.size() < k)
+                    return -1;
+                sort(sums.begin(), sums.end());
+                return sums[sums.size() - k];
+            }
+        };
+    }
+
     namespace task_2597 {
         /*
         * https://leetcode.com/problems/the-number-of-beautiful-subsets/description/
@@ -16426,6 +16879,56 @@ namespace leetcode {
                 }
                 --count_chosen;
                 return count_subsets;
+            }
+        };
+    }
+
+    namespace task_2641 {
+        /*
+        * https://leetcode.com/problems/cousins-in-binary-tree-ii/description
+        */
+        class Solution {
+        public:
+            TreeNode* replaceValueInTree(TreeNode* root) {
+                root->val = 0;
+                int level_sum = 0, next_level_sum = 0, child_sum = 0;
+
+                TreeNode* node;
+                queue<TreeNode*> queue;
+                if (root->left) {
+                    root->left->val = 0;
+                    queue.push(root->left);
+                }
+                if (root->right) {
+                    root->right->val = 0;
+                    queue.push(root->right);
+                }
+                size_t level_size = queue.size();
+                while (level_size != 0) {
+                    next_level_sum = 0;
+                    for (size_t i = 0; i < level_size; ++i) {
+                        node = queue.front();
+                        queue.pop();
+                        node->val = level_sum - node->val;
+                        child_sum = 0;
+                        if (node->left) {
+                            child_sum += node->left->val;
+                            queue.push(node->left);
+                        }
+                        if (node->right) {
+                            child_sum += node->right->val;
+                            queue.push(node->right);
+                        }
+                        if (node->left)
+                            node->left->val = child_sum;
+                        if (node->right)
+                            node->right->val = child_sum;
+                        next_level_sum += child_sum;
+                    }
+                    level_sum = next_level_sum;
+                    level_size = queue.size();
+                }
+                return root;
             }
         };
     }
