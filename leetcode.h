@@ -10088,6 +10088,32 @@ namespace leetcode {
         };
     }
 
+    namespace task_796 {
+        /*
+        * https://leetcode.com/problems/rotate-string/description/
+        */
+        class Solution {
+        public:
+            bool rotateString(string s, string goal) {
+                size_t size = s.size();
+                if (size != goal.size())
+                    return false;
+                for (size_t i = 0; i < size; ++i)
+                    if (s[0] == goal[i] && rotateString(s, goal, i, size))
+                        return true;
+
+                return false;
+            }
+
+
+            bool rotateString(const string& s, const string& goal, const size_t from, const size_t size) {
+                size_t i = 1;
+                for (; i < size && s[i] == goal[(from + i) % size]; ++i) {}
+                return i == size;
+            }
+        };
+    }
+
     namespace task_817 {
         /*
         * https://leetcode.com/problems/linked-list-components/
@@ -10262,6 +10288,34 @@ namespace leetcode {
                         t_copy.push_back(t[i]);
 
                 return s_copy == t_copy;
+            }
+        };
+    }
+
+    namespace task_845 {
+        /*
+        * https://leetcode.com/problems/longest-mountain-in-array/description/
+        */
+        class Solution { // 90.91% 39.13%
+        public:
+            int longestMountain(vector<int>& nums) {
+                int size = nums.size(), max_len = 0, len = 0;
+                for (int i = 0; i < size; i++) {
+                    len = 0;
+                    int j = i + 1;
+                    for (; j < size && nums[j - 1] < nums[j]; ++j) {}
+                    if (j == i + 1)
+                        continue;
+                    if (j == size)
+                        break;
+                    int top = j;
+                    for (; j < size && nums[j - 1] > nums[j]; ++j) {}
+
+                    if (top != j)
+                        max_len = max(max_len, j - i);
+                    i = j - 2;
+                }
+                return max_len;
             }
         };
     }
@@ -10981,6 +11035,26 @@ namespace leetcode {
                         min_path = matrix.back()[j];
 
                 return min_path;
+            }
+        };
+    }
+
+    namespace task_941 {
+        /*
+        * https://leetcode.com/problems/valid-mountain-array/description/
+        */
+        class Solution {
+        public:
+            bool validMountainArray(vector<int>& arr) {
+                size_t size = arr.size(), i = 1;
+                if (size < 3)
+                    return false;
+
+                for (; i < size && arr[i - 1] < arr[i]; ++i) {}
+                if (i == 1 || i == size)
+                    return false;
+                for (; i < size && arr[i - 1] > arr[i]; ++i) {}
+                return i == size;
             }
         };
     }
@@ -14474,6 +14548,132 @@ namespace leetcode {
         };
     }
 
+    namespace task_1671 {
+        /*
+        * https://leetcode.com/problems/minimum-number-of-removals-to-make-mountain-array/description/
+        */
+        class Solution { // 90.91% 39.13%
+        public:
+            size_t size;
+            vector<int> LIS;
+            vector<int> LDS;
+            vector<int> ends_of_LIS;
+
+            int minimumMountainRemovals(vector<int>& nums) {
+                size = nums.size();
+                ends_of_LIS = vector<int>(size);
+
+                calculateLIS(nums);
+                calculateLDS(nums);
+
+                int max_len = 3;
+                for (size_t i = 1; i < size; i++) {
+                    int left = LIS[i];
+                    int right = LDS[i];
+                    if (left != 0 && right != 0)
+                        max_len = max(max_len, 1 + left + right);
+                }
+                return size - max_len;
+            }
+
+            void calculateLIS(vector<int>& nums) {
+                size_t length = 0;
+                LIS = vector<int>(size);
+                for (size_t i = 0; i < size; ++i)
+                    ends_of_LIS[i] = INT_MAX;
+
+                for (size_t i = 0; i < size; ++i) {
+                    size_t j = search(ends_of_LIS, length, nums[i]);
+                    LIS[i] = j;
+                    ends_of_LIS[j] = min(ends_of_LIS[j], nums[i]);
+                    length = max(j + 1, length);
+                }
+            }
+
+            void calculateLDS(vector<int>& nums) {
+                size_t length = 0;
+                LDS = vector<int>(size);
+                for (size_t i = 0; i < size; ++i)
+                    ends_of_LIS[i] = INT_MAX;
+
+                for (size_t i = size - 1; i > 0; --i) {
+                    size_t j = search(ends_of_LIS, length, nums[i]);
+                    LDS[i] = j;
+                    ends_of_LIS[j] = min(ends_of_LIS[j], nums[i]);
+                    length = max(j + 1, length);
+                }
+            }
+
+            size_t search(vector<int>& nums, size_t r, const int target) {
+                size_t l = 0;
+                if (nums[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+
+        class Solution_slow {// 6.06% 94.12%
+        public:
+            size_t size;
+            vector<int> ends_of_LIS;
+
+            int minimumMountainRemovals(vector<int>& nums) {
+                size = nums.size();
+                ends_of_LIS = vector<int>(size);
+
+                int max_len = 3;
+                for (size_t i = 0; i < size; i++) {
+                    int left = lengthOfLIS(nums, 0, i, nums[i]);
+                    int right = lengthOfLIS(nums, size - 1, i, nums[i]);
+                    if (left != 0 && right != 0)
+                        max_len = max(max_len, 1 + left + right);
+                }
+                return size - max_len;
+            }
+
+            int lengthOfLIS(vector<int>& nums, const int from, const int to, const int top) {
+
+                int dir = to > from ? 1 : -1;
+                size_t length = 0, max_length = (to - from) * dir;
+                for (size_t i = 0; i < max_length; ++i)
+                    ends_of_LIS[i] = INT_MAX;
+
+                for (int i = from; i != to; i += dir) {
+                    if (nums[i] >= top)
+                        continue;
+                    size_t j = search(ends_of_LIS, length, nums[i]);
+                    ends_of_LIS[j] = min(ends_of_LIS[j], nums[i]);
+                    length = max(j + 1, length);
+                }
+
+                return length;
+            }
+
+            size_t search(vector<int>& nums, size_t r, const int target) {
+                size_t l = 0;
+                if (nums[l] >= target)
+                    return l;
+
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (nums[i] >= target)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+        };
+    }
+
     namespace task_1684 {
         /*
         * https://leetcode.com/path-sum/count-the-number-of-consistent-strings/description/
@@ -15206,6 +15406,31 @@ namespace leetcode {
                 return sum < max_value ?
                     (sum << 1) + 1 :
                     sum + max_value;
+            }
+        };
+    }
+
+    namespace task_1957 {
+        /*
+        * https://leetcode.com/problems/delete-characters-to-make-fancy-string/description/
+        */
+        class Solution {
+        public:
+            string makeFancyString(string s) {
+                string res;
+                char last = 0, count_last = 0;
+                for (const char c : s) {
+                    if (c != last) {
+                        res.push_back(c);
+                        last = c;
+                        count_last = 1;
+                    }
+                    else if (count_last == 1) {
+                        ++count_last;
+                        res.push_back(c);
+                    }
+                }
+                return res;
             }
         };
     }
@@ -16599,6 +16824,116 @@ namespace leetcode {
         };
     }
 
+    namespace task_2463 {
+        /*
+        * https://leetcode.com/problems/minimum-total-distance-traveled/description/
+        */
+        class Solution {
+        public:
+            vector<queue<int>> factory_robots;
+            int r_i;
+            int f_i;
+            int free_left_fac;
+            long long way_len;
+
+            long long minimumTotalDistance(vector<int>& robot, vector<vector<int>>& factory) {
+                set<int> robots(robot.begin(), robot.end());
+                int size_factories = factory.size();
+                for (int i = 0; i < size_factories; ++i) {
+                    if (factory[i][1] == 0) {
+                        factory.erase(factory.begin() + i);
+                        --i;
+                        --size_factories;
+                        continue;
+                    }
+
+                    if (robots.contains(factory[i][0])) {
+                        --factory[i][1];
+                        robots.erase(factory[i][0]);
+                        if (factory[i][1] == 0) {
+                            factory.erase(factory.begin() + i);
+                            --i;
+                            --size_factories;
+                        }
+                    }
+                }
+                sort(factory.begin(), factory.end());
+                robot = vector<int>(robots.begin(), robots.end());
+                int size_robots = robot.size();
+
+                factory_robots = vector<queue<int>>(size_factories);
+                r_i = 0, f_i = 0, free_left_fac = 0, way_len = 0;
+
+                for (; r_i < size_robots; ++r_i) {
+                    for (; f_i < size_factories && factory[f_i][0] < robot[r_i]; ++f_i, ++free_left_fac) {}
+
+                    if (f_i < size_factories &&
+                        (free_left_fac == 0 || factory[f_i][0] - robot[r_i] < robot[r_i] - factory[f_i - 1][0])) {
+                        way_len += factory[f_i][0] - robot[r_i];
+                        factory_robots[f_i].push(r_i);
+                        --factory[f_i][1];
+                        if (factory[f_i][1] == 0)
+                            ++f_i;
+                        continue;
+                    }
+
+                    if (factory[f_i - 1][1] > 0) {
+                        --f_i;
+                        way_len += robot[r_i] - factory[f_i][0];
+                        factory_robots[f_i].push(r_i);
+                        --factory[f_i][1];
+                        if (factory[f_i][1] == 0) {
+                            --free_left_fac;
+                            ++f_i;
+                        }
+                        continue;
+                    }
+
+                    if (f_i == size_factories || try_shift_robot(robot, factory)) {
+                        shift_robot(robot, factory);
+                    }
+                    else {
+                        way_len += factory[f_i][0] - robot[r_i];
+                        factory_robots[f_i].push(r_i);
+                        --factory[f_i][1];
+                        if (factory[f_i][1] == 0)
+                            ++f_i;
+                        continue;
+                    }
+                }
+                return way_len;
+            }
+
+            bool try_shift_robot(const vector<int>& robot, const vector<vector<int>>& factory) {
+                int f = f_i - 1, r = r_i;
+                long long dif_way = 0;
+                for (; factory[f][1] == 0; --f) {
+                    dif_way += abs(robot[r] - factory[f + 1][0]) - abs(robot[r] - factory[f][0]);
+                    r = factory_robots[f].front();
+                }
+                dif_way += abs(robot[r] - factory[f + 1][0]) - abs(robot[r] - factory[f][0]);
+                return dif_way > 0;
+            }
+
+            void shift_robot(const vector<int>& robot, vector<vector<int>>& factory) {
+                int f = f_i - 1, r = r_i;
+                for (; factory[f][1] == 0; --f) {
+                    factory_robots[f].push(r);
+                    way_len += abs(robot[r] - factory[f][0]);
+
+                    r = factory_robots[f].front();
+                    factory_robots[f].pop();
+                    way_len -= abs(robot[r] - factory[f][0]);
+                }
+                factory_robots[f].push(r);
+                way_len += abs(robot[r] - factory[f][0]);
+                --factory[f][1];
+                if (factory[f][1] == 0)
+                    --free_left_fac;
+            }
+        };
+    }
+
     namespace task_2486 {
         /*
         * https://leetcode.com/problems/append-characters-to-string-to-make-subsequence/description/
@@ -16648,6 +16983,24 @@ namespace leetcode {
         };
     }
 
+    namespace task_2490 {
+        /*
+        * https://leetcode.com/problems/circular-sentence/description/
+        */
+        class Solution {
+        public:
+            bool isCircularSentence(string sentence) {
+                size_t size = sentence.size();
+                if (sentence[0] != sentence[size - 1])
+                    return false;
+                for (size_t i = sentence.find(' '); i != string::npos; i = sentence.find(' ', i + 1))
+                    if (sentence[i - 1] != sentence[i + 1])
+                        return false;
+                return true;
+            }
+        };
+    }
+
     namespace task_2491 {
         /*
         * https://leetcode.com/problems/problems/divide-players-into-teams-of-equal-skill/description/
@@ -16684,6 +17037,32 @@ namespace leetcode {
                     }
                 }
                 return team_score;
+            }
+        };
+    }
+
+    namespace task_2501 {
+        /*
+        * https://leetcode.com/problems/longest-square-streak-in-an-array/
+        */
+        class Solution {
+        public:
+            int longestSquareStreak(vector<int>& nums) {
+                unordered_set<int> set;
+                for (const int num : nums)
+                    set.insert(num);
+
+                int max_len = -1;
+                for (int num : nums) {
+                    int len = 1;
+                    while (num < 317 && set.contains(num * num)) {
+                        ++len;
+                        num *= num;
+                    }
+                    if (len > 1)
+                        max_len = max(max_len, len);
+                }
+                return max_len;
             }
         };
     }
@@ -16970,6 +17349,42 @@ namespace leetcode {
                     if (str[11] > '6' || str[11] == '6' && str[12] > '0')
                         ++count;
                 return count;
+            }
+        };
+    }
+
+    namespace task_2684 {
+        /*
+        * https://leetcode.com/problems/maximum-number-of-moves-in-a-grid/description/
+        */
+        class Solution {
+        public:
+            int maxMoves(vector<vector<int>>& grid) {
+                size_t row = grid.size(), col = grid[0].size();
+                vector<vector<int>> dp(row, vector<int>(col));
+                int ans = 0;
+                for (size_t j = col - 2; j > 0; --j) {
+                    for (size_t i = 0; i < row; ++i) {
+                        int max_steps = 0;
+                        if (i > 0 && grid[i - 1][j + 1] > grid[i][j])
+                            max_steps = dp[i - 1][j + 1] + 1;
+                        if (grid[i][j + 1] > grid[i][j])
+                            max_steps = max(max_steps, dp[i][j + 1] + 1);
+                        if (i < row - 1 && grid[i + 1][j + 1] > grid[i][j])
+                            max_steps = max(max_steps, dp[i + 1][j + 1] + 1);
+                        dp[i][j] = max_steps;
+                    }
+                }
+
+                for (size_t i = 0; i < row; ++i) {
+                    if (i > 0 && grid[i - 1][1] > grid[i][0])
+                        ans = max(ans, dp[i - 1][1] + 1);
+                    if (grid[i][1] > grid[i][0])
+                        ans = max(ans, dp[i][1] + 1);
+                    if (i < row - 1 && grid[i + 1][1] > grid[i][0])
+                        ans = max(ans, dp[i + 1][1] + 1);
+                }
+                return ans;
             }
         };
     }
