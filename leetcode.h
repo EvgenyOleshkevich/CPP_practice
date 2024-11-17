@@ -7584,6 +7584,36 @@ namespace leetcode {
         };
     }
 
+    namespace task_443 {
+        /*
+        * https://leetcode.com/problems/string-compression/description/
+        */
+        class Solution {
+        public:
+            int compress(vector<char>& chars) {
+                size_t size = chars.size(), writeIndex = 0, countDigit = 0;
+                int len = 0;
+                for (size_t i = 0; i < size; ++i) {
+                    size_t j = 1;
+                    for (; i + j < size && chars[i] == chars[i + j]; ++j) {}
+                    chars[writeIndex] = chars[i];
+                    ++writeIndex;
+                    if (j == 1)
+                        continue;
+                    i += j - 1;
+                    countDigit = 0;
+                    for (; j > 0; j /= 10, countDigit += 1)
+                        chars[writeIndex + countDigit] = '0' + j % 10;
+
+                    for (size_t j = 0; j < (countDigit >> 1); ++j)
+                        swap(chars[writeIndex + j], chars[writeIndex + countDigit - j - 1]);
+                    writeIndex += countDigit;
+                }
+                return writeIndex;
+            }
+        };
+    }
+
     namespace task_445 {
         /*
         * https://leetcode.com/problems/add-two-numbers-ii/description/
@@ -10515,6 +10545,37 @@ namespace leetcode {
                     numbers[i] = number;
                 }
                 return numbers;
+            }
+        };
+    }
+
+    namespace task_862 {
+        /*
+        * https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/description/
+        */
+        class Solution {
+        public:
+            int shortestSubarray(vector<int>& nums, int k) {
+                int size = nums.size(), minLen = INT_MAX;
+                vector<long long> prefixSums(size + 1, 0);
+                deque<int> indices;
+
+                for (int i = 1; i <= size; i++)
+                    prefixSums[i] = prefixSums[i - 1] + nums[i - 1];
+
+                for (int i = 0; i <= size; ++i) {
+                    while (!indices.empty() &&
+                        prefixSums[i] - prefixSums[indices.front()] >= k) {
+                        minLen = min(minLen, i - indices.front());
+                        indices.pop_front();
+                    }
+
+                    // Maintain monotonicity by removing indices with larger prefix sums
+                    while (!indices.empty() && prefixSums[i] <= prefixSums[indices.back()])
+                        indices.pop_back();
+                    indices.push_back(i);
+                }
+                return minLen == INT_MAX ? -1 : minLen;
             }
         };
     }
@@ -14125,6 +14186,65 @@ namespace leetcode {
         };
     }
 
+    namespace task_1574 {
+        /*
+        * https://leetcode.com/problems/minimized-maximum-of-products-distributed-to-any-store/description/
+        */
+        class Solution {
+        public:
+            int findLengthOfShortestSubarray_leetcode(vector<int>& arr) {
+                int right = arr.size() - 1;
+                for (; right > 0 && arr[right] >= arr[right - 1]; --right) {}
+
+                int ans = right, left = 0;
+                for (; left < right && (left == 0 || arr[left - 1] <= arr[left]); ++left) {
+                    for (; right < arr.size() && arr[left] > arr[right]; ++right) {}
+                    ans = min(ans, right - left - 1);
+                }
+                return ans;
+            }
+
+            int findLengthOfShortestSubarray(vector<int>& arr) {
+                size_t size = arr.size();
+                vector<char> is_right_subarray(size); // 1 from start, 2 from end, 3 both
+                is_right_subarray[0] = 1;
+                is_right_subarray[size - 1] += 2;
+                for (size_t i = 1; i < size && arr[i] >= arr[i - 1]; ++i)
+                    is_right_subarray[i] += 1;
+                for (int i = size - 2; i > -1 && arr[i] <= arr[i + 1]; --i)
+                    is_right_subarray[i] += 2;
+
+                if (is_right_subarray[0] == 3)
+                    return 0;
+
+                size_t l = 0, r = size - 1;
+                while (r - l > 1) {
+                    int i = (r + l) / 2;
+                    if (isSorted(size, i, arr, is_right_subarray))
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+
+            bool isSorted(const size_t size, const size_t remove,
+                const vector<int>& arr,
+                const vector<char>& is_right_subarray) {
+                if (is_right_subarray[remove] & (char)2)
+                    return true;
+                if (is_right_subarray[size - remove - 1] & (char)1)
+                    return true;
+                for (size_t i = 0; i < size - remove - 1; ++i)
+                    if (is_right_subarray[i] & (char)1 &&
+                        is_right_subarray[i + remove + 1] & (char)2 &&
+                        arr[i] <= arr[i + remove + 1])
+                        return true;
+                return false;
+            }
+        };
+    }
+
     namespace task_1579 {
         /*
         * https://leetcode.com/problems/remove-max-number-of-edges-to-keep-graph-fully-traversable/description/
@@ -15057,6 +15177,28 @@ namespace leetcode {
         };
     }
 
+    namespace task_1829 {
+        /*
+        * https://leetcode.com/problems/maximum-xor-for-each-query/description/
+        */
+        class Solution {
+        public:
+            vector<int> getMaximumXor(vector<int>& nums, int maximumBit) {
+                size_t size = nums.size(), start = 0;
+                vector<int> queries(size);
+                int XOR = 0, mask = (1 << maximumBit) - 1;
+                for (int n : nums)
+                    XOR ^= n;
+
+                for (size_t i = 0; i < size; ++i) {
+                    queries[i] = XOR ^ mask;
+                    XOR ^= nums[size - i - 1];
+                }
+                return queries;
+            }
+        };
+    }
+
     namespace task_1863 {
         /*
         * https://leetcode.com/problems/sum-of-all-subset-xor-totals/description/
@@ -15748,6 +15890,77 @@ namespace leetcode {
         };
     }
 
+    namespace task_2064 {
+        /*
+        * https://leetcode.com/problems/minimized-maximum-of-products-distributed-to-any-store/description/
+        */
+        class Solution {
+        public:
+            int minimizedMaximum(int n, vector<int>& quantities) {
+                long long sum_quantities = 0;
+                int r = 1;
+                for (const int q : quantities) {
+                    r = max(r, q);
+                    sum_quantities += q;
+                }
+                int l = max(sum_quantities / n - 1, 0ll);
+                while (r - l > 1) {
+                    int i = (r + l) / 2;
+                    if (canDistribute(n, i, quantities))
+                        r = i;
+                    else
+                        l = i;
+                }
+                return r;
+            }
+
+
+            bool canDistribute(int n, const int count, const vector<int>& quantities) {
+                for (const int q : quantities)
+                    n -= q / count + (q % count != 0 ? 1 : 0);
+                return n >= 0;
+            }
+        };
+    }
+
+    namespace task_2070 {
+        /*
+        * https://leetcode.com/problems/most-beautiful-item-for-each-query/description/
+        */
+        class Solution {
+        public:
+            vector<int> maximumBeauty(vector<vector<int>>& items, vector<int>& queries) {
+                items.push_back({ 0, 0 });
+                size_t size_i = items.size(), size_q = queries.size();
+                sort(items.begin(), items.end());
+                for (int i = size_i - 1; i > 1; --i)
+                    if (items[i - 1][0] == items[i][0])
+                        items[i - 1][1] == items[i][1];
+                for (size_t i = 2; i < size_i; ++i)
+                    if (items[i][1] < items[i - 1][1])
+                        items[i] = items[i - 1];
+
+                vector<int> answers(size_q);
+                for (size_t i = 0; i < size_q; ++i)
+                    answers[i] = bin_search(items, size_i, queries[i]);
+                return answers;
+            }
+
+
+            int bin_search(const vector<vector<int>>& items, size_t r, int value) {
+                size_t l = 0;
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (items[i][0] > value)
+                        r = i;
+                    else
+                        l = i;
+                }
+                return items[l][1];
+            }
+        };
+    }
+
     namespace task_2074 {
         /*
         * https://leetcode.com/problems/reverse-nodes-in-even-length-groups/
@@ -16192,6 +16405,27 @@ namespace leetcode {
                     start >>= 1;
                 }
                 return count;
+            }
+        };
+    }
+
+    namespace task_2275 {
+        /*
+        * https://leetcode.com/problems/find-if-array-can-be-sorted/description/
+        */
+        class Solution {
+        public:
+            int largestCombination(vector<int>& candidates) {
+                size_t size = candidates.size(), size_bits = 24;
+                vector<int> count_bits(size_bits);
+                for (int n : candidates)
+                    for (size_t i = 0; n > 0; n >>= 1, ++i)
+                        count_bits[i] += n & 1;
+
+                int max_bits = 0;
+                for (int count : count_bits)
+                    max_bits = max(max_bits, count);
+                return max_bits;
             }
         };
     }
@@ -17142,6 +17376,55 @@ namespace leetcode {
         };
     }
 
+    namespace task_2563 {
+        /*
+        * https://leetcode.com/problems/count-the-number-of-fair-pairs/description/
+        */
+        class Solution {
+        public:
+            long long countFairPairs(vector<int>& nums, int lower, int upper) {
+                long long count = 0;
+                int size = nums.size(), to = size - 1, from = size - 1;
+                sort(nums.begin(), nums.end());
+
+                for (int i = 0; i < size; ++i) {
+                    for (; from >= 0 && nums[i] + nums[from] >= lower; --from) {}
+                    for (; to >= 0 && nums[i] + nums[to] > upper; --to) {}
+                    count += to - from;
+                    if (i > from && i <= to)
+                        --count;
+                }
+                return count >> 1;
+            }
+
+            long long countFairPairs_leetcode(vector<int>& nums, int lower, int upper) {
+                sort(nums.begin(), nums.end());
+                return lower_bound(nums, upper + 1) - lower_bound(nums, lower);
+            }
+            // count pairs less upper - count pairs less lower
+
+            long long lower_bound(vector<int>& nums, int value) {
+                int left = 0, right = nums.size() - 1;
+                long long result = 0;
+                while (left < right) {
+                    int sum = nums[left] + nums[right];
+                    // If sum is less than value, add the size of window to result and
+                    // move to the next index.
+                    if (sum < value) {
+                        result += (right - left);
+                        left++;
+                    }
+                    else {
+                        // Otherwise, shift the right pointer backwards, until we get a
+                        // valid window.
+                        right--;
+                    }
+                }
+                return result;
+            }
+        };
+    }
+
     namespace task_2582 {
         /*
         * https://leetcode.com/problems/pass-the-pillow/description/
@@ -17258,6 +17541,60 @@ namespace leetcode {
                 }
                 --count_chosen;
                 return count_subsets;
+            }
+        };
+    }
+
+    namespace task_2601 {
+        /*
+        * https://leetcode.com/problems/prime-subtraction-operation/description/
+        */
+        class Solution {
+        public:
+            const vector<int> prime_numbers{
+                2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+                31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+                73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
+                127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
+                179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
+                233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
+                283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
+                353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
+                419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
+                467, 479, 487, 491, 499, 503, 509, 521, 523, 541,
+                547, 557, 563, 569, 571, 577, 587, 593, 599, 601,
+                607, 613, 617, 619, 631, 641, 643, 647, 653, 659,
+                661, 673, 677, 683, 691, 701, 709, 719, 727, 733,
+                739, 743, 751, 757, 761, 769, 773, 787, 797, 809,
+                811, 821, 823, 827, 829, 839, 853, 857, 859, 863,
+                877, 881, 883, 887, 907, 911, 919, 929, 937, 941,
+                947, 953, 967, 971, 977, 983, 991, 997 };
+
+            bool primeSubOperation(vector<int>& nums) {
+                if (nums[0] > 2)
+                    nums[0] -= bin_search(nums[0]);
+                size_t size = nums.size();
+                for (size_t i = 1; i < size; ++i) {
+                    int dif = nums[i] - nums[i - 1];
+                    if (dif <= 0)
+                        return false;
+                    if (dif > 2)
+                        nums[i] -= bin_search(dif);
+                }
+                return true;
+            }
+
+
+            int bin_search(int value) {
+                size_t l = 0, r = 168;
+                while (r - l > 1) {
+                    size_t i = (r + l) / 2;
+                    if (prime_numbers[i] < value)
+                        l = i;
+                    else
+                        r = i;
+                }
+                return prime_numbers[l];
             }
         };
     }
@@ -18095,6 +18432,23 @@ namespace leetcode {
         };
     }
 
+    namespace task_2914 {
+        /*
+        * https://leetcode.com/problems/minimum-number-of-changes-to-make-binary-string-beautiful/description/
+        */
+        class Solution {
+        public:
+            int minChanges(string s) {
+                size_t size = s.size();
+                int count = 0;
+                for (size_t i = 1; i < size; i += 2)
+                    if (s[i - 1] != s[i])
+                        ++count;
+                return count;
+            }
+        };
+    }
+
     namespace task_2938 {
         /*
         * https://leetcode.com/problems/separate-black-and-white-balls/description/
@@ -18167,44 +18521,39 @@ namespace leetcode {
         };
     }
 
-    namespace task_3068 {
+    namespace task_3011 {
         /*
-        * https://leetcode.com/problems/find-the-maximum-sum-of-node-values/description/
+        * https://leetcode.com/problems/find-if-array-can-be-sorted/description/
         */
         class Solution {
         public:
-            long long maximumValueSum(vector<int>& nums, int k, vector<vector<int>>& edges) {
-                long long sum = 0;
-                long long min_positive = INT32_MAX;
-                long long max_negative = INT32_MAX;
-                int count_negative = 0;
-                long long difference;
+            bool canSortArray(vector<int>& nums) {
+                size_t size = nums.size(), start = 0;
+                int bits = 0, section_bits = countBits(nums[0]);
+                int sec_max = nums[0], prev_sec_max = -1;
+                for (size_t i = 1; i < size; ++i) {
+                    bits = countBits(nums[i]);
+                    if (bits == section_bits) {
 
-                for (const int vertex : nums) {
-                    difference = (vertex ^ k) - vertex;
-                    if (difference > 0) {
-                        max_negative = min(max_negative, difference);
-                        sum += vertex ^ k;
-                        ++count_negative;
+                        sec_max = max(sec_max, nums[i]);
                     }
                     else {
-                        min_positive = min(min_positive, -difference);
-                        sum += vertex;
+                        prev_sec_max = sec_max;
+                        sec_max = nums[i];
+                        section_bits = bits;
                     }
+                    if (nums[i] < prev_sec_max)
+                        return false;
                 }
-
-                if (count_negative & 1)
-                    return min_positive < max_negative ? sum - min_positive : sum - max_negative;
-                return sum;
+                return true;
             }
 
-            vector<vector<size_t>> getAdjacencyList(const vector<vector<int>>& edges, const size_t length) {
-                vector<vector<size_t>> adjacency_list(length);
-                for (size_t i = 0; i < edges.size(); i++) {
-                    adjacency_list[edges[i][0]].push_back(edges[i][1]);
-                    adjacency_list[edges[i][1]].push_back(edges[i][0]);
-                }
-                return adjacency_list;
+            int countBits(int n) {
+                int bits = 0;
+                for (; n > 0; n >>= 1)
+                    if (n & 1)
+                        ++bits;
+                return bits;
             }
         };
     }
@@ -18293,6 +18642,130 @@ namespace leetcode {
         };
     }
 
+    namespace task_3068 {
+        /*
+        * https://leetcode.com/problems/find-the-maximum-sum-of-node-values/description/
+        */
+        class Solution {
+        public:
+            long long maximumValueSum(vector<int>& nums, int k, vector<vector<int>>& edges) {
+                long long sum = 0;
+                long long min_positive = INT32_MAX;
+                long long max_negative = INT32_MAX;
+                int count_negative = 0;
+                long long difference;
+
+                for (const int vertex : nums) {
+                    difference = (vertex ^ k) - vertex;
+                    if (difference > 0) {
+                        max_negative = min(max_negative, difference);
+                        sum += vertex ^ k;
+                        ++count_negative;
+                    }
+                    else {
+                        min_positive = min(min_positive, -difference);
+                        sum += vertex;
+                    }
+                }
+
+                if (count_negative & 1)
+                    return min_positive < max_negative ? sum - min_positive : sum - max_negative;
+                return sum;
+            }
+
+            vector<vector<size_t>> getAdjacencyList(const vector<vector<int>>& edges, const size_t length) {
+                vector<vector<size_t>> adjacency_list(length);
+                for (size_t i = 0; i < edges.size(); i++) {
+                    adjacency_list[edges[i][0]].push_back(edges[i][1]);
+                    adjacency_list[edges[i][1]].push_back(edges[i][0]);
+                }
+                return adjacency_list;
+            }
+        };
+    }
+
+    namespace task_3095 {
+        /*
+        * https://leetcode.com/problems/shortest-subarray-with-or-at-least-k-i/description/
+        */
+        class Solution {
+        public:
+            int minimumSubarrayLength(vector<int>& nums, int k) {
+                int minLength = INT_MAX;
+                int from = 0;
+                int to = 0;
+                vector<int> bitCounts(32);
+
+                while (to < nums.size()) {
+                    updateBitCounts(bitCounts, nums[to], 1);
+                    while (from <= to && convertBitCountsToNumber(bitCounts) >= k) {
+                        minLength = min(minLength, to - from + 1);
+                        updateBitCounts(bitCounts, nums[from], -1);
+                        from++;
+                    }
+                    to++;
+                }
+
+                return minLength == INT_MAX ? -1 : minLength;
+            }
+
+            void updateBitCounts(vector<int>& bitCounts, int number, int delta) {
+                for (int bitPosition = 0; bitPosition < 32; bitPosition++)
+                    if ((number >> bitPosition) & 1)
+                        bitCounts[bitPosition] += delta;
+            }
+
+            int convertBitCountsToNumber(const vector<int>& bitCounts) {
+                int result = 0;
+                for (int bitPosition = 0; bitPosition < 32; bitPosition++)
+                    if (bitCounts[bitPosition] != 0)
+                        result |= 1 << bitPosition;
+                return result;
+            }
+        };
+    }
+
+    namespace task_3097 {
+        /*
+        * https://leetcode.com/problems/shortest-subarray-with-or-at-least-k-ii/description/
+        */
+        class Solution {
+        public:
+            int minimumSubarrayLength(vector<int>& nums, int k) {
+                int minLength = INT_MAX;
+                int from = 0;
+                int to = 0;
+                vector<int> bitCounts(32);
+
+                while (to < nums.size()) {
+                    updateBitCounts(bitCounts, nums[to], 1);
+                    while (from <= to && convertBitCountsToNumber(bitCounts) >= k) {
+                        minLength = min(minLength, to - from + 1);
+                        updateBitCounts(bitCounts, nums[from], -1);
+                        from++;
+                    }
+                    to++;
+                }
+
+                return minLength == INT_MAX ? -1 : minLength;
+            }
+
+            void updateBitCounts(vector<int>& bitCounts, int number, int delta) {
+                for (int bitPosition = 0; bitPosition < 32; bitPosition++)
+                    if ((number >> bitPosition) & 1)
+                        bitCounts[bitPosition] += delta;
+            }
+
+            int convertBitCountsToNumber(const vector<int>& bitCounts) {
+                int result = 0;
+                for (int bitPosition = 0; bitPosition < 32; bitPosition++)
+                    if (bitCounts[bitPosition] != 0)
+                        result |= 1 << bitPosition;
+                return result;
+            }
+        };
+    }
+
     namespace task_3100 {
         /*
         * https://leetcode.com/problems/water-bottles-ii/
@@ -18326,6 +18799,26 @@ namespace leetcode {
         };
     }
 
+    namespace task_3133 {
+        /*
+        * https://leetcode.com/problems/minimum-array-end/description/
+        */
+        class Solution {
+        public:
+            long long minEnd(int n, int x) {
+                --n;
+                long long answer = x, bit = 1;
+                for (; n > 0; n >>= 1, bit <<= 1) {
+                    while (bit & answer)
+                        bit <<= 1;
+                    if (n & 1)
+                        answer |= bit;
+                }
+                return answer;
+            }
+        };
+    }
+
     namespace task_3158 {
         /*
         * https://leetcode.com/problems/find-the-xor-of-numbers-which-appear-twice/description/
@@ -18338,6 +18831,27 @@ namespace leetcode {
                 for (size_t i = 1; i < nums.size(); i++)
                     if (nums[i] == nums[i - 1])
                         res ^= nums[i];
+                return res;
+            }
+        };
+    }
+
+    namespace task_3163 {
+        /*
+        * https://leetcode.com/problems/string-compression-iii/description/
+        */
+        class Solution {
+        public:
+            string compressedString(string word) {
+                size_t size = word.size();
+                string res;
+                for (size_t i = 0; i < size; ++i) {
+                    size_t j = 1;
+                    for (; i + j < size && j < 9 && word[i] == word[i + j]; ++j) {}
+                    res.push_back('0' + j);
+                    res.push_back(word[i]);
+                    i += j - 1;
+                }
                 return res;
             }
         };
@@ -18390,6 +18904,34 @@ namespace leetcode {
                 head = guard->next;
                 delete guard;
                 return head;
+            }
+        };
+    }
+
+    namespace task_3254 {
+        /*
+        * https://leetcode.com/problems/find-the-power-of-k-size-subarrays-i/description/
+        */
+        class Solution {
+        public:
+            vector<int> resultsArray_leetcode(vector<int>& nums, int k) {
+                if (k == 1)
+                    return nums;
+
+                size_t length = nums.size();
+                vector<int> result(length - k + 1, -1);
+                int consecutiveCount = 1;
+
+                for (size_t i = 0; i < length - 1; i++) {
+                    if (nums[i] + 1 == nums[i + 1])
+                        consecutiveCount++;
+                    else
+                        consecutiveCount = 1;
+                    if (consecutiveCount >= k)
+                        result[i - k + 2] = nums[i + 1];
+                }
+
+                return result;
             }
         };
     }
