@@ -10088,6 +10088,67 @@ namespace leetcode {
         };
     }
 
+    namespace task_773 {
+        /*
+        * https://leetcode.com/problems/sliding-puzzle/description/
+        */
+        class Solution {
+        public:
+            int slidingPuzzle__leetcode(vector<vector<int>>& board) {
+                // Direction map for zero's possible moves in a 1D representation of the
+                // 2x3 board
+                vector<vector<int>> directions = { {1, 3}, {0, 2, 4}, {1, 5},
+                                                  {0, 4}, {1, 3, 5}, {2, 4} };
+
+                string target = "123450";
+                string startState;
+
+                // Convert the 2D board into a string representation
+                for (int i = 0; i < board.size(); i++) {
+                    for (int j = 0; j < board[0].size(); j++) {
+                        startState += to_string(board[i][j]);
+                    }
+                }
+
+                unordered_set<string> visited;  // To store visited states
+                queue<string> queue;
+                queue.push(startState);
+                visited.insert(startState);
+
+                int moves = 0;
+
+                // BFS to find the minimum number of moves
+                while (!queue.empty()) {
+                    int size = queue.size();
+                    while (size-- > 0) {
+                        string currentState = queue.front();
+                        queue.pop();
+
+                        // Check if we reached the target solved state
+                        if (currentState == target) {
+                            return moves;
+                        }
+
+                        int zeroPos = currentState.find('0');
+                        for (int newPos : directions[zeroPos]) {
+                            string nextState = currentState;
+                            swap(nextState[zeroPos], nextState[newPos]);
+
+                            // Skip if this state has been visited
+                            if (visited.count(nextState)) continue;
+
+                            // Mark the new state as visited and add it to the queue
+                            visited.insert(nextState);
+                            queue.push(nextState);
+                        }
+                    }
+                    moves++;
+                }
+                return -1;
+            }
+        };
+    }
+
     namespace task_787 {
         /*
         * https://leetcode.com/problems/cheapest-flights-within-k-stops/description/
@@ -11956,6 +12017,34 @@ namespace leetcode {
                     score_max = max(score_max, score_before + score_window + score_after);
                 }
                 return score_max;
+            }
+        };
+    }
+
+    namespace task_1072 {
+        /*
+        * https://leetcode.com/problems/flip-columns-for-maximum-number-of-equal-rows/description/
+        */
+        class Solution {
+        public:
+            int maxEqualRowsAfterFlips__leetcode(vector<vector<int>>& matrix) {
+                unordered_map<string, int> patternFrequency;
+
+                for (auto& currentRow : matrix) {
+                    string patternBuilder = "";
+                    for (int col = 0; col < currentRow.size(); col++) {
+                        if (currentRow[0] == currentRow[col])
+                            patternBuilder += "T";
+                        else
+                            patternBuilder += "F";
+                    }
+                    patternFrequency[patternBuilder]++;
+                }
+                int maxFrequency = 0;
+                for (auto& entry : patternFrequency)
+                    maxFrequency = max(entry.second, maxFrequency);
+
+                return maxFrequency;
             }
         };
     }
@@ -14644,6 +14733,37 @@ namespace leetcode {
         };
     }
 
+    namespace task_1652 {
+        /*
+        * https://leetcode.com/problems/defuse-the-bomb/description/
+        */
+        class Solution {
+        public:
+            vector<int> decrypt(vector<int>& code, int k) {
+                int size = code.size();
+                if (k == 0) {
+                    for (int i = 0; i < size; ++i)
+                        code[i] = 0;
+                    return code;
+                }
+                vector<int>decode(size);
+                int dir = k > 0 ? 1 : -1, from = k > 0 ? 1 : size - 1, sum = 0, pos = dir;
+                for (; pos != k; pos += dir)
+                    sum += code[(pos + size) % size];
+                sum += code[(pos + size) % size];
+                decode[0] = sum;
+                for (int i = 1; i < size; ++i) {
+                    pos = (pos + dir + size) % size;
+                    sum += code[pos] - code[from];
+                    decode[from] = sum;
+                    from += dir;
+                }
+
+                return decode;
+            }
+        };
+    }
+
     namespace task_1653 {
         /*
         * https://leetcode.com/problems/minimum-deletions-to-make-string-balanced/description/
@@ -15199,6 +15319,41 @@ namespace leetcode {
         };
     }
 
+    namespace task_1861 {
+        /*
+        * https://leetcode.com/problems/rotating-the-box/description/
+        */
+        class Solution {
+        public:
+            vector<vector<char>> rotateTheBox(vector<vector<char>>& box) {
+                size_t m = box.size(), n = box[0].size();
+                vector<vector<char>> reversed(n, vector<char>(m));
+                for (size_t i = 0; i < m; ++i)
+                    for (size_t j = 0; j < n; ++j)
+                        reversed[j][m - i - 1] = box[i][j];
+
+                for (size_t c = 0; c < m; ++c) {
+                    int bottom = n - 1;
+                    for (int i = bottom; i > -1; --i) {
+                        if (reversed[i][c] == '.')
+                            continue;
+                        if (reversed[i][c] == '#') {
+                            if (bottom != i) {
+                                reversed[bottom][c] = '#';
+                                reversed[i][c] = '.';
+                            }
+                            --bottom;
+                        }
+                        else
+                            bottom = i - 1;
+                    }
+                }
+
+                return reversed;
+            }
+        };
+    }
+
     namespace task_1863 {
         /*
         * https://leetcode.com/problems/sum-of-all-subset-xor-totals/description/
@@ -15638,6 +15793,37 @@ namespace leetcode {
                         l = i;
                 }
                 return r;
+            }
+        };
+    }
+
+    namespace task_1975 {
+        /*
+        * https://leetcode.com/problems/maximum-matrix-sum/description/
+        */
+        class Solution {
+        public:
+            long long maxMatrixSum__leetcode(vector<vector<int>>& matrix) {
+                long long totalSum = 0;
+                int minAbsVal = INT_MAX;
+                int negativeCount = 0;
+
+                for (auto& row : matrix) {
+                    for (int val : row) {
+                        totalSum += abs(val);
+                        if (val < 0) {
+                            negativeCount++;
+                        }
+                        minAbsVal = min(minAbsVal, abs(val));
+                    }
+                }
+
+                // Adjust if the count of negative numbers is odd
+                if (negativeCount % 2 != 0) {
+                    totalSum -= 2 * minAbsVal;
+                }
+
+                return totalSum;
             }
         };
     }
@@ -16409,6 +16595,40 @@ namespace leetcode {
         };
     }
 
+    namespace task_2257 {
+        /*
+        * https://leetcode.com/problems/defuse-the-bomb/description/
+        */
+        class Solution {
+        public:
+            int countUnguarded(int m, int n, vector<vector<int>>& guards, vector<vector<int>>& walls) {
+                vector<vector<int>> map(m, vector<int>(n)); // 1 - wall, 2 - gurd horiz, 4 - guard vertical
+                for (const vector<int>& wall : walls)
+                    map[wall[0]][wall[1]] = 1;
+
+                for (const vector<int>& guard : guards) {
+                    int x = guard[0], y = guard[1];
+                    map[x][y] |= 6;
+                    for (int j = y + 1; j < n && (map[x][j] & 3) == 0; ++j)
+                        map[x][j] |= 2;
+                    for (int j = y - 1; j > -1 && (map[x][j] & 3) == 0; --j)
+                        map[x][j] |= 2;
+                    for (int i = x + 1; i < m && (map[i][y] & 5) == 0; ++i)
+                        map[i][y] |= 4;
+                    for (int i = x - 1; i > -1 && (map[i][y] & 5) == 0; --i)
+                        map[i][y] |= 4;
+                }
+
+                int count = 0;
+                for (const vector<int>& row : map)
+                    for (const int value : row)
+                        if (value == 0)
+                            ++count;
+                return count;
+            }
+        };
+    }
+
     namespace task_2275 {
         /*
         * https://leetcode.com/problems/find-if-array-can-be-sorted/description/
@@ -17058,6 +17278,39 @@ namespace leetcode {
         };
     }
 
+    namespace task_2461 {
+        /*
+        * https://leetcode.com/problems/maximum-sum-of-distinct-subarrays-with-length-k/description/
+        */
+        class Solution {
+        public:
+            long long maximumSubarraySum(vector<int>& nums, int k) {
+                int size = nums.size();
+                long long sum = 0, max_sum = 0;
+                unordered_map<int, int> set;
+                for (int i = 0; i < k; ++i) {
+                    sum += nums[i];
+                    ++set[nums[i]];
+                }
+                if (set.size() == k)
+                    max_sum = sum;
+
+                for (int i = k; i < size; ++i) {
+                    sum += nums[i] - nums[i - k];
+                    ++set[nums[i]];
+                    auto it = set.find(nums[i - k]);
+                    --it->second;
+                    if (it->second == 0)
+                        set.erase(it);
+                    if (set.size() == k)
+                        max_sum = max(sum, max_sum);
+                }
+
+                return max_sum;
+            }
+        };
+    }
+
     namespace task_2463 {
         /*
         * https://leetcode.com/problems/minimum-total-distance-traveled/description/
@@ -17297,6 +17550,41 @@ namespace leetcode {
                         max_len = max(max_len, len);
                 }
                 return max_len;
+            }
+        };
+    }
+
+    namespace task_2516 {
+        /*
+        * https://leetcode.com/problems/take-k-of-each-character-from-left-and-right/description/
+        */
+        class Solution {
+        public:
+            int takeCharacters(string s, int k) {
+                if (k == 0)
+                    return 0;
+                vector<int> letters(3);
+                int size = s.size(), left = 0, right = size - 1, count_full = 0;
+                for (; left < size && count_full != 3; ++left)
+                    if (++letters[s[left] - 'a'] == k)
+                        ++count_full;
+                if (count_full != 3)
+                    return -1;
+                int min_letters = left;
+                --left;
+
+                while (left != -1) {
+                    for (; left != -1 && count_full == 3; --left)
+                        if (--letters[s[left] - 'a'] < k)
+                            --count_full;
+
+                    min_letters = min(min_letters, left + 1 + size - right);
+
+                    for (; count_full != 3; --right)
+                        if (++letters[s[right] - 'a'] == k)
+                            ++count_full;
+                }
+                return min(min_letters, left + size - right);
             }
         };
     }
@@ -18445,6 +18733,26 @@ namespace leetcode {
                     if (s[i - 1] != s[i])
                         ++count;
                 return count;
+            }
+        };
+    }
+
+    namespace task_2924 {
+        /*
+        * https://leetcode.com/problems/find-champion-ii/description/
+        */
+        class Solution {
+        public:
+            int findChampion(int n, vector<vector<int>>& edges) {
+                vector<int> champions(n, 1);
+                for (const vector<int >& edge : edges)
+                    champions[edge[1]] = 0;
+                int i = 0;
+                for (; i < n && champions[i] == 0; ++i) {}
+                int champion = i;
+                ++i;
+                for (; i < n && champions[i] == 0; ++i) {}
+                return i == n ? champion : -1;
             }
         };
     }
