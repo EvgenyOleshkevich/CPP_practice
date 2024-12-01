@@ -13134,6 +13134,23 @@ namespace leetcode {
         };
     }
 
+    namespace task_1346 {
+        /*
+        * https://leetcode.com/problems/check-if-n-and-its-double-exist/description/
+        */
+        class Solution {
+        public:
+            bool checkIfExist(vector<int>& arr) {
+                size_t size = arr.size();
+                for (size_t i = 0; i < size - 1; ++i)
+                    for (size_t j = i + 1; j < size; ++j)
+                        if ((arr[i] << 1) == arr[j] || (arr[j] << 1) == arr[i])
+                            return true;
+                return false;
+            }
+        };
+    }
+
     namespace task_1351 {
         /*
         * https://leetcode.com/problems/count-negative-numbers-in-a-sorted-matrix/description/
@@ -16284,6 +16301,74 @@ namespace leetcode {
         };
     }
 
+    namespace task_2097 {
+        /*
+        * https://leetcode.com/problems/valid-arrangement-of-pairs/description/
+        */
+        class Solution {
+        public:
+            vector<vector<int>> validArrangement__leetcode(vector<vector<int>>& pairs) {
+                unordered_map<int, deque<int>> adjacencyMatrix;
+                unordered_map<int, int> inDegree, outDegree;
+
+                // Build the adjacency list and track in-degrees and out-degrees
+                for (const auto& pair : pairs) {
+                    int start = pair[0], end = pair[1];
+                    adjacencyMatrix[start].push_back(end);
+                    outDegree[start]++;
+                    inDegree[end]++;
+                }
+
+                vector<int> result;
+
+                // Find the start node (outDegree == inDegree + 1)
+                int startNode = -1;
+                for (const auto& entry : outDegree) {
+                    int node = entry.first;
+                    if (outDegree[node] == inDegree[node] + 1) {
+                        startNode = node;
+                        break;
+                    }
+                }
+
+                // If no such node exists, start from the first pair's first element
+                if (startNode == -1) {
+                    startNode = pairs[0][0];
+                }
+
+                stack<int> nodeStack;
+                nodeStack.push(startNode);
+
+                // Iterative DFS using stack
+                while (!nodeStack.empty()) {
+                    int node = nodeStack.top();
+                    if (!adjacencyMatrix[node].empty()) {
+                        // Visit the next node
+                        int nextNode = adjacencyMatrix[node].front();
+                        adjacencyMatrix[node].pop_front();
+                        nodeStack.push(nextNode);
+                    }
+                    else {
+                        // No more neighbors to visit, add node to result
+                        result.push_back(node);
+                        nodeStack.pop();
+                    }
+                }
+
+                // Reverse the result since we collected nodes in reverse order
+                reverse(result.begin(), result.end());
+
+                // Construct the result pairs
+                vector<vector<int>> pairedResult;
+                for (int i = 1; i < result.size(); ++i) {
+                    pairedResult.push_back({ result[i - 1], result[i] });
+                }
+
+                return pairedResult;
+            }
+        };
+    }
+
     namespace task_2116 {
         /*
         * https://leetcode.com/problems/check-if-a-parentheses-string-can-be-valid/description/
@@ -16667,6 +16752,175 @@ namespace leetcode {
                 for (long long i = 0; i < n; ++i)
                     res += (i + 1) * degree[i];
                 return res;
+            }
+        };
+    }
+
+    namespace task_2290 {
+        /*
+        * https://leetcode.com/problems/minimum-obstacle-removal-to-reach-corner/description/
+        */
+        class Solution {
+        public:
+            size_t m, n;
+
+            int minimumObstacles(vector<vector<int>>& grid) {
+                m = grid.size(), n = grid[0].size();
+                vector<unordered_set<int>> adjacency_void(2);
+                for (size_t i = 0; i < m; ++i)
+                    for (size_t j = 0; j < n; ++j)
+                        if (grid[i][j] == 0) {
+                            adjacency_void.push_back(unordered_set<int>());
+                            feel_void(grid, adjacency_void.back(), adjacency_void.size() - 1, i, j);
+                        }
+
+                if (grid[m - 1][n - 1] == 2)
+                    return 0;
+
+                vector<int> visited_vertex(m * n);
+                vector<int> visited_void(adjacency_void.size());
+                visited_void[2] = 1;
+                int length = 1, goal = grid[m - 1][n - 1];
+                queue<int> q;
+                for (int vertex : adjacency_void[2]) {
+                    visited_vertex[vertex] = 1;
+                    q.push(vertex);
+                }
+
+                while (true) {
+                    size_t size = q.size();
+                    for (size_t k = 0; k < size; ++k)
+                    {
+                        int vertex = q.front(), neighbour;
+                        q.pop();
+                        size_t i = vertex / n, j = vertex % n;
+
+                        if (i + 1 < m) {
+                            neighbour = (i + 1) * n + j;
+                            if (grid[i + 1][j] == 1 && visited_vertex[neighbour] == 0) {
+                                visited_vertex[neighbour] = 1;
+                                q.push(neighbour);
+                            }
+                            else if (visited_void[grid[i + 1][j]] == 0) {
+                                visited_void[grid[i + 1][j]] = 1;
+                                if (grid[i + 1][j] == goal)
+                                    return length;
+                                for (int vertex : adjacency_void[grid[i + 1][j]]) {
+                                    if (visited_vertex[vertex] == 0) {
+                                        visited_vertex[vertex] = 1;
+                                        q.push(vertex);
+                                    }
+                                }
+                            }
+                        }
+                        if (i > 0) {
+                            neighbour = (i - 1) * n + j;
+                            if (grid[i - 1][j] == 1 && visited_vertex[neighbour] == 0) {
+                                visited_vertex[neighbour] = 1;
+                                q.push(neighbour);
+                            }
+                            else if (visited_void[grid[i - 1][j]] == 0) {
+                                visited_void[grid[i - 1][j]] = 1;
+                                if (grid[i - 1][j] == goal)
+                                    return length;
+                                for (int vertex : adjacency_void[grid[i - 1][j]]) {
+                                    if (visited_vertex[vertex] == 0) {
+                                        visited_vertex[vertex] = 1;
+                                        q.push(vertex);
+                                    }
+                                }
+                            }
+                        }
+                        if (j + 1 < n) {
+                            neighbour = i * n + j + 1;
+                            if (grid[i][j + 1] == 1 && visited_vertex[neighbour] == 0) {
+                                visited_vertex[neighbour] = 1;
+                                q.push(neighbour);
+                            }
+                            else if (visited_void[grid[i][j + 1]] == 0) {
+                                visited_void[grid[i][j + 1]] = 1;
+                                if (grid[i][j + 1] == goal)
+                                    return length;
+                                for (int vertex : adjacency_void[grid[i][j + 1]]) {
+                                    if (visited_vertex[vertex] == 0) {
+                                        visited_vertex[vertex] = 1;
+                                        q.push(vertex);
+                                    }
+                                }
+                            }
+                        }
+                        if (j > 0) {
+                            neighbour = i * n + j - 1;
+                            if (grid[i][j - 1] == 1 && visited_vertex[neighbour] == 0) {
+                                visited_vertex[neighbour] = 1;
+                                q.push(neighbour);
+                            }
+                            else if (visited_void[grid[i][j - 1]] == 0) {
+                                visited_void[grid[i][j - 1]] = 1;
+                                if (grid[i][j - 1] == goal)
+                                    return length;
+                                for (int vertex : adjacency_void[grid[i][j - 1]]) {
+                                    if (visited_vertex[vertex] == 0) {
+                                        visited_vertex[vertex] = 1;
+                                        q.push(vertex);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ++length;
+                }
+                return 0;
+            }
+
+            void feel_void(vector<vector<int>>& grid,
+                unordered_set<int>& voids,
+                const int number,
+                size_t i, size_t j) {
+                grid[i][j] = number;
+                queue<pair<size_t, size_t>> q;
+                q.push({ i, j });
+                while (!q.empty()) {
+                    i = q.front().first;
+                    j = q.front().second;
+                    q.pop();
+                    if (i + 1 < m) {
+                        if (grid[i + 1][j] == 0) {
+                            grid[i + 1][j] = number;
+                            q.push({ i + 1, j });
+                        }
+                        else if (grid[i + 1][j] == 1) {
+                            voids.insert((i + 1) * n + j);
+                        }
+                    }
+                    if (i > 0) {
+                        if (grid[i - 1][j] == 0) {
+                            grid[i - 1][j] = number;
+                            q.push({ i - 1, j });
+                        }
+                        else if (grid[i - 1][j] == 1) {
+                            voids.insert((i - 1) * n + j);
+                        }
+                    }
+                    if (j + 1 < n) {
+                        if (grid[i][j + 1] == 0) {
+                            grid[i][j + 1] = number;
+                            q.push({ i, j + 1 });
+                        }
+                        else if (grid[i][j + 1] == 1) {
+                            voids.insert(i * n + j + 1);
+                        }
+                    }
+                    if (j > 0) {
+                        if (grid[i][j - 1] == 0) {
+                            grid[i][j - 1] = number;
+                            q.push({ i, j - 1 });
+                        }
+                        else if (grid[i][j - 1] == 1) {
+                            voids.insert(i * n + j - 1);
+                        }
+                    }
+                }
             }
         };
     }
@@ -17709,6 +17963,64 @@ namespace leetcode {
                     }
                 }
                 return result;
+            }
+        };
+    }
+
+    namespace task_2577 {
+        /*
+        * https://leetcode.com/problems/minimum-time-to-visit-a-cell-in-a-grid/description/
+        */
+        class Solution {
+        public:
+            int minimumTime__leetcode(vector<vector<int>>& grid) {
+                if (grid[0][1] > 1 && grid[1][0] > 1)
+                    return -1;
+
+                int rows = grid.size(), cols = grid[0].size();
+                // Possible movements: down, up, right, left
+                vector<vector<int>> directions = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+                vector<vector<bool>> visited(rows, vector<bool>(cols, false));
+
+                // Priority queue stores {time, row, col}
+                // Ordered by minimum time to reach each cell
+                priority_queue<vector<int>, vector<vector<int>>, greater<>> pq;
+                pq.push({ grid[0][0], 0, 0 });
+
+                while (!pq.empty()) {
+                    auto curr = pq.top();
+                    pq.pop();
+                    int time = curr[0], row = curr[1], col = curr[2];
+
+                    // Check if reached target
+                    if (row == rows - 1 && col == cols - 1)
+                        return time;
+
+                    // Skip if cell already visited
+                    if (visited[row][col])
+                        continue;
+                    visited[row][col] = true;
+
+                    // Try all four directions
+                    for (auto& d : directions) {
+                        int nextRow = row + d[0], nextCol = col + d[1];
+                        if (!isValid(visited, nextRow, nextCol))
+                            continue;
+
+                        // Calculate the wait time needed to move to next cell
+                        int waitTime =
+                            ((grid[nextRow][nextCol] - time) % 2 == 0) ? 1 : 0;
+                        int nextTime = max(grid[nextRow][nextCol] + waitTime, time + 1);
+                        pq.push({ nextTime, nextRow, nextCol });
+                    }
+                }
+                return -1;
+            }
+
+            // Checks if given cell coordinates are valid and unvisited
+            bool isValid(vector<vector<bool>>& visited, int row, int col) {
+                return row >= 0 && col >= 0 && row < visited.size() &&
+                    col < visited[0].size() && !visited[row][col];
             }
         };
     }
@@ -19212,6 +19524,53 @@ namespace leetcode {
                 head = guard->next;
                 delete guard;
                 return head;
+            }
+        };
+    }
+
+    namespace task_3243 {
+        /*
+        * https://leetcode.com/problems/shortest-distance-after-road-addition-queries-i/description/
+        */
+        class Solution {
+        public:
+            vector<int> shortestDistanceAfterQueries(int n, vector<vector<int>>& queries) {
+                vector<int> res;
+                vector<vector<int>> adjacency_list(n);
+                vector<char> visited(n);
+                for (int i = 0; i < n - 1; ++i)
+                    adjacency_list[i].push_back(i + 1);
+
+                for (const vector<int>& query : queries) {
+                    adjacency_list[query[0]].push_back(query[1]);
+                    for (int i = 1; i < n; ++i)
+                        visited[i] = 1;
+
+                    int length = 0;
+                    bool not_found = true;
+                    queue<int> queue;
+                    queue.push(0);
+                    while (not_found) {
+                        size_t size = queue.size();
+                        for (size_t i = 0; i < size && not_found; ++i) {
+                            int v = queue.front();
+                            queue.pop();
+                            for (const int neighbour : adjacency_list[v]) {
+                                if (visited[neighbour]) {
+                                    visited[neighbour] = 0;
+                                    if (neighbour == n - 1) {
+                                        not_found = false;
+                                        break;
+                                    }
+                                    queue.push(neighbour);
+                                }
+                            }
+                        }
+                        ++length;
+                    }
+                    res.push_back(length);
+                }
+                return res;
             }
         };
     }
