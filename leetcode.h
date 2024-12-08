@@ -4621,6 +4621,33 @@ namespace leetcode {
         };
     }
 
+    namespace task_125 {
+        /*
+        * https://leetcode.com/problems/valid-palindrome/description/
+        */
+        class Solution {
+        public:
+            bool isPalindrome(string s) {
+                string converted;
+                for (const char c : s) {
+                    if (c >= 'a' && c <= 'z' || c >= '0' && c <= '9')
+                        converted.push_back(c);
+                    else if (c >= 'A' && c <= 'Z')
+                        converted.push_back(c + 32);
+                }
+                return isPalindromeConverted(converted);
+            }
+
+            bool isPalindromeConverted(const string& s) {
+                size_t size = s.size(), mid = size >> 1;
+                for (size_t i = 0; i < mid; i++)
+                    if (s[i] != s[size - i - 1])
+                        return false;
+                return true;
+            }
+        };
+    }
+
     namespace task_131 {
         /*
         * https://leetcode.com/problems/palindrome-partitioning/description/
@@ -4992,6 +5019,34 @@ namespace leetcode {
         };
     }
 
+    namespace task_144 {
+        /*
+        * https://leetcode.com/problems/binary-tree-postorder-traversal/
+        */
+        class Solution {
+        public:
+            vector<int> preorderTraversal(TreeNode* root) {
+                vector<int> res;
+                if (!root)
+                    return res;
+
+                stack<TreeNode*> stack;
+                stack.push(root);
+
+                while (!stack.empty()) {
+                    root = stack.top();
+                    stack.pop();
+                    res.push_back(root->val);
+                    if (root->right)
+                        stack.push(root->right);
+                    if (root->left)
+                        stack.push(root->left);
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_145 {
         /*
         * https://leetcode.com/problems/binary-tree-postorder-traversal/
@@ -5284,6 +5339,89 @@ namespace leetcode {
         };
     }
 
+    namespace task_168 {
+        /*
+        * https://leetcode.com/problems/excel-sheet-column-title/description/
+        */
+        class Solution {
+        public:
+            string convertToTitle(int columnNumber) {
+                string res;
+                while (columnNumber > 0) {
+                    res.push_back('A' + (columnNumber - 1) % 26);
+                    columnNumber = (columnNumber - 1) / 26;
+                }
+                reverse(res.begin(), res.end());
+                return res;
+            }
+        };
+    }
+
+    namespace task_169 {
+        /*
+        * https://leetcode.com/problems/majority-element/description/
+        */
+        class Solution {
+        public:
+            int majorityElement(vector<int>& nums) {
+                int size = nums.size(), from = 0, to = size - 1, less = from, more = to;
+                while (true) {
+                    int middle = nums[from];
+                    for (int i = from + 1; i <= more; ) {
+                        if (middle < nums[i]) {
+                            swap(nums[i], nums[more]);
+                            --more;
+                        }
+                        else {
+                            if (middle > nums[i]) {
+                                swap(nums[i], nums[less]);
+                                ++less;
+                            }
+                            ++i;
+                        }
+                    }
+                    if ((more - less + 1) * 2 >= size)
+                        return middle;
+                    if (less - from > to - more)
+                        to = less - 1;
+                    else
+                        from = more + 1;
+                    more = to;
+                    less = from;
+                }
+                return nums[from];
+            }
+
+            int majorityElement__faster(vector<int>& nums) {
+                int res = 0, majority = 0;
+
+                for (int n : nums) {
+                    if (majority == 0)
+                        res = n;
+                    majority += n == res ? 1 : -1;
+                }
+
+                return res;
+            }
+        };
+    }
+
+    namespace task_171 {
+        /*
+        * https://leetcode.com/problems/excel-sheet-column-number/description/
+        */
+        class Solution {
+        public:
+            int titleToNumber(string columnTitle) {
+                size_t size = columnTitle.size();
+                int res = 0;
+                for (size_t i = 0; i < size; ++i)
+                    res = res * 26 + (columnTitle[i] - 'A' + 1);
+                return res;
+            }
+        };
+    }
+
     namespace task_179 {
         /*
         * https://leetcode.com/problems/largest-number/description/
@@ -5402,6 +5540,47 @@ namespace leetcode {
         };
     }
 
+    namespace task_190 {
+        /*
+        * https://leetcode.com/problems/reverse-bits/description/
+        */
+        class Solution {
+        public:
+            uint32_t reverseBits(uint32_t n) {
+                uint32_t reversed = 0;
+                for (int i = 0; i < 32; ++i)
+                    reversed += (((1 << i) & n) >> i) << (31 - i);
+                return reversed;
+            }
+
+            uint32_t reverseBits_fats(uint32_t n) {
+                n = ((n & 0xffff0000) >> 16) | ((n & 0x0000ffff) << 16);
+                n = ((n & 0xff00ff00) >> 8) | ((n & 0x00ff00ff) << 8);
+                n = ((n & 0xf0f0f0f0) >> 4) | ((n & 0x0f0f0f0f) << 4);
+                n = ((n & 0xcccccccc) >> 2) | ((n & 0x33333333) << 2);
+                n = ((n & 0xaaaaaaaa) >> 1) | ((n & 0x55555555) << 1);
+                return n;
+
+            }
+        };
+    }
+
+    namespace task_191 {
+        /*
+        * https://leetcode.com/problems/number-of-1-bits/description/
+        */
+        class Solution {
+        public:
+            int hammingWeight(int n) {
+                int count = 0;
+                for (; n != 0; n >>= 1)
+                    if (n & 1)
+                        ++count;
+                return count;
+            }
+        };
+    }
+
     namespace task_198 {
         /*
         * https://leetcode.com/problems/house-robber/description/
@@ -5455,6 +5634,27 @@ namespace leetcode {
         };
     }
 
+    namespace task_202 {
+        /*
+        * https://leetcode.com/problems/happy-number/description/
+        */
+        class Solution {
+        public:
+            bool isHappy(int n) {
+                int sum = 0;
+                unordered_set<int> set;
+                while (!set.contains(n) && n != 1) {
+                    set.insert(n);
+                    sum = 0;
+                    for (; n > 0; n /= 10)
+                        sum += (n % 10) * (n % 10);
+                    n = sum;
+                }
+                return n == 1;
+            }
+        };
+    }
+
     namespace task_203 {
         /*
         * https://leetcode.com/problems/remove-linked-list-elements/
@@ -5479,6 +5679,28 @@ namespace leetcode {
                 head = guard->next;
                 delete guard;
                 return head;
+            }
+        };
+    }
+
+    namespace task_205 {
+        /*
+        * https://leetcode.com/problems/isomorphic-strings/description/
+        */
+        class Solution {
+        public:
+            bool isIsomorphic__copied(string s, string t) {
+                int s_array[256] = { 0 };
+                int t_array[256] = { 0 };
+                int n = s.size();
+
+                for (int i = 0; i < n; ++i) {
+                    if (s_array[s[i]] != t_array[t[i]])
+                        return false;
+                    s_array[s[i]] = i + 1;
+                    t_array[t[i]] = i + 1;
+                }
+                return true;
             }
         };
     }
@@ -5618,6 +5840,68 @@ namespace leetcode {
         };
     }
 
+    namespace task_217 {
+        /*
+        * https://leetcode.com/problems/contains-duplicate/
+        */
+        class Solution {
+        public:
+            bool containsDuplicate(vector<int>& nums) {
+                unordered_set<int> set;
+                for (int n : nums) {
+                    if (set.contains(n))
+                        return true;
+                    set.insert(n);
+                }
+                return false;
+            }
+        };
+    }
+
+    namespace task_219 {
+        /*
+        * https://leetcode.com/problems/contains-duplicate-ii/
+        */
+        class Solution {
+        public:
+            bool containsNearbyDuplicate(vector<int>& nums, int k) {
+                if (k == 0)
+                    return false;
+                int size = nums.size(), i = 0;
+                if (k >= size)
+                    return containsDuplicate(nums);
+                unordered_set<int> set;
+                vector<int> queue(k);
+                int front = 0;
+                for (; i < k; ++i) {
+                    if (set.contains(nums[i]))
+                        return true;
+                    queue[i] = nums[i];
+                    set.insert(nums[i]);
+                }
+                for (; i < size; ++i) {
+                    if (set.contains(nums[i]))
+                        return true;
+                    set.erase(queue[front]);
+                    queue[front] = nums[i];
+                    front = (front + 1) % k;
+                    set.insert(nums[i]);
+                }
+                return false;
+            }
+
+            bool containsDuplicate(vector<int>& nums) {
+                unordered_set<int> set;
+                for (int n : nums) {
+                    if (set.contains(n))
+                        return true;
+                    set.insert(n);
+                }
+                return false;
+            }
+        };
+    }
+
     namespace task_221 {
         /*
         * https://leetcode.com/problems/maximal-square/description/
@@ -5644,6 +5928,99 @@ namespace leetcode {
                         if (max_size < square_matrix[i][j])
                             max_size = square_matrix[i][j];
                 return max_size * max_size;
+            }
+        };
+    }
+
+    namespace task_229 {
+        /*
+        * https://leetcode.com/problems/majority-element-ii/description/
+        */
+        class Solution {
+        public:
+            vector<int> res;
+            int size;
+
+            vector<int> majorityElement(vector<int>& nums) {
+                size = nums.size();
+                int from = 0, to = size - 1, less = from, more = to;
+                res = vector<int>();
+                majorityElementReq(nums, 0, size - 1);
+                return res;
+            }
+
+            void majorityElementReq(vector<int>& nums, const int from, const int to) {
+                int middle = nums[from], less = from, more = to;
+                for (int i = from + 1; i <= more; ) {
+                    if (middle < nums[i]) {
+                        swap(nums[i], nums[more]);
+                        --more;
+                    }
+                    else {
+                        if (middle > nums[i]) {
+                            swap(nums[i], nums[less]);
+                            ++less;
+                        }
+                        ++i;
+                    }
+                }
+                if ((more - less + 1) * 3 > size)
+                    res.push_back(middle);
+                if ((less - from) * 3 > size)
+                    majorityElementReq(nums, from, less - 1);
+                if ((to - more) * 3 > size)
+                    majorityElementReq(nums, more + 1, to);
+            }
+
+            vector<int> majorityElement__faster(vector<int>& nums) {
+                int count1 = 0, count2 = 0; // Counters for the potential majority elements
+                int candidate1 = 0, candidate2 = 0; // Potential majority element candidates
+
+                // First pass to find potential majority elements.
+                for (int i = 0; i < nums.size(); i++) {
+                    // If count1 is 0 and the current number is not equal to candidate2, update candidate1.
+                    if (count1 == 0 && nums[i] != candidate2) {
+                        count1 = 1;
+                        candidate1 = nums[i];
+                    }
+                    // If count2 is 0 and the current number is not equal to candidate1, update candidate2.
+                    else if (count2 == 0 && nums[i] != candidate1) {
+                        count2 = 1;
+                        candidate2 = nums[i];
+                    }
+                    // Update counts for candidate1 and candidate2.
+                    else if (candidate1 == nums[i]) {
+                        count1++;
+                    }
+                    else if (candidate2 == nums[i]) {
+                        count2++;
+                    }
+                    // If the current number is different from both candidates, decrement their counts.
+                    else {
+                        count1--;
+                        count2--;
+                    }
+                }
+
+                vector<int> result;
+                int threshold = nums.size() / 3; // Threshold for majority element
+
+                // Second pass to count occurrences of the potential majority elements.
+                count1 = 0, count2 = 0;
+                for (int i = 0; i < nums.size(); i++) {
+                    if (candidate1 == nums[i])
+                        count1++;
+                    else if (candidate2 == nums[i])
+                        count2++;
+                }
+
+                // Check if the counts of potential majority elements are greater than n/3 and add them to the result.
+                if (count1 > threshold)
+                    result.push_back(candidate1);
+                if (count2 > threshold)
+                    result.push_back(candidate2);
+
+                return result;
             }
         };
     }
@@ -13644,6 +14021,28 @@ namespace leetcode {
         };
     }
 
+    namespace task_1455 {
+        /*
+        * https://leetcode.com/problems/check-if-a-word-occurs-as-a-prefix-of-any-word-in-a-sentence/description/
+        */
+        class Solution {
+        public:
+            int isPrefixOfWord(string sentence, string searchWord) {
+                size_t size = sentence.size(), size_word = searchWord.size();
+                int words = 1;
+                for (size_t i = 0; i < size; ++i) {
+                    size_t j = 0;
+                    for (; i < size && j < size_word && sentence[i] == searchWord[j]; ++i, ++j) {}
+                    if (j == size_word)
+                        return words;
+                    ++words;
+                    for (; i < size && sentence[i] != ' '; ++i) {}
+                }
+                return -1;
+            }
+        };
+    }
+
     namespace task_1460 {
         /*
         * https://leetcode.com/problems/make-two-arrays-equal-by-reversing-subarrays/description/
@@ -15158,6 +15557,35 @@ namespace leetcode {
         };
     }
 
+    namespace task_1760 {
+        /*
+        * https://leetcode.com/problems/minimum-limit-of-balls-in-a-bag/description
+        */
+        class Solution {
+        public:
+            int minimumSize(vector<int>& nums, int maxOperations) {
+                int l = 0, r = 1;
+                for (int n : nums)
+                    r = max(r, n);
+                while (r - l > 1) {
+                    int max_el = (r + l) / 2;
+                    int count = 0;
+
+                    for (int n : nums) {
+                        if (n > max_el)
+                            count += n / max_el - (n % max_el == 0 ? 1 : 0);
+                    }
+
+                    if (count <= maxOperations)
+                        r = max_el;
+                    else
+                        l = max_el;
+                }
+                return r;
+            }
+        };
+    }
+
     namespace task_1791 {
         /*
         * https://leetcode.com/problems/find-center-of-star-graph/description/
@@ -16055,6 +16483,33 @@ namespace leetcode {
         };
     }
 
+    namespace task_2054 {
+        /*
+        * https://leetcode.com/problems/two-best-non-overlapping-events/description/
+        */
+        class Solution {
+        public:
+            int maxTwoEvents(vector<vector<int>>& events) {
+                sort(events.begin(), events.end(), [](const vector<int>& a, const vector<int>& b)
+                    {
+                        return a[1] < b[1];
+                    });
+                vector<pair<int, int>> monotonic_stack{ {0, 0} };
+                for (const vector<int>& event : events)
+                    monotonic_stack.push_back({ event[1], max(monotonic_stack.back().second, event[2]) });
+                sort(events.begin(), events.end());
+                int max_profit = 0;
+                size_t i = 0, size = monotonic_stack.size();
+                for (const vector<int>& event : events) {
+                    for (; i < size && monotonic_stack[i].first < event[0]; ++i) {}
+                    --i;
+                    max_profit = max(max_profit, monotonic_stack[i].second + event[2]);
+                }
+                return max_profit;
+            }
+        };
+    }
+
     namespace task_2058 {
         /*
         * https://leetcode.com/problems/find-the-minimum-and-maximum-number-of-nodes-between-critical-points/description/
@@ -16365,6 +16820,29 @@ namespace leetcode {
                 }
 
                 return pairedResult;
+            }
+        };
+    }
+
+    namespace task_2109 {
+        /*
+        * https://leetcode.com/problems/adding-spaces-to-a-string/description/
+        */
+        class Solution {
+        public:
+            string addSpaces(string s, vector<int>& spaces) {
+                string res;
+                size_t size = s.size(), size_sp = spaces.size(), s_i = 0, i = 0;
+                for (; i < size && s_i < size_sp; ++i) {
+                    if (i == spaces[s_i]) {
+                        res.push_back(' ');
+                        ++s_i;
+                    }
+                    res.push_back(s[i]);
+                }
+                for (; i < size; ++i)
+                    res.push_back(s[i]);
+                return res;
             }
         };
     }
@@ -17016,6 +17494,31 @@ namespace leetcode {
         };
     }
 
+    namespace task_2337 {
+        /*
+        * https://leetcode.com/problems/move-pieces-to-obtain-a-string/description/
+        */
+        class Solution {
+        public:
+            bool canChange(string start, string target) {
+                size_t size = start.size(), i = 0, j = 0;
+                for (; i < size; ++i, ++j) {
+                    for (; i < size && start[i] == '_'; ++i) {}
+                    for (; j < size && target[j] == '_'; ++j) {}
+                    if (i == size)
+                        return j == size;
+                    if (j == size ||
+                        start[i] != target[j] ||
+                        start[i] == 'L' && i < j ||
+                        start[i] == 'R' && i > j)
+                        return false;
+                }
+                for (; j < size && target[j] == '_'; ++j) {}
+                return j == size;
+            }
+        };
+    }
+
     namespace task_2384 {
         /*
         * https://leetcode.com/problems/largest-palindromic-number/
@@ -17208,6 +17711,33 @@ namespace leetcode {
                     end++;
                 }
                 return res;
+            }
+        };
+    }
+
+    namespace task_2404 {
+        /*
+        * https://leetcode.com/problems/most-frequent-even-element/
+        */
+        class Solution {
+        public:
+            int mostFrequentEven(vector<int>& nums) {
+                unordered_map<int, int> map;
+                for (int n : nums)
+                    if ((n & 1) == 0)
+                        ++map[n];
+                if (map.size() == 0)
+                    return -1;
+                int count = 0, num = INT_MAX;
+                for (const auto& [key, value] : map) {
+                    if (count < value) {
+                        count = value;
+                        num = key;
+                    }
+                    else if (count == value)
+                        num = min(num, key);
+                }
+                return num;
             }
         };
     }
@@ -17914,6 +18444,31 @@ namespace leetcode {
         public:
             long long maxScore(vector<int>& nums1, vector<int>& nums2, int k) {
 
+            }
+        };
+    }
+
+    namespace task_2554 {
+        /*
+        * https://leetcode.com/problems/maximum-number-of-integers-to-choose-from-a-range-i/description
+        */
+        class Solution {
+        public:
+            int maxCount(vector<int>& banned, int n, int maxSum) {
+                sort(banned.begin(), banned.end());
+                int sum = 0, count = 0;
+                size_t size = banned.size(), i = 0;
+                ++n;
+                for (int j = 1; j < n; ++j) {
+                    for (; i < size && j > banned[i]; ++i) {}
+                    if (i < size && j == banned[i])
+                        continue;
+                    sum += j;
+                    if (sum > maxSum)
+                        return count;
+                    ++count;
+                }
+                return count;
             }
         };
     }
@@ -19028,6 +19583,29 @@ namespace leetcode {
                     next = tmp;
                 }
                 return head;
+            }
+        };
+    }
+
+    namespace task_2825 {
+        /*
+        * https://leetcode.com/problems/make-string-a-subsequence-using-cyclic-increments/description/
+        */
+        class Solution {
+        public:
+            bool canMakeSubsequence(string str1, string str2) {
+                size_t size1 = str1.size(), size2 = str2.size(), i = 0, j = 0;
+                for (; j < size2; j++) {
+                    for (; i < size1 &&
+                        str1[i] != str2[j] &&
+                        str1[i] + 1 != str2[j] &&
+                        !(str1[i] == 'z' && str2[j] == 'a'); ++i) {
+                    }
+                    if (i == size1)
+                        return false;
+                    ++i;
+                }
+                return true;
             }
         };
     }
