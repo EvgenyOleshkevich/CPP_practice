@@ -15598,6 +15598,49 @@ namespace leetcode {
         };
     }
 
+    namespace task_1792 {
+        /*
+        * https://leetcode.com/problems/maximum-average-pass-ratio/description
+        */
+        class Solution {
+        public:
+            double maxAverageRatio__leetcode(vector<vector<int>>& classes, int extraStudents) {
+                // Lambda to calculate the gain of adding an extra student
+                auto calculateGain = [](int passes, int totalStudents) {
+                    return (double)(passes + 1) / (totalStudents + 1) -
+                        (double)passes / totalStudents;
+                };
+
+                // Max heap to store (-gain, passes, totalStudents)
+                priority_queue<pair<double, pair<int, int>>> maxHeap;
+                for (const auto& singleClass : classes) {
+                    maxHeap.push({ calculateGain(singleClass[0], singleClass[1]),
+                                  {singleClass[0], singleClass[1]} });
+                }
+
+                // Distribute extra students
+                while (extraStudents--) {
+                    auto [currentGain, classInfo] = maxHeap.top();
+                    maxHeap.pop();
+                    int passes = classInfo.first;
+                    int totalStudents = classInfo.second;
+                    maxHeap.push({ calculateGain(passes + 1, totalStudents + 1),
+                                  {passes + 1, totalStudents + 1} });
+                }
+
+                // Calculate the final average pass ratio
+                double totalPassRatio = 0;
+                while (!maxHeap.empty()) {
+                    auto [_, classInfo] = maxHeap.top();
+                    maxHeap.pop();
+                    totalPassRatio += (double)classInfo.first / classInfo.second;
+                }
+
+                return totalPassRatio / classes.size();
+            }
+        };
+    }
+
     namespace task_1798 {
         /*
         * https://leetcode.com/problems/problems/maximum-number-of-consecutive-values-you-can-make/
@@ -18473,6 +18516,29 @@ namespace leetcode {
         };
     }
 
+    namespace task_2558 {
+        /*
+        * https://leetcode.com/problems/take-gifts-from-the-richest-pile/description
+        */
+        class Solution {
+        public:
+            long long pickGifts(vector<int>& gifts, int k) {
+                priority_queue<int> queue(gifts.begin(), gifts.end());
+                for (int i = 0; i < k; ++i) {
+                    int value = queue.top();
+                    queue.pop();
+                    queue.push(floor(sqrt(value)));
+                }
+                long long sum = 0;
+                while (!queue.empty()) {
+                    sum += queue.top();
+                    queue.pop();
+                }
+                return sum;
+            }
+        };
+    }
+
     namespace task_2563 {
         /*
         * https://leetcode.com/problems/count-the-number-of-fair-pairs/description/
@@ -18622,6 +18688,37 @@ namespace leetcode {
                     return -1;
                 sort(sums.begin(), sums.end());
                 return sums[sums.size() - k];
+            }
+        };
+    }
+
+    namespace task_2593 {
+        /*
+        * https://leetcode.com/problems/find-score-of-an-array-after-marking-all-elements/description
+        */
+        class Solution {
+        public:
+            long long findScore(vector<int>& nums) {
+                priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> queue;
+                int size = nums.size();
+                for (int i = 0; i < size; ++i) {
+                    queue.push(make_pair(nums[i], i));
+                    nums[i] = 0;
+                }
+                long long sum = 0;
+                while (!queue.empty()) {
+                    auto top = queue.top();
+                    queue.pop();
+                    if (nums[top.second] == 1)
+                        continue;
+                    sum += top.first;
+                    nums[top.second] = 1;
+                    if (top.second > 0)
+                        nums[top.second - 1] = 1;
+                    if (top.second + 1 < size)
+                        nums[top.second + 1] = 1;
+                }
+                return sum;
             }
         };
     }
@@ -19283,6 +19380,58 @@ namespace leetcode {
         };
     }
 
+    namespace task_2762 {
+        /*
+        * https://leetcode.com/problems/continuous-subarrays/description
+        */
+        class Solution {
+        public:
+            long long continuousSubarrays(vector<int>& nums) {
+                int size = nums.size(), i = 0, j = 0, r = 1;
+                long long sum = 1, len, prev_len;
+                map<int, int> map{ {nums[0], 1} };
+                while (j < size) {
+                    ++j;
+                    for (; j < size; ++j) {
+                        ++map[nums[j]];
+                        if (map.rbegin()->first - map.begin()->first > 2)
+                            break;
+                    }
+                    len = j - i;
+                    prev_len = r - i;
+                    sum += (len * (len + 1) - prev_len * (prev_len + 1)) / 2;
+                    r = j;
+                    for (; i < size && map.rbegin()->first - map.begin()->first > 2; ++i) {
+                        auto it = map.find(nums[i]);
+                        --it->second;
+                        if (it->second == 0)
+                            map.erase(it);
+                    }
+                }
+                return sum;
+            }
+        };
+    }
+
+    namespace task_2779 {
+        /*
+        * https://leetcode.com/problems/maximum-beauty-of-an-array-after-applying-operation/description
+        */
+        class Solution {
+        public:
+            int maximumBeauty(vector<int>& nums, int k) {
+                sort(nums.begin(), nums.end());
+                int max_len = 1, i = 0, j = 0, size = nums.size();
+                k <<= 1;
+                for (; i < size; ++i) {
+                    for (; nums[i] - nums[j] > k; ++j) {}
+                    max_len = max(max_len, i - j + 1);
+                }
+                return max_len;
+            }
+        };
+    }
+
     namespace task_2785 {
         /*
         * https://leetcode.com/problems/sort-vowels-in-a-string/description/
@@ -19699,6 +19848,46 @@ namespace leetcode {
         };
     }
 
+    namespace task_2981 {
+        /*
+        * https://leetcode.com/problems/find-longest-special-substring-that-occurs-thrice-i/description
+        */
+        class Solution {
+        public:
+            int maximumLength(string s) {
+                vector<char> letters(26);
+                int res = -1;
+                for (char c : s) {
+                    ++letters[c - 'a'];
+                    if (letters[c - 'a'] > 2) {
+                        res = 1;
+                        break;
+                    }
+                }
+                if (res == -1)
+                    return -1;
+                int size = s.size(), count = 0;
+                for (char c = 'a'; c <= 'z'; ++c) {
+                    bool found = true;
+                    for (int len = 2; len < size && found; ++len) {
+                        count = 0;
+                        for (int i = 0; i <= size - len; ++i) {
+                            int j = 0;
+                            for (; j < len && s[i + j] == c; ++j) {}
+                            if (j == len)
+                                ++count;
+                        }
+                        if (count > 2)
+                            res = max(res, len);
+                        else
+                            found = false;
+                    }
+                }
+                return res;
+            }
+        };
+    }
+
     namespace task_2997 {
         /*
         * https://leetcode.com/problems/minimum-number-of-operations-to-make-array-xor-equal-to-k/description/
@@ -20013,6 +20202,66 @@ namespace leetcode {
                         answer |= bit;
                 }
                 return answer;
+            }
+        };
+    }
+
+    namespace task_3151 {
+        /*
+        * https://leetcode.com/problems/special-array-i/description/
+        */
+        class Solution {
+        public:
+            bool isArraySpecial(vector<int>& nums) {
+                int size = nums.size();
+                for (int i = 1; i < size; ++i)
+                    if (((nums[i] + nums[i - 1]) & 1) == 0)
+                        return false;
+                return true;
+            }
+        };
+    }
+
+    namespace task_3152 {
+        /*
+        * https://leetcode.com/problems/special-array-ii/description/
+        */
+        class Solution {
+        public:
+            vector<bool> isArraySpecial(vector<int>& nums, vector<vector<int>>& queries) {
+                vector<bool> res;
+                set<int> set_parity;
+                int size = nums.size() - 1;
+                for (int i = 0; i < size; ++i)
+                    if (((nums[i] + nums[i + 1]) & 1) == 0)
+                        set_parity.insert(i);
+                for (const vector<int>& query : queries) {
+                    bool res_query = true;
+                    auto it = set_parity.lower_bound(query[0]);
+                    if (it == set_parity.end()) {
+                        res.push_back(true);
+                        continue;
+                    }
+                    res.push_back(*it >= query[1]);
+                }
+                return res;
+            }
+
+            vector<bool> isArraySpecial__leetcode(vector<int>& nums, vector<vector<int>>& queries) {
+                vector<bool> res(queries.size());
+                vector<int> prefix(nums.size());
+
+                for (int i = 1; i < nums.size(); i++) {
+                    if ((nums[i] & 1) == (nums[i - 1] & 1))
+                        prefix[i] = prefix[i - 1] + 1;
+                    else
+                        prefix[i] = prefix[i - 1];
+                }
+
+                for (int i = 0; i < queries.size(); i++)
+                    res[i] = prefix[queries[i][1]] == prefix[queries[i][0]];
+
+                return res;
             }
         };
     }
