@@ -18,20 +18,7 @@
 using namespace std;
 using namespace leetcode;
 using namespace leetcode::utils;
-using namespace leetcode::task_2699;
 
-/*
-Solution::Node* nodes(int from, int to) {
-    auto head = new Solution::Node(from);
-    Solution::Node* ptr = head;
-    for (size_t i = from +1; i <= to; i++) {
-        ptr->next = new Solution::Node(i);
-        ptr->next->prev = ptr;
-        ptr = ptr->next;
-    }
-    return head;
-}
-*/
 
 void func() {
     size_t size = 70001;
@@ -131,27 +118,31 @@ void func() {
 }
 
 
+using namespace leetcode::task_802;
+
 int main() {
     //func();
     //return 0;
-    vector<int> v1({ 1,2,3,4 });
+    vector<int> v1({ 1,3,4,2 });
     vector<int> v2({ 0,0,0 });
-    vector<vector<int>> mat({ {0,1,-1},{2,0,2},{3,2,6},{2,1,10},{3,0,-1} });
-    vector<vector<int>> mat2();
-    vector<vector<char>> mat_char(4);
+    vector<vector<int>> mat({{ 1,2},{2,3},{5},{0},{5},{},{} });
+    vector<vector<int>> mat2({ {0,1},{2,2}, {1,4} });
+    vector<vector<char>> mat_char(1);
     vector<string> words1({ "//","/ " });
-    vector<string> words2({ "KNN","KFC","Burger King","Tapioca Express","Shogun" });
+    vector<string> words2({ "/a","/a/b","/c/d","/c/d/e","/c/f" });
     vector<char> vec_char1({ 'a','b','c','c','e','d' });
     vector<char> vec_char2({ 'b','c','b','e','b','e' });
+    //auto head = vector2list({ 5,3,1,2,5,1,2 });
 
-    mat_char[0] = { '1','0','1','0','0' };
-    mat_char[1] = { '1','0','1','1','1' };
-    mat_char[2] = { '1','1','1','1','1' };
-    mat_char[3] = { '1','0','0','1','0' };
-
-    auto head = vector2list({ 5,3,1,2,5,1,2 });
-    Solution k; // 348
-    cout << k.modifiedGraphEdges(4, mat, 1, 3, 12) << endl;
+    mat_char[0] = { '#','.','#' };
+    map<int, int> m{ {1,1} };
+    auto it = m.find(1);
+    it->second = 2;
+    --it;
+    //cout << (it == m.end()) << endl;
+   
+    Solution k;
+    cout << k.eventualSafeNodes(mat) << endl;
 
     return 0;
 }
