@@ -407,7 +407,7 @@ namespace leetcode {
 			}
 		};
 	}
-	
+
 	namespace task_8 {
 		/*
 		* https://leetcode.com/problems/string-to-integer-atoi/
@@ -11692,6 +11692,41 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_873 {
+		/*
+		* https://leetcode.com/problems/length-of-longest-fibonacci-subsequence/description/
+		*/
+		class Solution {
+		public:
+			int lenLongestFibSubseq(vector<int>& arr) {
+				const size_t size = arr.size();
+				int next = 0, fib = 1, prev_fib = 0, len = 0, max_len = 0;
+				for (size_t i = 0; i < size; ++i) {
+					for (size_t j = i + 1; j < size; ++j) {
+						prev_fib = arr[j];
+						fib = arr[i] + prev_fib;
+						len = 2;
+						for (size_t k = j + 1; k < size; ++k) {
+							if (arr[k] < fib)
+								continue;
+							if (arr[k] == fib) {
+								++len;
+								next = fib + prev_fib;
+								prev_fib = fib;
+								fib = next;
+							}
+							else
+								break;
+						}
+						max_len = max(max_len, len);
+					}
+				}
+
+				return max_len < 3 ? 0 : max_len;
+			}
+		};
+	}
+
 	namespace task_874 {
 		/*
 		* https://leetcode.com/problems/walking-robot-simulation/description/
@@ -11983,6 +12018,36 @@ namespace leetcode {
 					++cycle;
 				}
 				return res;
+			}
+		};
+	}
+
+	namespace task_889 {
+		/*
+		* https://leetcode.com/problems/recover-a-tree-from-preorder-traversal/description/
+		*/
+		class Solution {
+		public:
+			TreeNode* constructFromPrePost(vector<int>& preorder,
+				vector<int>& postorder) {
+				int preIndex = 0;
+				int postIndex = 0;
+				return constructTree(preIndex, postIndex, preorder, postorder);
+			}
+
+			TreeNode* constructTree(int& preIndex, int& postIndex, vector<int>& preorder, vector<int>& postorder) {
+				TreeNode* root = new TreeNode(preorder[preIndex]);
+				preIndex++;
+
+				if (root->val != postorder[postIndex])
+					root->left = constructTree(preIndex, postIndex, preorder, postorder);
+
+				if (root->val != postorder[postIndex])
+					root->right = constructTree(preIndex, postIndex, preorder, postorder);
+
+				postIndex++;
+
+				return root;
 			}
 		};
 	}
@@ -12806,6 +12871,181 @@ namespace leetcode {
 					for (size_t j = 0; j < min_counts[i]; j++)
 						res.push_back(string(1, i + 'a'));
 				return res;
+			}
+		};
+	}
+
+	namespace task_1028 {
+		/*
+		* https://leetcode.com/problems/recover-a-tree-from-preorder-traversal/description/
+		*/
+		class Solution {
+		public:
+			TreeNode* recoverFromPreorder(string traversal) {
+				vector<TreeNode*> levels;
+				int index = 0, n = traversal.size();
+
+				while (index < n) {
+					int depth = 0;
+					while (index < n && traversal[index] == '-') {
+						depth++;
+						index++;
+					}
+
+					int value = 0;
+					while (index < n && isdigit(traversal[index])) {
+						value = value * 10 + (traversal[index] - '0');
+						index++;
+					}
+
+					TreeNode* node = new TreeNode(value);
+
+					if (depth < levels.size())
+						levels[depth] = node;
+					else
+						levels.push_back(node);
+
+					if (depth > 0) {
+						TreeNode* parent = levels[depth - 1];
+						if (parent->left == nullptr)
+							parent->left = node;
+						else
+							parent->right = node;
+					}
+				}
+
+				return levels[0];
+			}
+		};
+	}
+
+	namespace task_1079 {
+		/*
+		* https://leetcode.com/problems/letter-tile-possibilities/description/
+		*/
+		class Solution {
+		public:
+			unordered_set<string> seen;
+
+			int numTilePossibilities(string tiles) {
+				seen = unordered_set<string>();
+				sort(tiles.begin(), tiles.end());
+
+				return generateSequences(tiles, "", 0) - 1;
+			}
+
+			int factorial(int n) {
+				if (n <= 1)
+					return 1;
+
+				int result = 1;
+				for (int num = 2; num <= n; num++)
+					result *= num;
+				return result;
+			}
+
+			int countPermutations(string& seq) {
+				int charCount[26] = { 0 };
+				for (char ch : seq)
+					charCount[ch - 'A']++;
+
+				int total = factorial(seq.length());
+				for (int count : charCount) {
+					if (count > 1)
+						total /= factorial(count);
+				}
+				return total;
+			}
+
+			int generateSequences(string& tiles, string current, int pos) {
+				if (pos >= tiles.length()) {
+					if (seen.insert(current).second)
+						return countPermutations(current);
+					return 0;
+				}
+
+				return generateSequences(tiles, current, pos + 1) + generateSequences(tiles, current + tiles[pos], pos + 1);
+			}
+		};
+	}
+
+	namespace task_1092 {
+		/*
+		* https://leetcode.com/problems/shortest-common-supersequence/description/
+		*/
+		class Solution {
+		public:
+			string shortestCommonSupersequence__leetcode(string str1, string str2) {
+				int str1Length = str1.length();
+				int str2Length = str2.length();
+
+				vector<vector<int>> dp(str1Length + 1, vector<int>(str2Length + 1, 0));
+
+				// Initialize the base cases
+				// When str2 is empty, the supersequence is str1 itself
+				// (length = row index)
+				for (int row = 0; row <= str1Length; row++) {
+					dp[row][0] = row;
+				}
+				// When str1 is empty, the supersequence is str2 itself
+				// (length = col index)
+				for (int col = 0; col <= str2Length; col++) {
+					dp[0][col] = col;
+				}
+
+				// Fill the DP table
+				for (int row = 1; row <= str1Length; row++) {
+					for (int col = 1; col <= str2Length; col++) {
+						if (str1[row - 1] == str2[col - 1]) {
+							// If characters match,
+							// inherit the length from the diagonal + 1
+							dp[row][col] = dp[row - 1][col - 1] + 1;
+						}
+						else {
+							// If characters do not match,
+							// take the minimum length option + 1
+							dp[row][col] = min(dp[row - 1][col], dp[row][col - 1]) + 1;
+						}
+					}
+				}
+
+				string supersequence = "";
+				int row = str1Length, col = str2Length;
+
+				while (row > 0 && col > 0) {
+					if (str1[row - 1] == str2[col - 1]) {
+						// If characters match, take it from diagonal
+						supersequence += str1[row - 1];
+						row--;
+						col--;
+					}
+					else if (dp[row - 1][col] < dp[row][col - 1]) {
+						// If str1’s character is part of the supersequence, move up
+						supersequence += str1[row - 1];
+						row--;
+					}
+					else {
+						// If str2’s character is part of the supersequence, move left
+						supersequence += str2[col - 1];
+						col--;
+					}
+				}
+
+				// Append any remaining characters
+				// If there are leftover characters in str1
+				while (row > 0) {
+					supersequence += str1[row - 1];
+					row--;
+				}
+				// If there are leftover characters in str2
+				while (col > 0) {
+					supersequence += str2[col - 1];
+					col--;
+				}
+
+				// Reverse the built sequence to get the correct order
+				reverse(supersequence.begin(), supersequence.end());
+				return supersequence;
 			}
 		};
 	}
@@ -13939,6 +14179,41 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1261 {
+		/*
+		* https://leetcode.com/problems/find-elements-in-a-contaminated-binary-tree/description/
+		*/
+		class FindElements {
+			unordered_set<int> seen;
+
+		public:
+			FindElements(TreeNode* root) { bfs(root); }
+
+			bool find(int target) { return seen.find(target) != seen.end(); }
+
+		private:
+			void bfs(TreeNode* root) {
+				queue<TreeNode*> queue;
+				root->val = 0;
+				queue.push(root);
+
+				while (!queue.empty()) {
+					TreeNode* currentNode = queue.front();
+					queue.pop();
+					seen.insert(currentNode->val);
+					if (currentNode->left) {
+						currentNode->left->val = currentNode->val * 2 + 1;
+						queue.push(currentNode->left);
+					}
+					if (currentNode->right) {
+						currentNode->right->val = currentNode->val * 2 + 2;
+						queue.push(currentNode->right);
+					}
+				}
+			}
+		};
+	}
+
 	namespace task_1267 {
 		/*
 		* https://leetcode.com/problems/count-servers-that-communicate/description/
@@ -14955,6 +15230,108 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1415 {
+		/*
+		* https://leetcode.com/problems/the-k-th-lexicographical-string-of-all-happy-strings-of-length-n/description/
+		*/
+		class Solution {
+		public:
+			vector<string> strs;
+			string getHappyString__slow(int n, int k) {
+				--n;
+				if ((1 << n) * 3 < k)
+					return "";
+				strs = vector<string>();
+				string str = "a";
+				genStrings(n, str);
+				str[0] = 'b';
+				genStrings(n, str);
+				str[0] = 'c';
+				genStrings(n, str);
+				return strs[k - 1];
+			}
+
+			void genStrings(int n, string& str) {
+				if (n == 0) {
+					strs.push_back(str);
+					return;
+				}
+				switch (str.back())
+				{
+				case 'a': {
+					str.push_back('b');
+					genStrings(n - 1, str);
+					str.pop_back();
+					str.push_back('c');
+					genStrings(n - 1, str);
+					str.pop_back();
+					break;
+				}case 'b': {
+					str.push_back('a');
+					genStrings(n - 1, str);
+					str.pop_back();
+					str.push_back('c');
+					genStrings(n - 1, str);
+					str.pop_back();
+					break;
+				}case 'c': {
+					str.push_back('a');
+					genStrings(n - 1, str);
+					str.pop_back();
+					str.push_back('b');
+					genStrings(n - 1, str);
+					str.pop_back();
+					break;
+				}
+				}
+			}
+
+			string getHappyString__fast(int n, int k) {
+				int count = (1 << (n - 1)) * 3;
+				if (count < k)
+					return "";
+				--k;
+				string res;
+				if (k * 3 < count)
+					res.push_back('a');
+				else if (k * 3 < count * 2)
+					res.push_back('b');
+				else
+					res.push_back('c');
+				count /= 3;
+				k %= count;
+				while (count != 1) {
+					switch (res.back())
+					{
+					case 'a': {
+						if (k << 1 < count)
+							res.push_back('b');
+						else
+							res.push_back('c');
+						break;
+					}case 'b': {
+						if (k << 1 < count)
+							res.push_back('a');
+						else
+							res.push_back('c');
+						break;
+					}case 'c': {
+						if (k << 1 < count)
+							res.push_back('a');
+						else
+							res.push_back('b');
+						break;
+					}
+					}
+					count >>= 1;
+					k %= count;
+				}
+
+				return res;
+			}
+		};
+	}
+
 	namespace task_1422 {
 		/*
 		* https://leetcode.com/problems/maximum-score-after-splitting-a-string/description/
@@ -15448,6 +15825,32 @@ namespace leetcode {
 					empty %= numExchange;
 				}
 				return res + numBottles;
+			}
+		};
+	}
+
+	namespace task_1524 {
+		/*
+		* https://leetcode.com/problems/number-of-sub-arrays-with-odd-sum/description/
+		*/
+		class Solution {
+		public:
+			int numOfSubarrays(vector<int>& arr) {
+				int mod = 1000000007, count = 0, prev_count = 0, prev_prev_count = 0, sum = 0;
+				int last_odd_i = -1, size = arr.size();
+				for (int i = 0; i < size; ++i) {
+					if ((arr[i] & 1) == 1) {
+						count = (i - last_odd_i) + prev_prev_count;
+						sum = (sum + count) % mod;
+						last_odd_i = i;
+						prev_prev_count = prev_count;
+						prev_count = count;
+					}
+					else {
+						sum = (sum + prev_count) % mod;
+					}
+				}
+				return sum;
 			}
 		};
 	}
@@ -16809,6 +17212,29 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1749 {
+		/*
+		* https://leetcode.com/problems/maximum-absolute-sum-of-any-subarray/description/
+		*/
+		class Solution {
+		public:
+			int maxAbsoluteSum(vector<int>& nums) {
+				size_t size = nums.size();
+				int pos_sum = 0, neg_sum = 0, max_sum = 0;
+				for (size_t i = 0; i < size; ++i) {
+					pos_sum += nums[i];
+					neg_sum -= nums[i];
+					if (pos_sum < 0)
+						pos_sum = 0;
+					if (neg_sum < 0)
+						neg_sum = 0;
+					max_sum = max(max_sum, max(pos_sum, neg_sum));
+				}
+				return max_sum;
+			}
+		};
+	}
+
 	namespace task_1752 {
 		/*
 		* https://leetcode.com/problems/special-array-i/description/
@@ -17871,6 +18297,43 @@ namespace leetcode {
 				}
 
 				return totalSum;
+			}
+		};
+	}
+
+	namespace task_1980 {
+		/*
+		* https://leetcode.com/problems/find-unique-binary-string/description/
+		*/
+		class Solution {
+		public:
+			string findDifferentBinaryString(vector<string>& nums) {
+				size_t length = nums[0].size();
+				vector<int> numbers(nums.size());
+				for (size_t i = 0; i < length; ++i)
+					numbers[i] = getNumber(nums[i]);
+				sort(numbers.begin(), numbers.end());
+				int number = 0, size = numbers.size();
+				for (; number < size && number == numbers[number]; ++number) {}
+
+				return getString(number, length);
+			}
+
+			int getNumber(const string& num) {
+				int n = 0;
+				for (const char c : num)
+					n = (n << 1) + (c == '1' ? 1 : 0);
+				return n;
+			}
+
+			string getString(int number, const size_t length) {
+				string num(length, '0');
+				for (int i = length - 1; i >= 0; --i) {
+					if (number & 1)
+						num[i] = '1';
+					number >>= 1;
+				}
+				return num;
 			}
 		};
 	}
@@ -19441,6 +19904,47 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2375 {
+		/*
+		* https://leetcode.com/problems/construct-smallest-number-from-di-string/description/
+		*/
+		class Solution {
+		public:
+			string smallestNumber__leetcode(string pattern) {
+				int patternLength = pattern.length();
+				int maxSoFar = 0, currMax = 0, temp;
+				vector<int> arrD(patternLength + 1, 0);
+				for (int patternIndex = patternLength - 1; patternIndex >= 0;
+					patternIndex--) {
+					if (pattern[patternIndex] == 'D')
+						arrD[patternIndex] = arrD[patternIndex + 1] + 1;
+				}
+
+				string result = "";
+
+				for (int position = 0; position <= patternLength; position++) {
+					if (pattern[position] == 'I') {
+
+						maxSoFar++;
+						result += '0' + maxSoFar;
+
+						maxSoFar = max(maxSoFar, currMax);
+
+						currMax = 0;
+					}
+					else {
+						temp = 1 + maxSoFar + arrD[position];
+						result += '0' + temp;
+
+						currMax = max(currMax, temp);
+					}
+				}
+
+				return result;
+			}
+		};
+	}
+
 	namespace task_2381 {
 		/*
 		* https://leetcode.com/problems/shifting-letters-ii/description/
@@ -20158,6 +20662,38 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2460 {
+		/*
+		* https://leetcode.com/problems/apply-operations-to-an-array/description/
+		*/
+		class Solution {
+		public:
+			vector<int> applyOperations(vector<int>& nums) {
+				const size_t size = nums.size();
+				for (size_t i = 1; i < size; ++i) {
+					if (nums[i - 1] == nums[i]) {
+						nums[i - 1] <<= 1;
+						nums[i] = 0;
+					}
+				}
+
+				size_t nulls = 0;
+
+				for (size_t i = 0; i < size; ++i) {
+					if (nums[i] != 0) {
+						nums[nulls] = nums[i];
+						++nulls;
+					}
+				}
+
+				for (nulls; nulls < size; ++nulls)
+					nums[nulls] = 0;
+
+				return nums;
+			}
+		};
+	}
+
 	namespace task_2461 {
 		/*
 		* https://leetcode.com/problems/maximum-sum-of-distinct-subarrays-with-length-k/description/
@@ -20187,6 +20723,64 @@ namespace leetcode {
 				}
 
 				return max_sum;
+			}
+		};
+	}
+
+	namespace task_2467 {
+		/*
+		* https://leetcode.com/problems/most-profitable-path-in-a-tree/description/
+		*/
+		class Solution {
+		public:
+			vector<vector<int>> tree;
+			vector<int> distanceFromBob;
+			int n;
+
+			int mostProfitablePath(vector<vector<int>>& edges, int bob, vector<int>& amount) {
+				n = amount.size();
+				tree.resize(n, vector<int>());
+
+				// Form tree with edges
+				for (vector<int> edge : edges) {
+					tree[edge[0]].push_back(edge[1]);
+					tree[edge[1]].push_back(edge[0]);
+				}
+				distanceFromBob.resize(n);
+				return findPaths(0, 0, 0, bob, amount);
+			}
+
+			// Depth-first Search
+			int findPaths(int sourceNode, int parentNode, int time, int bob,
+				vector<int>& amount) {
+				int maxIncome = 0, maxChild = INT_MIN;
+
+				// Find the node distances from Bob
+				if (sourceNode == bob)
+					distanceFromBob[sourceNode] = 0;
+				else
+					distanceFromBob[sourceNode] = n;
+				for (int adjacentNode : tree[sourceNode]) {
+					if (adjacentNode != parentNode) {
+						maxChild = max(maxChild, findPaths(adjacentNode, sourceNode,
+							time + 1, bob, amount));
+						distanceFromBob[sourceNode] =
+							min(distanceFromBob[sourceNode],
+								distanceFromBob[adjacentNode] + 1);
+					}
+				}
+				// Alice reaches the node first
+				if (distanceFromBob[sourceNode] > time) maxIncome += amount[sourceNode];
+
+				// Alice and Bob reach the node at the same time
+				else if (distanceFromBob[sourceNode] == time)
+					maxIncome += amount[sourceNode] / 2;
+
+				// Return max income of leaf node
+				if (maxChild == INT_MIN)
+					return maxIncome;
+				else
+					return maxIncome + maxChild;
 			}
 		};
 	}
@@ -20833,6 +21427,40 @@ namespace leetcode {
 					}
 				}
 				return result;
+			}
+		};
+	}
+
+	namespace task_2570 {
+		/*
+		* https://leetcode.com/problems/merge-two-2d-arrays-by-summing-values/description/
+		*/
+		class Solution {
+		public:
+			vector<vector<int>> mergeArrays(vector<vector<int>>& nums1, vector<vector<int>>& nums2) {
+				const size_t size1 = nums1.size(), size2 = nums2.size();
+				size_t i1 = 0, i2 = 0;
+				vector<vector<int>> res;
+				while (i1 < size1 && i2 < size2) {
+					if (nums1[i1][0] < nums2[i2][0]) {
+						res.push_back(nums1[i1]);
+						++i1;
+					}
+					else if (nums1[i1][0] > nums2[i2][0]) {
+						res.push_back(nums2[i2]);
+						++i2;
+					}
+					else {
+						res.push_back({ nums1[i1][0] , nums1[i1][1] + nums2[i2][1] });
+						++i1;
+						++i2;
+					}
+				}
+				for (; i1 < size1; ++i1)
+					res.push_back(nums1[i1]);
+				for (; i2 < size2; ++i2)
+					res.push_back(nums2[i2]);
+				return res;
 			}
 		};
 	}
