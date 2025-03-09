@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include <cstddef>
@@ -13020,12 +13020,12 @@ namespace leetcode {
 						col--;
 					}
 					else if (dp[row - 1][col] < dp[row][col - 1]) {
-						// If str1�s character is part of the supersequence, move up
+						// If str1’s character is part of the supersequence, move up
 						supersequence += str1[row - 1];
 						row--;
 					}
 					else {
-						// If str2�s character is part of the supersequence, move left
+						// If str2’s character is part of the supersequence, move left
 						supersequence += str2[col - 1];
 						col--;
 					}
@@ -17357,6 +17357,27 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1780 {
+		/*
+		* https://leetcode.com/problems/check-if-number-is-a-sum-of-powers-of-three/description/
+		*/
+		class Solution {
+		public:
+			bool checkPowersOfThree(int n) {
+				int degree = 1;
+				while (degree * 3 <= n)
+					degree *= 3;
+				while (degree != 0) {
+					n -= degree;
+					degree /= 3;
+					while (degree > n)
+						degree /= 3;
+				}
+				return n == 0;
+			}
+		};
+	}
+
 	namespace task_1790 {
 		/*
 		* https://leetcode.com/problems/check-if-one-string-swap-can-make-strings-equal/description/
@@ -19098,6 +19119,34 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2161 {
+		/*
+		* https://leetcode.com/problems/partition-array-according-to-given-pivot/description/
+		*/
+		class Solution {
+		public:
+			vector<int> pivotArray(vector<int>& nums, int pivot) {
+				const size_t size = nums.size();
+				vector<int> res(size);
+				size_t less_i = 0, greater_i = size - 1;
+				for (int i = 0, j = size - 1; i < size; i++, j--) {
+					if (nums[i] < pivot) {
+						res[less_i] = nums[i];
+						++less_i;
+					}
+					if (nums[j] > pivot) {
+						res[greater_i] = nums[j];
+						--greater_i;
+					}
+				}
+				for (; less_i <= greater_i; ++less_i)
+					res[less_i] = pivot;
+
+				return res;
+			}
+		};
+	}
+
 	namespace task_2172 {
 		/*
 		* https://leetcode.com/problems/maximum-employees-to-be-invited-to-a-meeting/description/
@@ -19941,6 +19990,31 @@ namespace leetcode {
 				}
 
 				return result;
+			}
+		};
+	}
+
+	namespace task_2379 {
+		/*
+		* https://leetcode.com/problems/minimum-recolors-to-get-k-consecutive-black-blocks/description/
+		*/
+		class Solution {
+		public:
+			int minimumRecolors(string blocks, int k) {
+				int count_w = 0, count_min = k;
+				const size_t size = blocks.size();
+				for (size_t i = 0; i < k; ++i)
+					if (blocks[i] == 'W')
+						++count_w;
+				count_min = count_w;
+				for (size_t i = k; i < size; ++i) {
+					if (blocks[i] == 'W')
+						++count_w;
+					if (blocks[i - k] == 'W')
+						--count_w;
+					count_min = min(count_min, count_w);
+				}
+				return count_min;
 			}
 		};
 	}
@@ -21226,6 +21300,64 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2523 {
+		/*
+		* https://leetcode.com/problems/closest-prime-numbers-in-range/description/
+		*/
+		class Solution {
+		public:
+			vector<int> closestPrimes(int left, int right) {
+				if (left == 1)
+					++left;
+				vector<int> primes = generatePrimes(++right);
+				int n1 = nextPrime(primes, left), n2 = nextPrime(primes, n1 + 1), dist = INT32_MAX, min_n1 = -1, min_n2 = -1;
+				while (n2 < right) {
+					if (n2 - n1 < dist) {
+						min_n1 = n1;
+						min_n2 = n2;
+						dist = n2 - n1;
+					}
+					n1 = n2;
+					n2 = nextPrime(primes, n2 + 1);
+				}
+				return { min_n1, min_n2 };
+			}
+
+			vector<int> generatePrimes(int to) {
+				vector<int> primes{ 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199 };
+				for (int n = 211; n < to; ++n) {
+					int square = sqrt(n) + 1;
+					bool is_prime = true;
+					for (size_t i = 0; primes[i] < square; ++i) {
+						if (n % primes[i] == 0) {
+							is_prime = false;
+							break;
+						}
+					}
+					if (is_prime)
+						primes.push_back(n);
+				}
+				return primes;
+			}
+
+			int nextPrime(const vector<int>& primes, int n) {
+				for (;; ++n) {
+					int square = sqrt(n) + 1;
+					bool is_prime = true;
+					for (size_t i = 0; primes[i] < square; ++i) {
+						if (n % primes[i] == 0) {
+							is_prime = false;
+							break;
+						}
+					}
+					if (is_prime)
+						return n;
+				}
+				return n;
+			}
+		};
+	}
+
 	namespace task_2529 {
 		/*
 		* https://leetcode.com/problems/maximum-count-of-positive-integer-and-negative-integer/description/
@@ -21519,6 +21651,26 @@ namespace leetcode {
 			bool isValid(vector<vector<bool>>& visited, int row, int col) {
 				return row >= 0 && col >= 0 && row < visited.size() &&
 					col < visited[0].size() && !visited[row][col];
+			}
+		};
+	}
+
+	namespace task_2579 {
+		/*
+		* https://leetcode.com/problems/count-total-number-of-colored-cells/description/
+		*/
+		class Solution {
+		public:
+			long long coloredCells(int n) {
+				return  1 + (long long)n * (n - 1) * 2;
+			}
+
+			long long coloredCells__slow(int n) {
+				long long count = 1;
+				--n;
+				for (int i = 0; i < n; ++i)
+					count += (i << 2) + 4;
+				return count;
 			}
 		};
 	}
@@ -23016,6 +23168,73 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2965 {
+		/*
+		* https://leetcode.com/problems/find-missing-and-repeated-values/description/
+		*/
+		class Solution {
+		public:
+			vector<int> findMissingAndRepeatedValues(vector<vector<int>>& grid) {
+				int n = grid.size();
+				vector<int> res;
+				for (int i = 0; i < n; ++i)
+				{
+					for (int j = 0; j < n; ++j) {
+						if (grid[i][j] != i * n + j + 1) {
+							int num = grid[i][j];
+							do
+							{
+								int num_i = (num - 1) / n, num_j = (num - 1) % n;
+								if (num == grid[num_i][num_j]) {
+									grid[i][j] = 0;
+									res.push_back(num);
+									break;
+								}
+								swap(grid[i][j], grid[num_i][num_j]);
+								num = grid[i][j];
+							} while (num != 0 && num != i * n + j + 1);
+						}
+					}
+				}
+
+
+				for (int i = 0; i < n; ++i) {
+					for (int j = 0; j < n; ++j)
+						if (grid[i][j] == 0)
+							res.push_back(i * n + j + 1);
+				}
+				return res;
+			}
+
+			vector<int> findMissingAndRepeatedValues__fast(vector<vector<int>>& grid) {
+				long long sum = 0, sqrSum = 0;
+				long long n = grid.size();
+				long long total = n * n;
+
+				// Calculate actual sum and squared sum from grid
+				for (int row = 0; row < n; ++row) {
+					for (int col = 0; col < n; ++col) {
+						sum += grid[row][col];
+						sqrSum += static_cast<long long>(grid[row][col]) * grid[row][col];
+					}
+				}
+
+				// Calculate differences from expected sums
+				// Expected sum: n(n+1)/2, Expected square sum: n(n+1)(2n+1)/6
+				long long sumDiff = sum - total * (total + 1) / 2;
+				long long sqrDiff = sqrSum - total * (total + 1) * (2 * total + 1) / 6;
+
+				// Using math: If x is repeated and y is missing
+				// sumDiff = x - y
+				// sqrDiff = x² - y²
+				int repeat = (sqrDiff / sumDiff + sumDiff) / 2;
+				int missing = (sqrDiff / sumDiff - sumDiff) / 2;
+
+				return { repeat, missing };
+			}
+		};
+	}
+
 	namespace task_2976 {
 		/*
 		* https://leetcode.com/problems/minimum-cost-to-convert-string-i/description/
@@ -23817,6 +24036,65 @@ namespace leetcode {
 				}
 				diameter = max(diameter, max_deep1 + max_deep2);
 				return node_deep;
+			}
+		};
+	}
+
+	namespace task_3206 {
+		/*
+		* https://leetcode.com/problems/alternating-groups-i/
+		*/
+		class Solution {
+		public:
+			int numberOfAlternatingGroups(vector<int>& colors) {
+				size_t size = colors.size();
+				int count = 0;
+				if (colors[0] != colors[size - 1] && colors[0] != colors[1])
+					++count;
+				if (colors[0] != colors[size - 1] && colors[size - 2] != colors[size - 1])
+					++count;
+				--size;
+				for (size_t i = 1; i < size; ++i) {
+					if (colors[i] != colors[i - 1] && colors[i] != colors[i + 1])
+						++count;
+				}
+				return count;
+			}
+		};
+	}
+
+	namespace task_3208 {
+		/*
+		* https://leetcode.com/problems/alternating-groups-ii/description/
+		*/
+		class Solution {
+		public:
+			int numberOfAlternatingGroups(vector<int>& colors, int k) {
+				const size_t size = colors.size();
+				int count = 0, len = 1;
+				for (size_t i = 1; i < size; ++i) {
+					if (colors[i] != colors[i - 1])
+						++len;
+					else
+						len = 1;
+					if (len >= k)
+						++count;
+				}
+				if (colors[0] != colors[size - 1]) {
+					++len;
+					--k;
+					if (len > k)
+						++count;
+					for (size_t i = 1; i < k; ++i) {
+						if (colors[i] != colors[i - 1])
+							++len;
+						else
+							len = 1;
+						if (len > k)
+							++count;
+					}
+				}
+				return count;
 			}
 		};
 	}
