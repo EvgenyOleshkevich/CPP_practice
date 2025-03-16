@@ -3683,6 +3683,46 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_79 {
+		/*
+		* https://leetcode.com/problems/word-search/description/
+		*/
+		class Solution {
+		public:
+			vector<vector<char>> used = vector<vector<char>>(6, vector<char>(6));
+			int m, n, size;
+			bool exist(vector<vector<char>>& board, string word) {
+				m = board.size();
+				n = board[0].size();
+				size = word.size();
+				for (int i = 0; i < m; ++i) {
+					for (int j = 0; j < n; ++j) {
+						if (board[i][j] == word[0] && check(board, word, i, j, 1))
+							return true;
+					}
+				}
+				return false;
+			}
+
+			bool check(vector<vector<char>>& board, const string& word, const int i, const int j, const int k) {
+				if (k == size)
+					return true;
+				used[i][j] = 1;
+				bool found = false;
+				if (i + 1 < m && board[i + 1][j] == word[k] && used[i + 1][j] == 0)
+					found = check(board, word, i + 1, j, k + 1);
+				if (j + 1 < n && board[i][j + 1] == word[k] && used[i][j + 1] == 0 && !found)
+					found = check(board, word, i, j + 1, k + 1);
+				if (i - 1 > -1 && board[i - 1][j] == word[k] && used[i - 1][j] == 0 && !found)
+					found = check(board, word, i - 1, j, k + 1);
+				if (j - 1 > -1 && board[i][j - 1] == word[k] && used[i][j - 1] == 0 && !found)
+					found = check(board, word, i, j - 1, k + 1);
+				used[i][j] = 0;
+				return found;
+			}
+		};
+	}
+
 	namespace task_82
 	{
 		/*
@@ -5926,6 +5966,39 @@ namespace leetcode {
 
 	}
 
+	namespace task_213 {
+		/*
+		* https://leetcode.com/problems/house-robber-ii/description/
+		*/
+		class Solution {
+		public:
+			int rob(vector<int>& nums) {
+				size_t size = nums.size() - 1; // -1 to not write -1 everywhere
+				if (size == 0)
+					return nums[0];
+				if (size == 1)
+					return max(nums[0], nums[1]);
+				if (size == 2)
+					return max(nums[0], max(nums[1], nums[2]));
+				if (size == 3)
+					return max(nums[0] + nums[2], nums[1] + nums[3]);
+
+				int sum = 0, sum_1 = nums[0] + nums[3], sum_2 = nums[0] + nums[2], sum_3 = 0; // for tracking with nums[0]
+				nums[3] += nums[1]; // for tracking without nums[0]
+				for (size_t i = 4; i < size; i++) {
+					sum = nums[i] + max(sum_2, sum_3);
+					sum_3 = sum_2;
+					sum_2 = sum_1;
+					sum_1 = sum;
+					nums[i] += max(nums[i - 2], nums[i - 3]);
+				}
+				nums[size] += max(nums[size - 2], nums[size - 3]);
+
+				return max(max(nums[size - 1], nums[size]), max(sum_1, sum_2));
+			}
+		};
+	}
+
 	namespace task_214 {
 		/*
 		* https://leetcode.com/problems/shortest-palindrome/description/
@@ -6099,6 +6172,37 @@ namespace leetcode {
 					count += 2;
 				}
 				return count;
+			}
+		};
+	}
+
+	namespace task_225 {
+		/*
+		* https://leetcode.com/problems/implement-stack-using-queues/description/
+		*/
+		class MyStack {
+		public:
+			queue<int> q;
+			void push(int x) {
+				q.push(x);
+				for (int i = 0; i < q.size() - 1; i++) {
+					q.push(q.front());
+					q.pop();
+				}
+			}
+
+			int pop() {
+				int result = q.front();
+				q.pop();
+				return result;
+			}
+
+			int top() {
+				return q.front();
+			}
+
+			bool empty() {
+				return q.empty();
 			}
 		};
 	}
@@ -7049,6 +7153,28 @@ namespace leetcode {
 						++count;
 					}
 				return count;
+			}
+		};
+	}
+
+	namespace task_337 {
+		/*
+		* https://leetcode.com/problems/house-robber-iii/description/
+		*/
+		class Solution {
+		public:
+			int rob(TreeNode* root) {
+				auto p = robChild(root);
+				return max(p.first, p.second);
+			}
+
+			pair<int, int> robChild(TreeNode* root) {
+				if (!root)
+					return { 0, 0 };
+
+				auto left = robChild(root->left);
+				auto right = robChild(root->right);
+				return { root->val + left.second + right.second, max(left.first, left.second) + max(right.first, right.second) };
 			}
 		};
 	}
@@ -14680,6 +14806,53 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1358 {
+		/*
+		* https://leetcode.com/problems/number-of-substrings-containing-all-three-characters/description/
+		*/
+		class Solution {
+		public:
+			int numberOfSubstrings(string s) {
+				int count_letters = 0, count_substrings = 0;
+				const size_t size = s.size();
+				vector<int> letters(3);
+
+				for (size_t i = 0, start = 0; i < size; ++i) {
+					if (++letters[s[i] - 'a'] == 1) {
+						++count_letters;
+						while (count_letters == 3) {
+							count_substrings += size - i;
+							if (--letters[s[start] - 'a'] == 0)
+								--count_letters;
+							++start;
+						}
+					}
+				}
+
+				return count_substrings;
+			}
+
+			int numberOfSubstrings__fast(string s) {
+				const size_t size = s.length();
+				// Track last position of a, b, c
+				vector<int> lastPos = { -1, -1, -1 };
+				int count_substrings = 0;
+
+				for (size_t i = 0; i < size; ++i) {
+					// Update last position of current character
+					lastPos[s[i] - 'a'] = i;
+
+					// Add count of valid substrings ending at current position
+					// If any character is missing, min will be -1
+					// Else min gives leftmost required character position
+					count_substrings += 1 + min({ lastPos[0], lastPos[1], lastPos[2] });
+				}
+
+				return count_substrings;
+			}
+		};
+	}
+
 	namespace task_1361 {
 		/*
 		* https://leetcode.com/problems/validate-binary-tree-nodes/description/
@@ -19476,6 +19649,35 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2226 {
+		/*
+		* https://leetcode.com/problems/maximum-candies-allocated-to-k-children/description/
+		*/
+		class Solution {
+		public:
+			int maximumCandies(vector<int>& candies, long long k) {
+				long long sum = 0;
+				for (const int candy : candies)
+					sum += candy;
+				int l = 0, r = min((long long)INT32_MAX, (sum / k) + 1);
+
+				while (r - l > 1) {
+					int count = (r + l) / 2;
+					sum = 0;
+
+					for (const int candy : candies)
+						sum += candy / count;
+
+					if (sum >= k)
+						l = count;
+					else
+						r = count;
+				}
+				return l;
+			}
+		};
+	}
+
 	namespace task_2257 {
 		/*
 		* https://leetcode.com/problems/defuse-the-bomb/description/
@@ -21514,6 +21716,56 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2560 {
+		/*
+		* https://leetcode.com/problems/house-robber-iv/description/
+		*/
+		class Solution {
+		public:
+			int minCapability(vector<int>& nums, int k) {
+				const size_t size = nums.size();
+				if (size == 1)
+					return nums[0];
+				if (size == 2)
+					return min(nums[0], nums[1]);
+				if (size == 3) {
+					if (k == 1)
+						return min(nums[0], min(nums[1], nums[2]));
+					else
+						return max(nums[0], nums[2]);
+				}
+
+				int l = INT32_MAX, r = 1;
+				for (const int num : nums) {
+					l = min(l, num);
+					r = max(r, num);
+				}
+				++r;
+
+				while (r - l > 1) {
+					int max_value = (r + l) / 2;
+					int sum_3 = nums[0] < max_value ? 1 : 0;
+					int sum_2 = nums[1] < max_value ? 1 : 0;
+					int sum_1 = sum_3 + (nums[2] < max_value ? 1 : 0);
+					int sum = 0;
+					for (size_t i = 3; i < size; i++) {
+						sum = max(sum_2, sum_3) + (nums[i] < max_value ? 1 : 0);
+						sum_3 = sum_2;
+						sum_2 = sum_1;
+						sum_1 = sum;
+					}
+					sum = max(sum_1, sum_2);
+
+					if (sum >= k)
+						r = max_value;
+					else
+						l = max_value;
+				}
+				return l;
+			}
+		};
+	}
+
 	namespace task_2563 {
 		/*
 		* https://leetcode.com/problems/count-the-number-of-fair-pairs/description/
@@ -21748,6 +22000,39 @@ namespace leetcode {
 						nums[top.second + 1] = 1;
 				}
 				return sum;
+			}
+		};
+	}
+
+	namespace task_2594 {
+		/*
+		* https://leetcode.com/problems/minimum-time-to-repair-cars/description/
+		*/
+		class Solution {
+		public:
+			int long long repairCars(vector<int>& ranks, int cars) {
+				int min_rank = INT32_MAX, max_rank = 0;
+				for (const int rank : ranks) {
+					max_rank = max(max_rank, rank);
+					min_rank = min(min_rank, rank);
+				}
+				long long car_per_mech = cars / ranks.size();
+				long long l = car_per_mech * car_per_mech * min_rank - 1;
+				long long r = (car_per_mech + 1) * (car_per_mech + 1) * max_rank;
+
+
+				while (r - l > 1) {
+					long long time = (r + l) / 2;
+					int count = cars;
+					for (const int rank : ranks)
+						count -= floor(sqrt(time / rank));
+
+					if (count <= 0)
+						r = time;
+					else
+						l = time;
+				}
+				return r;
 			}
 		};
 	}
@@ -24258,6 +24543,158 @@ namespace leetcode {
 					nums[top.second] = top.first;
 				}
 				return nums;
+			}
+		};
+	}
+
+	namespace task_3305 {
+		/*
+		* https://leetcode.com/problems/count-of-substrings-containing-every-vowel-and-k-consonants-i/description/
+		*/
+		class Solution {
+		public:
+			int countOfSubstrings(string word, int k) {
+				return atLeastK(word, k) - atLeastK(word, k + 1);
+			}
+
+			int atLeastK(string word, int k) {
+				int count_consonants = 0;
+				unordered_map<char, int> vowels;
+				const size_t size = word.size();
+				int count_substrings = 0;
+
+				for (size_t i = 0, start = 0; i < size; ++i) {
+					char c = word[i];
+					if (isVowel(c))
+						++vowels[c];
+					else
+						count_consonants++;
+
+					while (vowels.size() == 5 && count_consonants >= k) {
+						count_substrings += size - i;
+						char start_c = word[start];
+						if (isVowel(start_c)) {
+							if (--vowels[start_c] == 0)
+								vowels.erase(start_c);
+						}
+						else {
+							count_consonants--;
+						}
+						start++;
+					}
+				}
+
+				return count_substrings;
+			}
+
+			bool isVowel(char c) {
+				return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+			}
+		};
+	}
+
+	namespace task_3306 {
+		/*
+		* https://leetcode.com/problems/count-of-substrings-containing-every-vowel-and-k-consonants-ii/description/
+		*/
+		class Solution {
+		public:
+			long long countOfSubstrings(string word, int k) {
+				return atLeastK(word, k) - atLeastK(word, k + 1);
+			}
+
+			long long atLeastK(string word, int k) {
+				int count_consonants = 0;
+				unordered_map<char, int> vowels;
+				const size_t size = word.size();
+				long long count_substrings = 0;
+
+				for (size_t i = 0, start = 0; i < size; ++i) {
+					char c = word[i];
+					if (isVowel(c))
+						++vowels[c];
+					else
+						count_consonants++;
+
+					while (vowels.size() == 5 && count_consonants >= k) {
+						count_substrings += size - i;
+						char start_c = word[start];
+						if (isVowel(start_c)) {
+							if (--vowels[start_c] == 0)
+								vowels.erase(start_c);
+						}
+						else {
+							count_consonants--;
+						}
+						start++;
+					}
+				}
+
+				return count_substrings;
+			}
+
+			bool isVowel(char c) {
+				return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+			}
+		};
+	}
+
+	namespace task_3355 {
+		/*
+		* https://leetcode.com/problems/zero-array-transformation-i/
+		*/
+		class Solution {
+		public:
+			bool isZeroArray(vector<int>& nums, vector<vector<int>>& queries) {
+				sort(queries.begin(), queries.end());
+				priority_queue<int, std::vector<int>, std::greater<int>> ends;
+				int q_size = queries.size(), q_i = 0, size = nums.size();
+				for (int i = 0; i < size; ++i) {
+					while (!ends.empty() && ends.top() < i)
+						ends.pop();
+					for (; q_i < q_size && queries[q_i][0] == i; ++q_i)
+						ends.push(queries[q_i][1]);
+
+					if (nums[i] > ends.size())
+						return false;
+				}
+				return true;
+			}
+		};
+	}
+
+	namespace task_3356 {
+		/*
+		* https://leetcode.com/problems/zero-array-transformation-ii/description/
+		*/
+		class Solution {
+		public:
+			int minZeroArray__leetcode(vector<int>& nums, vector<vector<int>>& queries) {
+				int size = nums.size(), sum = 0, k = -1;
+				vector<int> differenceArray(size + 1);
+
+				// Iterate through nums
+				for (int i = 0; i < size; ++i) {
+					// Iterate through queries while current index of nums cannot equal
+					// zero
+					while (sum + differenceArray[i] < nums[i]) {
+						++k;
+						// Zero array isn't formed after all queries are processed
+						if (k == queries.size())
+							return -1;
+
+						int left = queries[k][0], right = queries[k][1], val = queries[k][2];
+
+						// Process start and end of range
+						if (right >= i) {
+							differenceArray[max(left, i)] += val;
+							differenceArray[right + 1] -= val;
+						}
+					}
+					// Update prefix sum at current index
+					sum += differenceArray[i];
+				}
+				return k + 1;
 			}
 		};
 	}
