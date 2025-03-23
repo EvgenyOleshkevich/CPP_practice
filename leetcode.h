@@ -7179,6 +7179,26 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_338 {
+		/*
+		* https://leetcode.com/problems/counting-bits/
+		*/
+		class Solution {
+		public:
+			vector<int> countBits(int n) {
+				vector<int> ans(n + 1);
+				for (int i = 1; i < n + 1; ++i) {
+					int count = 0;
+					for (int num = i; num != 0; num >>= 1)
+						count += num & 1;
+					ans[i] = count;
+				}
+
+				return ans;
+			}
+		};
+	}
+
 	namespace task_341 {
 		/*
 		* https://leetcode.com/problems/flatten-nested-list-iterator/description/
@@ -7229,6 +7249,27 @@ namespace leetcode {
 
 			bool hasNext() {
 				return index < values.size();
+			}
+		};
+	}
+
+	namespace task_342 {
+		/*
+		* https://leetcode.com/problems/power-of-four/description/
+		*/
+		class Solution {
+		public:
+			bool isPowerOfFour(int n) {
+				if (n < 1)
+					return false;
+				while ((~n & 3) == 3)
+					n >>= 2;
+				return n == 1;
+			}
+
+			bool isPowerOfFour__bit_magic(int n) {
+				int mask = 0b01010101010101010101010101010101;
+				return n > 0 && (n & (n - 1)) == 0 && (n | mask) == mask;
 			}
 		};
 	}
@@ -18495,6 +18536,51 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1976 {
+		/*
+		* https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/description/
+		*/
+		class Solution {
+		public:
+			int countPaths(int n, vector<vector<int>>& roads) {
+				int mod = 1000000007;
+				vector<long long> count_ways(n);
+				vector<long long> dists(n, LLONG_MAX);
+				count_ways[0] = 1;
+				dists[0] = 0;
+				vector<vector<pair<int, int>>> adjacency_list(n);
+				for (const vector<int>& edge : roads) {
+					adjacency_list[edge[0]].push_back({ edge[1], edge[2] });
+					adjacency_list[edge[1]].push_back({ edge[0], edge[2] });
+				}
+				priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<>> queue;
+				queue.push({ 0, 0 });
+
+				while (!queue.empty()) {
+					long long dist = queue.top().first;
+					int vertex = queue.top().second;
+					queue.pop();
+					if (dist > dists[vertex])
+						continue;
+
+					for (const pair<int, int>& v : adjacency_list[vertex]) {
+						if (dist + v.second == dists[v.first]) {
+							count_ways[v.first] = (count_ways[v.first] + count_ways[vertex]) % mod;
+						}
+						else if (dist + v.second < dists[v.first]) {
+							dists[v.first] = dist + v.second;
+							count_ways[v.first] = count_ways[vertex];
+							queue.push({ dist + v.second , v.first });
+						}
+					}
+
+				}
+
+				return count_ways[n - 1];
+			}
+		};
+	}
+
 	namespace task_1980 {
 		/*
 		* https://leetcode.com/problems/find-unique-binary-string/description/
@@ -19137,6 +19223,67 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2115 {
+		/*
+		* https://leetcode.com/problems/find-all-possible-recipes-from-given-supplies/description/
+		*/
+		class Solution {
+		public:
+			size_t size;
+			unordered_set<string> supplies_set;
+			map<string, size_t> recipes_map;
+			vector<int> visited; // 0 - not visited, 1 - opened, 2 - can not cook, 3 can cook
+
+			vector<string> findAllRecipes(vector<string>& recipes, vector<vector<string>>& ingredients, vector<string>& supplies) {
+				size = recipes.size();
+				supplies_set = unordered_set<string>(supplies.begin(), supplies.end());
+				recipes_map.clear();
+				for (size_t i = 0; i < size; ++i)
+					recipes_map[recipes[i]] = i;
+				visited = vector<int>(size);
+				vector<string> res;
+
+
+				for (size_t i = 0; i < size; ++i)
+					if (visited[i] == 3 || canCook(recipes, ingredients, i))
+						res.push_back(recipes[i]);
+
+				return res;
+			}
+
+			bool canCook(const vector<string>& recipes, const vector<vector<string>>& ingredients, const size_t i) {
+				visited[i] = 1;
+				for (const string& ingredient : ingredients[i]) {
+					if (!supplies_set.contains(ingredient)) {
+						if (auto it = recipes_map.find(ingredient); it != recipes_map.end()) {
+							size_t j = it->second;
+							if (visited[j] == 3) {
+								continue;
+							}
+							else if (visited[j] == 0) {
+								if (!canCook(recipes, ingredients, j)) {
+									visited[i] = 2;
+									return false;
+								}
+							}
+							else {
+								visited[i] = 2;
+								return false;
+							}
+						}
+						else {
+							visited[i] = 2;
+							return false;
+						}
+					}
+				}
+
+				visited[i] = 3;
+				return true;
+			}
+		};
+	}
+
 	namespace task_2116 {
 		/*
 		* https://leetcode.com/problems/check-if-a-parentheses-string-can-be-valid/description/
@@ -19626,6 +19773,36 @@ namespace leetcode {
 					if (value.second)
 						return value.first;
 				return nullptr;
+			}
+		};
+	}
+
+	namespace task_2206 {
+		/*
+		* https://leetcode.com/problems/divide-array-into-equal-pairs/description/
+		*/
+		class Solution {
+		public:
+			bool divideArray(vector<int>& nums) {
+				unordered_set<int> unpaired;
+				for (int num : nums) {
+					if (unpaired.contains(num))
+						unpaired.erase(num);
+					else
+						unpaired.insert(num);
+				}
+
+				return unpaired.empty();
+			}
+
+			bool divideArray_sort(vector<int>& nums) {
+				sort(nums.begin(), nums.end());
+				const size_t size = nums.size();
+				for (size_t i = 0; i < size; i += 2)
+					if (nums[i] != nums[i + 1])
+						return false;
+
+				return true;
 			}
 		};
 	}
@@ -20433,9 +20610,8 @@ namespace leetcode {
 						if (nums[end] & (1 << i)) {
 							bMap[i]++;
 
-							if (bMap[i] > 1) {
+							if (bMap[i] > 1)
 								flag = true;
-							}
 						}
 					}
 
@@ -20444,22 +20620,19 @@ namespace leetcode {
 						int num = nums[start];
 
 						for (int i = 0; i < 31; i++) {
-							if (num & (1 << i)) {
-								bMap[i]--;
-							}
+							if (num & (1 << i))
+								--bMap[i];
 						}
 
 						bool f = false;
 						for (int i = 0; i < 31; i++) {
-							if (bMap[i] > 1) {
+							if (bMap[i] > 1)
 								f = true;
-							}
 						}
 
 						start++;
-						if (!f) {
+						if (!f)
 							flag = false;
-						}
 					}
 					res = max(res, end - start + 1);
 					end++;
@@ -22414,6 +22587,52 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2685 {
+		/*
+		* https://leetcode.com/problems/count-the-number-of-complete-components/description/
+		*/
+		class Solution {
+		public:
+			int countCompleteComponents(int n, vector<vector<int>>& edges) {
+				int count = 0;
+				vector<vector<int>> adjacency_list(n);
+				vector<char> visited(n);
+				for (const vector<int>& edge : edges) {
+					adjacency_list[edge[0]].push_back(edge[1]);
+					adjacency_list[edge[1]].push_back(edge[0]);
+				}
+
+				for (int i = 0; i < n; ++i) {
+					if (visited[i] == 0) {
+						size_t count_vertexes = 0;
+						visited[i] = 1;
+						queue<int> q;
+						q.push(i);
+						size_t min_component_degree = adjacency_list[i].size();
+						while (!q.empty()) {
+							++count_vertexes;
+							int vertex = q.front();
+							min_component_degree = min(min_component_degree, adjacency_list[vertex].size());
+							q.pop();
+
+							for (const int v : adjacency_list[vertex]) {
+								if (visited[v] == 0) {
+									visited[v] = 1;
+									q.push(v);
+								}
+							}
+						}
+
+						if (min_component_degree + 1 == count_vertexes)
+							++count;
+					}
+				}
+
+				return count;
+			}
+		};
+	}
+
 	namespace task_2696 {
 		/*
 		* https://leetcode.com/problems/minimum-string-length-after-removing-substrings/description/
@@ -24066,6 +24285,59 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3108 {
+		/*
+		* https://leetcode.com/problems/minimum-cost-walk-in-weighted-graph/description/
+		*/
+		class Solution {
+		public:
+			vector<int> minimumCost(int n, vector<vector<int>>& edges, vector<vector<int>>& query) {
+				size_t queries = query.size();
+				vector<vector<pair<int, int>>> adjacency_list(n);
+				vector<int> components(n);
+				vector<int> components_length(1);
+				vector<int> res(queries);
+				int count = 0;
+				for (const vector<int>& edge : edges) {
+					adjacency_list[edge[0]].push_back({ edge[1], edge[2] });
+					adjacency_list[edge[1]].push_back({ edge[0], edge[2] });
+				}
+
+				for (int i = 0; i < n; ++i) {
+					if (components[i] == 0) {
+						++count;
+						components[i] = count;
+						queue<int> q;
+						q.push(i);
+						int length = ~0;
+						while (!q.empty()) {
+							int vertex = q.front();
+							q.pop();
+
+							for (const pair<int, int>& p : adjacency_list[vertex]) {
+								length &= p.second;
+								if (components[p.first] == 0) {
+									components[p.first] = count;
+									q.push(p.first);
+								}
+							}
+						}
+						components_length.push_back(length);
+					}
+				}
+
+				for (size_t i = 0; i < queries; ++i) {
+					if (components[query[i][0]] == components[query[i][1]])
+						res[i] = components_length[components[query[i][0]]];
+					else
+						res[i] = -1;
+				}
+
+				return res;
+			}
+		};
+	}
+
 	namespace task_3110 {
 		/*
 		* https://leetcode.com/problems/score-of-a-string/description/
@@ -24271,6 +24543,20 @@ namespace leetcode {
 					if (nums[i] == 0)
 						return -1;
 				return count;
+			}
+
+			int minOperations2(vector<int>& nums) {
+				const size_t size = nums.size() - 2;
+				int count = 0;
+				for (size_t i = 0; i < size; ++i) {
+					if (nums[i] == 0) {
+						++count;
+						nums[i] ^= 1;
+						nums[i + 1] ^= 1;
+						nums[i + 2] ^= 1;
+					}
+				}
+				return (nums[size] == 1 && nums[size + 1] == 1) ? count : -1;
 			}
 		};
 	}
