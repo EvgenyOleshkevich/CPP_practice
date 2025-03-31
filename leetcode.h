@@ -11128,6 +11128,35 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_763 {
+		/*
+		* https://leetcode.com/problems/partition-labels/description/
+		*/
+		class Solution {
+		public:
+			vector<int> partitionLabels(string s) {
+				vector<pair<int, int>> firts_last_appears(26, { -1, -1 });
+				const int size = s.size();
+				for (int i = 0; i < size; ++i) {
+					if (firts_last_appears[s[i] - 'a'].second == -1)
+						firts_last_appears[s[i] - 'a'].first = i;
+					firts_last_appears[s[i] - 'a'].second = i;
+				}
+
+				int start = -1, end = 0;
+				vector<int> res;
+				for (int i = 0; i < size; ++i) {
+					end = max(end, firts_last_appears[s[i] - 'a'].second);
+					if (i == end) {
+						res.push_back(end - start);
+						start = i;
+					}
+				}
+				return res;
+			}
+		};
+	}
+
 	namespace task_769 {
 		/*
 		* https://leetcode.com/problems/max-chunks-to-make-sorted/description/
@@ -18733,6 +18762,33 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2033 {
+		/*
+		* https://leetcode.com/problems/minimum-operations-to-make-a-uni-value-grid/description/
+		*/
+		class Solution {
+		public:
+			int minOperations(vector<vector<int>>& grid, int x) {
+				int mod = grid[0][0] % x;
+				vector<int> numsArray;
+				for (const vector<int>& row : grid) {
+					for (const int n : row)
+						if (n % x != mod)
+							return -1;
+					numsArray.insert(numsArray.begin(), row.begin(), row.end());
+				}
+				sort(numsArray.begin(), numsArray.end());
+				int target = numsArray[numsArray.size() / 2], count = 0;
+
+				for (const vector<int>& row : grid) {
+					for (const int n : row)
+						count += abs(target - n) / x;
+				}
+				return count;
+			}
+		};
+	}
+
 	namespace task_2037 {
 		/*
 		* https://leetcode.com/problems/minimum-number-of-moves-to-seat-everyone/description/
@@ -21640,6 +21696,97 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2503 {
+		/*
+		* https://leetcode.com/problems/maximum-number-of-points-from-grid-queries/description/
+		*/
+		class Solution {
+		public:
+			vector<int> maxPoints(vector<vector<int>>& grid, vector<int>& queries) {
+				int m = grid.size(), n = grid[0].size(), k = queries.size();
+				vector<int> answer(k);
+				vector<pair<int, int>> sorted_queries(k);
+				for (int i = 0; i < k; ++i)
+					sorted_queries[i] = { queries[i], i };
+				sort(sorted_queries.begin(), sorted_queries.end());
+
+				int i = 0;
+				for (; i < k; ++i)
+					if (sorted_queries[i].first > grid[0][0])
+						break;
+					else
+						answer[sorted_queries[i].second] = 0;
+
+				if (i == k)
+					return answer;
+				answer[sorted_queries[i].second] = 1;
+				grid[0][0] = 0;
+				vector<pair<int, int>> cells_to_check(1, { 0, 0 });
+				for (; i < k; ++i) {
+					if (i > 0 && sorted_queries[i].first == sorted_queries[i - 1].first) {
+						answer[sorted_queries[i].second] = answer[sorted_queries[i - 1].second];
+						continue;
+					}
+					int value = sorted_queries[i].first, points = 0;
+					for (int j = 0; j < cells_to_check.size(); ++j) {
+						int x = cells_to_check[j].first, y = cells_to_check[j].second;
+						bool neighbour_zero = true;
+						if (x + 1 < m && grid[x + 1][y] != 0) {
+							if (grid[x + 1][y] >= value) {
+								neighbour_zero = false;
+							}
+							else {
+								++points;
+								grid[x + 1][y] = 0;
+								cells_to_check.push_back({ x + 1 , y });
+							}
+						}
+						if (y + 1 < n && grid[x][y + 1] != 0) {
+							if (grid[x][y + 1] >= value) {
+								neighbour_zero = false;
+							}
+							else {
+								++points;
+								grid[x][y + 1] = 0;
+								cells_to_check.push_back({ x , y + 1 });
+							}
+						}
+						if (x - 1 > -1 && grid[x - 1][y] != 0) {
+							if (grid[x - 1][y] >= value) {
+								neighbour_zero = false;
+							}
+							else {
+								++points;
+								grid[x - 1][y] = 0;
+								cells_to_check.push_back({ x - 1 , y });
+							}
+						}
+						if (y - 1 > -1 && grid[x][y - 1] != 0) {
+							if (grid[x][y - 1] >= value) {
+								neighbour_zero = false;
+							}
+							else {
+								++points;
+								grid[x][y - 1] = 0;
+								cells_to_check.push_back({ x , y - 1 });
+							}
+						}
+
+						if (neighbour_zero) {
+							swap(cells_to_check[j], cells_to_check.back());
+							cells_to_check.pop_back();
+							--j;
+						}
+					}
+
+					answer[sorted_queries[i].second] += points + (i == 0 ? 0 : answer[sorted_queries[i - 1].second]);
+				}
+
+				return answer;
+			}
+		};
+	}
+
 	namespace task_2516 {
 		/*
 		* https://leetcode.com/problems/take-k-of-each-character-from-left-and-right/description/
@@ -21804,6 +21951,27 @@ namespace leetcode {
 		public:
 			long long maxScore(vector<int>& nums1, vector<int>& nums2, int k) {
 
+			}
+		};
+	}
+
+	namespace task_2551 {
+		/*
+		* https://leetcode.com/problems/put-marbles-in-bags/description/
+		*/
+		class Solution {
+		public:
+			long long putMarbles(vector<int>& weights, int k) {
+				size_t size = weights.size();
+				for (size_t i = 1; i < size; ++i)
+					weights[i - 1] += weights[i];
+				weights.pop_back();
+				sort(weights.begin(), weights.end());
+				long long res = 0;
+				--size;
+				for (int i = 1; i < k; ++i)
+					res += weights[size - i] - weights[i - 1];
+				return res;
 			}
 		};
 	}
@@ -23121,6 +23289,66 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2780 {
+		/*
+		* https://leetcode.com/problems/minimum-index-of-a-valid-split/description/
+		*/
+		class Solution {
+		public:
+			int minimumIndex(vector<int>& nums) {
+				unordered_map<int, int> count_num;
+				const int size = nums.size();
+				int dominant = 0;
+				for (const int n : nums)
+					if ((++count_num[n]) << 1 > size)
+						dominant = n;
+
+				int i = 0, count = count_num[dominant], count_left = 0;
+				for (; i < size; ++i) {
+					if (nums[i] == dominant) {
+						++count_left;
+						--count;
+					}
+					if (count_left << 1 > i + 1 &&
+						count << 1 > size - i - 1)
+						return i;
+				}
+				return -1;
+			}
+
+			int minimumIndex__fast(vector<int>& nums) {
+				// Find the majority element by Boyer-Moore majority voting algorithm
+				int dominant = nums[0], count = 0, count_left = 0, size = nums.size();
+				for (const int n : nums) {
+					if (n == dominant)
+						++count;
+					else
+						--count;
+					if (count == 0) {
+						dominant = n;
+						count = 1;
+					}
+				}
+
+				count = 0;
+				for (const int n : nums)
+					if (n == dominant)
+						count++;
+
+				for (int i = 0; i < size; ++i) {
+					if (nums[i] == dominant) {
+						++count_left;
+						--count;
+					}
+					if (count_left << 1 > i + 1 &&
+						count << 1 > size - i - 1)
+						return i;
+				}
+				return -1;
+			}
+		};
+	}
+
 	namespace task_2785 {
 		/*
 		* https://leetcode.com/problems/sort-vowels-in-a-string/description/
@@ -23421,6 +23649,159 @@ namespace leetcode {
 					next = tmp;
 				}
 				return head;
+			}
+		};
+	}
+
+	namespace task_2818 {
+		/*
+		* https://leetcode.com/problems/apply-operations-to-maximize-score/description/
+		*/
+		class Solution {
+		public:
+			const int MOD = 1e9 + 7;
+
+			int maximumScore(vector<int>& nums, int k) {
+				int n = nums.size();
+				vector<int> primeScores(n, 0);
+
+				// Find the maximum element in nums to determine the range for prime
+				// generation
+				int maxElement = 0;
+				for (int index = 0; index < n; index++)
+					maxElement = max(maxElement, nums[index]);
+
+				// Get all prime numbers up to maxElement using the Sieve of
+				// Eratosthenes
+				vector<int> primes = getPrimes(maxElement);
+
+				// Calculate the prime score for each number in nums
+				for (int index = 0; index < n; index++) {
+					int num = nums[index];
+
+					// Iterate over the generated primes to count unique prime factors
+					for (int prime : primes) {
+						if (prime * prime > num)
+							break;  // Stop early if prime^2 exceeds num
+						if (num % prime != 0)
+							continue;  // Skip if the prime is not a factor
+
+						primeScores[index]++;  // Increment prime score for the factor
+						while (num % prime == 0)
+							num /= prime;  // Remove all occurrences of this factor
+					}
+
+					// If num is still greater than 1, it is a prime number itself
+					if (num > 1) primeScores[index]++;
+				}
+
+				// Initialize next and previous dominant index arrays
+				vector<int> nextDominant(n, n);
+				vector<int> prevDominant(n, -1);
+
+				// Stack to store indices for a monotonic decreasing prime score
+				stack<int> decreasingPrimeScoreStack;
+
+				// Calculate the next and previous dominant indices for each number
+				for (int index = 0; index < n; index++) {
+					// While the stack is not empty and the current prime score is
+					// greater than the stack's top, update nextDominant
+					while (!decreasingPrimeScoreStack.empty() &&
+						primeScores[decreasingPrimeScoreStack.top()] <
+						primeScores[index]) {
+						int topIndex = decreasingPrimeScoreStack.top();
+						decreasingPrimeScoreStack.pop();
+
+						// Set the next dominant element for the popped index
+						nextDominant[topIndex] = index;
+					}
+
+					// If the stack is not empty, set the previous dominant element for
+					// the current index
+					if (!decreasingPrimeScoreStack.empty())
+						prevDominant[index] = decreasingPrimeScoreStack.top();
+
+					// Push the current index onto the stack
+					decreasingPrimeScoreStack.push(index);
+				}
+
+				// Calculate the number of subarrays in which each element is dominant
+				vector<long long> numOfSubarrays(n);
+				for (int index = 0; index < n; index++) {
+					numOfSubarrays[index] = (long long)(nextDominant[index] - index) *
+						(index - prevDominant[index]);
+				}
+
+				// Sort elements in decreasing order based on their values
+				vector<pair<int, int>> sortedArray(n);
+				for (int index = 0; index < n; index++) {
+					sortedArray[index] = { nums[index], index };
+				}
+
+				sort(sortedArray.begin(), sortedArray.end(), greater<>());
+
+				long long score = 1;
+				int processingIndex = 0;
+
+				// Process elements while there are operations left
+				while (k > 0) {
+					// Get the element with the maximum value
+					auto [num, index] = sortedArray[processingIndex++];
+
+					// Calculate the number of operations to apply on the current
+					// element
+					long long operations = min((long long)k, numOfSubarrays[index]);
+
+					// Update the score by raising the element to the power of
+					// operations
+					score = (score * power(num, operations)) % MOD;
+
+					// Reduce the remaining operations count
+					k -= operations;
+				}
+
+				return score;
+			}
+
+			// Helper function to compute the power of a number modulo MOD
+			long long power(long long base, long long exponent) {
+				long long res = 1;
+
+				// Calculate the exponentiation using binary exponentiation
+				while (exponent > 0) {
+					// If the exponent is odd, multiply the result by the base
+					if (exponent % 2 == 1)
+						res = ((res * base) % MOD);
+
+					// Square the base and halve the exponent
+					base = (base * base) % MOD;
+					exponent /= 2;
+				}
+
+				return res;
+			}
+
+			// Function to generate prime numbers up to a given limit using the Sieve of
+			// Eratosthenes
+			vector<int> getPrimes(int limit) {
+				vector<bool> isPrime(limit + 1, true);
+				vector<int> primes;
+
+				// Start marking from the first prime number (2)
+				for (int number = 2; number <= limit; number++) {
+					if (!isPrime[number]) continue;
+
+					// Store the prime number
+					primes.push_back(number);
+
+					// Mark multiples of the prime number as non-prime
+					for (long long multiple = (long long)number * number;
+						multiple <= limit; multiple += number) {
+						isPrime[multiple] = false;
+					}
+				}
+
+				return primes;
 			}
 		};
 	}
@@ -24502,6 +24883,25 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3169 {
+		/*
+		* https://leetcode.com/problems/count-days-without-meetings/description/
+		*/
+		class Solution {
+		public:
+			int countDays(int days, vector<vector<int>>& meetings) {
+				sort(meetings.begin(), meetings.end());
+				int count_days = 0, last_end = 0;
+				for (const vector<int>& meeting : meetings) {
+					if (meeting[0] - 1 > last_end)
+						count_days += meeting[0] - 1 - last_end;
+					last_end = max(last_end, meeting[1]);
+				}
+				return count_days + days - last_end;
+			}
+		};
+	}
+
 	namespace task_3174 {
 		/*
 		* https://leetcode.com/problems/clear-digits/description/
@@ -24981,6 +25381,40 @@ namespace leetcode {
 					sum += differenceArray[i];
 				}
 				return k + 1;
+			}
+		};
+	}
+
+	namespace task_3394 {
+		/*
+		* https://leetcode.com/problems/check-if-grid-can-be-cut-into-sections/description/
+		*/
+		class Solution {
+		public:
+			bool checkValidCuts(int n, vector<vector<int>>& rectangles) {
+				// we need only start_x, end_x and sort by them
+				for (vector<int>& rect : rectangles)
+					swap(rect[1], rect[2]);
+				if (checkValidCuts(rectangles))
+					return true;
+
+				// we need only start_y, end_y and sort by them
+				for (vector<int>& rect : rectangles) {
+					swap(rect[0], rect[2]);
+					swap(rect[1], rect[3]);
+				}
+				return checkValidCuts(rectangles);
+			}
+
+			bool checkValidCuts(vector<vector<int>>& rectangles) {
+				sort(rectangles.begin(), rectangles.end());
+				int count_section = 1, last_end = rectangles[0][1];
+				for (const vector<int>& rect : rectangles) {
+					if (last_end <= rect[0])
+						++count_section;
+					last_end = max(last_end, rect[1]);
+				}
+				return count_section > 2;
 			}
 		};
 	}
