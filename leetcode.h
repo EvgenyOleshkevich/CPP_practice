@@ -6207,6 +6207,23 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_226 {
+		/*
+		* https://leetcode.com/problems/invert-binary-tree/description/
+		*/
+		class Solution {
+		public:
+			TreeNode* invertTree(TreeNode* root) {
+				if (root) {
+					swap(root->left, root->right);
+					invertTree(root->left);
+					invertTree(root->right);
+				}
+				return root;
+			}
+		};
+	}
+
 	namespace task_229 {
 		/*
 		* https://leetcode.com/problems/majority-element-ii/description/
@@ -7678,6 +7695,43 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_368 {
+		/*
+		* https://leetcode.com/problems/largest-divisible-subset/description/
+		*/
+		class Solution {
+		public:
+			vector<int> largestDivisibleSubset(vector<int>& nums) {
+				int max_len = 0, max_num = 0, size = nums.size();
+				unordered_map<int, pair<int, int>> set_by_number;
+				sort(nums.begin(), nums.end());
+
+				for (int i = 0; i < size; ++i) {
+					int len = 0, divider = 0, num = nums[i];
+					for (int j = i - 1; j >= 0; --j) {
+						if (num % nums[j] == 0 && len < set_by_number[nums[j]].first) {
+							len = set_by_number[nums[j]].first;
+							divider = nums[j];
+						}
+					}
+					++len;
+					set_by_number[num] = { len, divider };
+					if (max_len < len) {
+						max_len = len;
+						max_num = num;
+					}
+				}
+
+				vector<int> res(max_len);
+				for (int i = 0; i < max_len; ++i) {
+					res[i] = max_num;
+					max_num = set_by_number[max_num].second;
+				}
+				return res;
+			}
+		};
+	}
+
 	namespace task_374 {
 		/*
 		* https://leetcode.com/problems/guess-number-higher-or-lower/description/
@@ -7989,6 +8043,32 @@ namespace leetcode {
 
 				reverse(answer.begin(), answer.end());
 				return answer;
+			}
+		};
+	}
+
+	namespace task_416 {
+		/*
+		* https://leetcode.com/problems/partition-equal-subset-sum/description/
+		*/
+		class Solution {
+		public:
+			bool canPartition(vector<int>& nums) {
+				int sum = 0;
+				for (int num : nums)
+					sum += num;
+
+				if (sum & 1)
+					return false;
+
+				int target = sum / 2;
+				vector<bool> dp(target + 1, false);
+				dp[0] = true;
+				for (int num : nums) {
+					for (int currSum = target; currSum >= num; --currSum)
+						dp[currSum] = dp[currSum] || dp[currSum - num];
+				}
+				return dp[target];
 			}
 		};
 	}
@@ -11888,6 +11968,45 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_865 {
+		/*
+		* https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/description/
+		*/
+		class Solution {
+		public:
+			TreeNode* res;
+			int max_depth;
+
+			TreeNode* subtreeWithAllDeepest(TreeNode* root) {
+				res = root;
+				max_depth = 1;
+				if (!root)
+					return root;
+				lcaDeepestLeavesReq(root, 1);
+				return res;
+			}
+
+			int lcaDeepestLeavesReq(TreeNode* node, int depth) {
+				int depth_l = 0, depth_r = 0;
+				if (node->left)
+					depth_l = lcaDeepestLeavesReq(node->left, depth + 1);
+				if (node->right)
+					depth_r = lcaDeepestLeavesReq(node->right, depth + 1);
+
+				if (depth_l == 0 && depth_r == 0) {
+					if (max_depth < depth) {
+						max_depth = depth;
+						res = node;
+					}
+					return depth;
+				}
+				else if (depth_l == max_depth && depth_r == max_depth)
+					res = node;
+				return max(depth_l, depth_r);
+			}
+		};
+	}
+
 	namespace task_873 {
 		/*
 		* https://leetcode.com/problems/length-of-longest-fibonacci-subsequence/description/
@@ -13829,6 +13948,45 @@ namespace leetcode {
 				}
 				arr1.insert(arr1.end(), not_contain.begin(), not_contain.end());
 				return arr1;
+			}
+		};
+	}
+
+	namespace task_1123 {
+		/*
+		* https://leetcode.com/problems/lowest-common-ancestor-of-deepest-leaves/description/
+		*/
+		class Solution {
+		public:
+			TreeNode* res;
+			int max_depth;
+
+			TreeNode* lcaDeepestLeaves(TreeNode* root) {
+				res = root;
+				max_depth = 1;
+				if (!root)
+					return root;
+				lcaDeepestLeavesReq(root, 1);
+				return res;
+			}
+
+			int lcaDeepestLeavesReq(TreeNode* node, int depth) {
+				int depth_l = 0, depth_r = 0;
+				if (node->left)
+					depth_l = lcaDeepestLeavesReq(node->left, depth + 1);
+				if (node->right)
+					depth_r = lcaDeepestLeavesReq(node->right, depth + 1);
+
+				if (depth_l == 0 && depth_r == 0) {
+					if (max_depth < depth) {
+						max_depth = depth;
+						res = node;
+					}
+					return depth;
+				}
+				else if (depth_l == max_depth && depth_r == max_depth)
+					res = node;
+				return max(depth_l, depth_r);
 			}
 		};
 	}
@@ -17945,6 +18103,16 @@ namespace leetcode {
 					return acc;
 				return subsetXORSum(nums, from + 1, acc) + subsetXORSum(nums, from + 1, acc ^ nums[from]);
 			}
+
+			int subsetXORSum__fast__leetcode(vector<int>& nums) {
+				int result = 0;
+				// Capture each bit that is set in any of the elements
+				for (int num : nums) {
+					result |= num;
+				}
+				// Multiply by the number of subset XOR totals that will have each bit set
+				return result << (nums.size() - 1);
+			}
 		};
 	}
 
@@ -18262,6 +18430,42 @@ namespace leetcode {
 					}
 				}
 				return res;
+			}
+		};
+	}
+
+	namespace task_1922 {
+		/*
+		* https://leetcode.com/problems/count-good-numbers/description/
+		*/
+		class Solution {
+		public:
+			const long long mod = 1000000007;
+			int countGoodNumbers(long long n) {
+				return myPow(4, n >> 1) * myPow(5, (n + 1) >> 1) % mod;
+			}
+
+			long long myPow(long long x, int n) {
+				long long acc_odd = 1, acc_even = x;
+				while (n > 0) {
+					if (n & 1)
+						acc_odd = acc_odd * acc_even % mod;
+					acc_even = acc_even * acc_even % mod;
+					n >>= 1;
+				}
+				return acc_odd;
+			}
+
+			int countGoodNumbers2(long long n) {
+				return (myPow2(5, (n + 1) / 2) % mod * myPow2(4, n / 2) % mod) % mod;
+			}
+
+			long long myPow2(long long a, long long b) {
+				if (b == 0)
+					return 1;
+				if (b & 1)
+					return (a % mod * myPow2((a * a) % mod, b / 2) % mod) % mod;
+				return myPow2((a * a) % mod, b / 2);
 			}
 		};
 	}
@@ -19491,6 +19695,26 @@ namespace leetcode {
 					count = min(count, count_ones - count_window);
 				}
 				return count;
+			}
+		};
+	}
+
+	namespace task_2140 {
+		/*
+		* https://leetcode.com/problems/solving-questions-with-brainpower/description/
+		*/
+		class Solution {
+		public:
+			long long mostPoints(vector<vector<int>>& questions) {
+				int size = questions.size();
+				vector<long long> points(size);
+				points[size - 1] = questions[size - 1][0];
+				for (int i = size - 2; i >= 0; --i) {
+					int index = i + questions[i][1] + 1;
+					long long point = questions[i][0] + (index < size ? points[index] : 0);
+					points[i] = max(points[i + 1], point);
+				}
+				return points[0];
 			}
 		};
 	}
@@ -23829,6 +24053,29 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2843 {
+		/*
+		* https://leetcode.com/problems/count-symmetric-integers/description/
+		*/
+		class Solution {
+		public:
+			int countSymmetricIntegers(int low, int high) {
+				int res = 0;
+				for (int a = low; a <= high; ++a) {
+					if (a < 100 && a % 11 == 0)
+						++res;
+					else if (1000 <= a && a < 10000) {
+						int left = a / 1000 + (a % 1000) / 100;
+						int right = (a % 100) / 10 + a % 10;
+						if (left == right)
+							++res;
+					}
+				}
+				return res;
+			}
+		};
+	}
+
 	namespace task_2872 {
 		/*
 		* https://leetcode.com/problems/maximum-number-of-k-divisible-components/description/
@@ -23896,6 +24143,75 @@ namespace leetcode {
 				}
 
 				return componentCount;
+			}
+		};
+	}
+
+	namespace task_2873 {
+		/*
+		* https://leetcode.com/problems/maximum-value-of-an-ordered-triplet-i/description/
+		*/
+		class Solution {
+		public:
+			long long maximumTripletValue(vector<int>& nums) {
+				size_t size = nums.size();
+				long long max_value = 0;
+				for (size_t i = 0; i < size; ++i) {
+					for (size_t j = i + 1; j < size; ++j) {
+						for (size_t k = j + 1; k < size; ++k)
+							max_value = max(max_value, (nums[i] - nums[j]) * (long long)nums[k]);
+					}
+				}
+				return max_value;
+			}
+
+			long long maximumTripletValue_faster(vector<int>& nums) {
+				size_t size = nums.size();
+				long long max_value = 0;
+				for (size_t k = 2; k < size; ++k) {
+					int maxPrefix = nums[0];
+					for (size_t j = 1; j < k; ++j) {
+						max_value = max(max_value, (maxPrefix - nums[j]) * (long long)nums[k]);
+						maxPrefix = max(maxPrefix, nums[j]);
+					}
+				}
+				return max_value;
+			}
+		};
+	}
+
+	namespace task_2874 {
+		/*
+		* https://leetcode.com/problems/maximum-value-of-an-ordered-triplet-ii/description/
+		*/
+		class Solution {
+		public:
+			long long maximumTripletValue_faster(vector<int>& nums) {
+				size_t size = nums.size();
+				long long max_value = 0;
+				vector<int> prefix_max(size), suffix_max(size);
+				prefix_max[0] = nums[0];
+				suffix_max[size - 1] = nums[size - 1];
+				for (size_t i = 1; i < size; ++i)
+					prefix_max[i] = max(prefix_max[i - 1], nums[i - 1]);
+				for (int i = size - 2; i >= 0; --i)
+					suffix_max[i] = max(suffix_max[i + 1], nums[i + 1]);
+
+				--size;
+				for (size_t j = 1; j < size; ++j)
+					max_value = max(max_value, (prefix_max[j] - nums[j]) * (long long)suffix_max[j]);
+				return max_value;
+			}
+
+			long long maximumTripletValue__fast(vector<int>& nums) {
+				size_t size = nums.size();
+				long long res = 0, imax = 0, dmax = 0;
+				for (size_t k = 0; k < size; ++k) {
+					res = max(res, dmax * nums[k]);
+					dmax = max(dmax, imax - nums[k]);
+					imax = max(imax, static_cast<long long>(nums[k]));
+				}
+				return res;
 			}
 		};
 	}
@@ -24208,6 +24524,42 @@ namespace leetcode {
 					count += k & 1;
 					k >>= 1;
 				}
+				return count;
+			}
+		};
+	}
+
+	namespace task_2999 {
+		/*
+		* https://leetcode.com/problems/count-the-number-of-powerful-integers/description/
+		*/
+		class Solution {
+		public:
+			long long numberOfPowerfulInt(long long start, long long finish, int limit,
+				string s) {
+				string start_ = to_string(start - 1), finish_ = to_string(finish);
+				return calculate(finish_, s, limit) - calculate(start_, s, limit);
+			}
+
+			long long calculate(string x, string s, int limit) {
+				if (x.length() < s.length())
+					return 0;
+				if (x.length() == s.length())
+					return x >= s ? 1 : 0;
+
+				string suffix = x.substr(x.length() - s.length(), s.length());
+				long long count = 0;
+				int preLen = x.length() - s.length();
+
+				for (int i = 0; i < preLen; i++) {
+					if (limit < (x[i] - '0')) {
+						count += (long)pow(limit + 1, preLen - i);
+						return count;
+					}
+					count += (long)(x[i] - '0') * (long)pow(limit + 1, preLen - 1 - i);
+				}
+				if (suffix >= s)
+					++count;
 				return count;
 			}
 		};
@@ -25233,6 +25585,48 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3272 {
+		/*
+		* https://leetcode.com/problems/find-the-count-of-good-integers/description/
+		*/
+		class Solution {
+		public:
+			long long countGoodIntegers(int n, int k) {
+				unordered_set<string> dict;
+				int base = pow(10, (n - 1) / 2);
+				int skip = n & 1;
+				/* Enumerate the number of palindrome numbers of n digits */
+				for (int i = base; i < base * 10; i++) {
+					string s = to_string(i);
+					s += string(s.rbegin() + skip, s.rend());
+					long long palindromicInteger = stoll(s);
+					/* If the current palindrome number is a k-palindromic integer */
+					if (palindromicInteger % k == 0) {
+						sort(s.begin(), s.end());
+						dict.emplace(s);
+					}
+				}
+
+				vector<long long> factorial(n + 1, 1);
+				long long ans = 0;
+				for (int i = 1; i <= n; i++)
+					factorial[i] = factorial[i - 1] * i;
+				for (const string& s : dict) {
+					vector<int> cnt(10);
+					for (char c : s)
+						cnt[c - '0']++;
+					/* Calculate permutations and combinations */
+					long long tot = (n - cnt[0]) * factorial[n - 1];
+					for (int x : cnt)
+						tot /= factorial[x];
+					ans += tot;
+				}
+
+				return ans;
+			}
+		};
+	}
+
 	namespace task_3305 {
 		/*
 		* https://leetcode.com/problems/count-of-substrings-containing-every-vowel-and-k-consonants-i/description/
@@ -25385,6 +25779,25 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3375 {
+		/*
+		* https://leetcode.com/problems/minimum-operations-to-make-array-values-equal-to-k/description/
+		*/
+		class Solution {
+		public:
+			int minOperations(vector<int>& nums, int k) {
+				unordered_set<int> set;
+				for (int n : nums) {
+					if (n > k)
+						set.insert(n);
+					else if (n < k)
+						return -1;
+				}
+				return set.size();
+			}
+		};
+	}
+
 	namespace task_3394 {
 		/*
 		* https://leetcode.com/problems/check-if-grid-can-be-cut-into-sections/description/
@@ -25415,6 +25828,22 @@ namespace leetcode {
 					last_end = max(last_end, rect[1]);
 				}
 				return count_section > 2;
+			}
+		};
+	}
+
+	namespace task_3396 {
+		/*
+		* https://leetcode.com/problems/minimum-number-of-operations-to-make-elements-in-array-distinct/description/
+		*/
+		class Solution {
+		public:
+			int minimumOperations(vector<int>& nums) {
+				unordered_set<int> set;
+				int i = nums.size() - 1;
+				for (; i >= 0 && !set.contains(nums[i]); --i)
+					set.insert(nums[i]);
+				return ceil(++i / (double)3);
 			}
 		};
 	}
