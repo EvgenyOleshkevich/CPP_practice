@@ -3723,6 +3723,27 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_80 {
+		/*
+		* https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/description/
+		*/
+		class Solution {
+		public:
+			int removeDuplicates(vector<int>& nums) {
+				size_t insert_pos = 1, size = nums.size();
+				for (size_t i = 1; i < size;) {
+					for (; i < size && nums[i] != nums[i - 1]; ++i)
+						nums[insert_pos++] = nums[i];
+					if (i == size)
+						break;
+					nums[insert_pos++] = nums[i];
+					for (; i < size && nums[i] == nums[i - 1]; ++i) {}
+				}
+				return insert_pos;
+			}
+		};
+	}
+
 	namespace task_82
 	{
 		/*
@@ -6329,6 +6350,68 @@ namespace leetcode {
 				while (n % 2 == 0)
 					n >>= 1;
 				return n == 1;
+			}
+		};
+	}
+
+	namespace task_232 {
+		/*
+		* https://leetcode.com/problems/implement-queue-using-stacks/description/
+		*/
+		class MyQueue {
+		public:
+			queue<int> in_stack;
+			queue<int> out_stack;
+
+			void push(int x) {
+				in_stack.push(x);
+			}
+
+			int pop() {
+				int res = peek();
+				out_stack.pop();
+				return res;
+			}
+
+			int peek() {
+				if (out_stack.empty()) {
+					while (!in_stack.empty())
+					{
+						out_stack.push(in_stack.front());
+						in_stack.pop();
+					}
+				}
+				return out_stack.front();
+			}
+
+			bool empty() {
+				return in_stack.empty() && out_stack.empty();
+			}
+		};
+
+		class MyStack {
+		public:
+			queue<int> q;
+			void push(int x) {
+				q.push(x);
+				for (int i = 0; i < q.size() - 1; i++) {
+					q.push(q.front());
+					q.pop();
+				}
+			}
+
+			int pop() {
+				int result = q.front();
+				q.pop();
+				return result;
+			}
+
+			int top() {
+				return q.front();
+			}
+
+			bool empty() {
+				return q.empty();
 			}
 		};
 	}
@@ -11316,6 +11399,42 @@ namespace leetcode {
 					moves++;
 				}
 				return -1;
+			}
+		};
+	}
+
+	namespace task_781 {
+		/*
+		* https://leetcode.com/problems/rabbits-in-forest/description/
+		*/
+		class Solution {
+		public:
+			int numRabbits(vector<int>& answers) { //100%; 10.59%
+				unordered_map<int, int> same_answers;
+				for (const int a : answers)
+					++same_answers[a];
+				int num_rabbits = 0;
+				for (auto [answer, count] : same_answers)
+					num_rabbits += ceil((double)count / (answer + 1)) * (answer + 1);
+				return num_rabbits;
+			}
+
+			int numRabbits__sorting(vector<int>& answers) { //100%; 96.43%
+				sort(answers.begin(), answers.end());
+				size_t size = answers.size();
+				int answer = answers[0], count = 1, num_rabbits = 0;
+				for (size_t i = 1; i < size; ++i) {
+					if (answers[i] == answer) {
+						++count;
+					}
+					else {
+						num_rabbits += ceil((double)count / (answer + 1)) * (answer + 1);
+						answer = answers[i];
+						count = 1;
+					}
+				}
+				num_rabbits += ceil((double)count / (answer + 1)) * (answer + 1);
+				return num_rabbits;
 			}
 		};
 	}
@@ -16371,6 +16490,30 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1534 {
+		/*
+		* https://leetcode.com/problems/count-good-triplets/description/
+		*/
+		class Solution {
+		public:
+			int countGoodTriplets(vector<int>& arr, int a, int b, int c) {
+				size_t size = arr.size();
+				int count = 0;
+				for (size_t i = 0; i < size; ++i) {
+					for (size_t j = i + 1; j < size; ++j) {
+						if (abs(arr[i] - arr[j]) <= a) {
+							for (size_t k = j + 1; k < size; ++k) {
+								if (abs(arr[i] - arr[k]) <= b && abs(arr[k] - arr[j]) <= c)
+									++count;
+							}
+						}
+					}
+				}
+				return count;
+			}
+		};
+	}
+
 	namespace task_1539 {
 		/*
 		* https://leetcode.com/problems/kth-missing-positive-number/description/
@@ -19719,6 +19862,25 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2145 {
+		/*
+		* https://leetcode.com/problems/count-the-hidden-sequences/description/
+		*/
+		class Solution {
+		public:
+			int numberOfArrays(vector<int>& differences, int lower, int upper) {
+				long long min_value = 0, max_value = 0, value = 0;
+				for (int diff : differences) {
+					value += diff;
+					min_value = min(min_value, value);
+					max_value = max(max_value, value);
+				}
+
+				return max(upper - lower + min_value - max_value + 1, (long long)0);
+			}
+		};
+	}
+
 	namespace task_2161 {
 		/*
 		* https://leetcode.com/problems/partition-array-according-to-given-pivot/description/
@@ -19806,6 +19968,78 @@ namespace leetcode {
 				}
 
 				return max(longestCycle, twoCycleInvitations);
+			}
+		};
+	}
+
+	namespace task_2176 {
+		/*
+		* https://leetcode.com/problems/count-equal-and-divisible-pairs-in-an-array/description/
+		*/
+		class Solution {
+		public:
+			int countPairs(vector<int>& nums, int k) {
+				int count = 0;
+				size_t size = nums.size();
+				for (size_t i = 0; i < size; ++i)
+					for (size_t j = i + 1; j < size; ++j)
+						if (nums[i] == nums[j] && i * j % k == 0)
+							++count;
+				return count;
+			}
+		};
+	}
+
+	namespace task_2179 {
+		/*
+		* https://leetcode.com/problems/count-good-triplets-in-an-array/description/
+		*/
+		class Solution {
+		public:
+			class FenwickTree {
+			private:
+				vector<int> tree;
+
+			public:
+				FenwickTree(int size) : tree(size + 1, 0) {}
+
+				void update(int index, int delta) {
+					index++;
+					while (index < tree.size()) {
+						tree[index] += delta;
+						index += index & -index;
+					}
+				}
+
+				int query(int index) {
+					index++;
+					int res = 0;
+					while (index > 0) {
+						res += tree[index];
+						index -= index & -index;
+					}
+					return res;
+				}
+			};
+
+			long long goodTriplets(vector<int>& nums1, vector<int>& nums2) {
+				int n = nums1.size();
+				vector<int> pos2(n), reversedIndexMapping(n);
+				for (int i = 0; i < n; i++)
+					pos2[nums2[i]] = i;
+				for (int i = 0; i < n; i++)
+					reversedIndexMapping[pos2[nums1[i]]] = i;
+
+				FenwickTree tree(n);
+				long long res = 0;
+				for (int value = 0; value < n; value++) {
+					int pos = reversedIndexMapping[value];
+					int left = tree.query(pos);
+					tree.update(pos, 1);
+					int right = (n - 1 - pos) - (value - left);
+					res += (long long)left * right;
+				}
+				return res;
 			}
 		};
 	}
@@ -22163,6 +22397,31 @@ namespace leetcode {
 					queue.push(value / 3 + (value % 3 == 0 ? 0 : 1));
 				}
 				return score;
+			}
+		};
+	}
+
+	namespace task_2537 {
+		/*
+		* https://leetcode.com/problems/count-the-number-of-good-subarrays/description/
+		*/
+		class Solution {
+		public:
+			long long countGood(vector<int>& nums, int k) {
+				size_t size = nums.size(), j = 0, i = 0;
+				unordered_map<int, int> nums_count;
+				long long count = 0;
+				int pairs = 0;
+				for (size_t i = 0; i < size; ++i) {
+					pairs += nums_count[nums[i]]++;
+					if (pairs >= k) {
+						for (; pairs >= k; ++j)
+							pairs -= --nums_count[nums[j]];
+						count += j;
+						pairs += nums_count[nums[--j]]++; // return pairs to maintain good subsequence
+					}
+				}
+				return count;
 			}
 		};
 	}
