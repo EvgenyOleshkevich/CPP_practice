@@ -15588,6 +15588,34 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1399 {
+		/*
+		* https://leetcode.com/problems/count-largest-group/description/
+		*/
+		class Solution {
+		public:
+			int countLargestGroup(int n) {
+				vector<int> groups(37);
+				++n;
+				for (int i = 0; i < 10 && n != 0; ++i) {
+					for (int j = 0; j < 10 && n != 0; ++j) {
+						for (int k = 0; k < 10 && n != 0; ++k) {
+							for (int l = 0; l < 10 && n != 0; ++l) {
+								++groups[i + j + k + l];
+								--n;
+							}
+						}
+					}
+				}
+				--groups[0];
+				sort(groups.begin(), groups.end());
+				int count = 0;
+				for (int size = groups.back(); size == groups.back(); ++count, groups.pop_back()) {}
+				return count;
+			}
+		};
+	}
+
 	namespace task_1400 {
 		/*
 		* https://leetcode.com/problems/construct-k-palindrome-strings/description/
@@ -18588,7 +18616,7 @@ namespace leetcode {
 				return myPow(4, n >> 1) * myPow(5, (n + 1) >> 1) % mod;
 			}
 
-			long long myPow(long long x, int n) {
+			long long myPow(long long x, long long n) {
 				long long acc_odd = 1, acc_even = x;
 				while (n > 0) {
 					if (n & 1)
@@ -20763,6 +20791,63 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2338 {
+		/*
+		* https://leetcode.com/problems/count-the-number-of-ideal-arrays/description/
+		*/
+		class Solution {
+		public:
+			static const int MOD = 1e9 + 7, MAX_N = 1e4 + 10, MAX_P = 15;  // There are up to 15 prime factors
+			int c[MAX_N + MAX_P][MAX_P + 1];
+			vector<int> ps[MAX_N];  // List of prime factor counts
+			int sieve[MAX_N];	   // Minimum prime factor
+
+			Solution() {
+				if (c[0][0]) {
+					return;
+				}
+				for (int i = 2; i < MAX_N; i++) {
+					if (sieve[i] == 0) {
+						for (int j = i; j < MAX_N; j += i) {
+							sieve[j] = i;
+						}
+					}
+				}
+				for (int i = 2; i < MAX_N; i++) {
+					int x = i;
+					while (x > 1) {
+						int p = sieve[x];
+						int cnt = 0;
+						while (x % p == 0) {
+							x /= p;
+							cnt++;
+						}
+						ps[i].push_back(cnt);
+					}
+				}
+				c[0][0] = 1;
+				for (int i = 1; i < MAX_N + MAX_P; i++) {
+					c[i][0] = 1;
+					for (int j = 1; j <= min(i, MAX_P); j++) {
+						c[i][j] = (c[i - 1][j] + c[i - 1][j - 1]) % MOD;
+					}
+				}
+			}
+
+			int idealArrays(int n, int maxValue) {
+				long long ans = 0;
+				for (int x = 1; x <= maxValue; x++) {
+					long long mul = 1;
+					for (int p : ps[x]) {
+						mul = mul * c[n + p - 1][p] % MOD;
+					}
+					ans = (ans + mul) % MOD;
+				}
+				return ans;
+			}
+		};
+	}
+
 	namespace task_2342 {
 		/*
 		* https://leetcode.com/problems/max-sum-of-a-pair-with-equal-sum-of-digits/description/
@@ -21469,6 +21554,41 @@ namespace leetcode {
 			vector<int> findArray2(vector<int>& pref) {
 				for (int i = pref.size() - 1; i > 0; i--) pref[i] ^= pref[i - 1];
 				return pref;
+			}
+		};
+	}
+
+	namespace task_2444 {
+		/*
+		* https://leetcode.com/problems/count-subarrays-with-fixed-bounds/description/
+		*/
+		class Solution {
+		public:
+			long long countSubarrays(vector<int>& nums, int minK, int maxK) {
+				int n = nums.size();
+				long long ans = 0;
+				int lastInvalid = -1; // last index where nums[i] < minK or nums[i] > maxK
+				int lastMin = -1;     // last index where nums[i] == minK
+				int lastMax = -1;     // last index where nums[i] == maxK
+
+				for (int i = 0; i < n; ++i) {
+					if (nums[i] < minK || nums[i] > maxK) {
+						lastInvalid = i;
+						lastMin = -1;
+						lastMax = -1;
+						continue;
+					}
+					if (nums[i] == minK)
+						lastMin = i;
+					if (nums[i] == maxK)
+						lastMax = i;
+
+					int validStart = min(lastMin, lastMax);
+					if (validStart > lastInvalid) {
+						ans += (validStart - lastInvalid);
+					}
+				}
+				return ans;
 			}
 		};
 	}
@@ -23883,6 +24003,37 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2799 {
+		/*
+		* https://leetcode.com/problems/count-complete-subarrays-in-an-array/description/
+		*/
+		class Solution {
+		public:
+			int countCompleteSubarrays(vector<int>& nums) {
+				unordered_map<int, int> unique;
+				for (int n : nums)
+					unique[n] = 1;
+				const size_t size = nums.size(), count_unique = unique.size();
+				unique.clear();
+				int count = 0;
+				for (size_t i = 0, j = 0; i < size; ++i) {
+					++unique[nums[i]];
+					if (unique.size() == count_unique) {
+						while (unique.size() == count_unique) {
+							if (--unique[nums[j]] == 0)
+								unique.erase(nums[j]);
+							++j;
+						}
+						--j;
+						++unique[nums[j]];
+						count += j + 1;
+					}
+				}
+				return count;
+			}
+		};
+	}
+
 	namespace task_2807 {
 		/*
 		* https://leetcode.com/problems/insert-greatest-common-divisors-in-linked-list/description/
@@ -24329,6 +24480,28 @@ namespace leetcode {
 						if (left == right)
 							++res;
 					}
+				}
+				return res;
+			}
+		};
+	}
+
+	namespace task_2845 {
+		/*
+		* https://leetcode.com/problems/count-of-interesting-subarrays/description/
+		*/
+		class Solution {
+		public:
+			long long countInterestingSubarrays(vector<int>& nums, int modulo, int k) {
+				int n = nums.size();
+				unordered_map<int, int> cnt;
+				long long res = 0;
+				int prefix = 0;
+				cnt[0] = 1;
+				for (int i = 0; i < n; i++) {
+					prefix += nums[i] % modulo == k;
+					res += cnt[(prefix - k + modulo) % modulo];
+					cnt[prefix % modulo]++;
 				}
 				return res;
 			}
@@ -26053,6 +26226,23 @@ namespace leetcode {
 						return -1;
 				}
 				return set.size();
+			}
+		};
+	}
+
+	namespace task_3392 {
+		/*
+		* https://leetcode.com/problems/count-of-interesting-subarrays/description/
+		*/
+		class Solution {
+		public:
+			int countSubarrays(vector<int>& nums) {
+				size_t size = nums.size() - 2;
+				int count = 0;
+				for (size_t i = 0; i < size; ++i)
+					if (((nums[i] + nums[i + 2]) << 1) == nums[i + 1])
+						++count;
+				return count;
 			}
 		};
 	}
