@@ -11726,6 +11726,46 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_838 {
+		/*
+		* https://leetcode.com/problems/push-dominoes/description/
+		*/
+		class Solution {
+		public:
+
+			string pushDominoes(string dominoes) {
+				int size = dominoes.size();
+				for (int i = 0; i < size;) {
+					for (; i < size && dominoes[i] == '.'; ++i) {}
+					if (i == size)
+						break;
+					if (dominoes[i] == 'L') {
+						for (int j = i - 1; j >= 0 && dominoes[j] == '.'; --j)
+							dominoes[j] = 'L';
+						++i;
+					}
+					else {
+						++i;
+						int j = i;
+						for (; j < size && dominoes[j] == '.'; ++j) {}
+						if (j == size || dominoes[j] == 'R') {
+							for (; i < j; ++i)
+								dominoes[i] = 'R';
+						}
+						else {
+							for (int k = j - 1; i < k; ++i, --k) {
+								dominoes[i] = 'R';
+								dominoes[k] = 'L';
+							}
+							i = j + 1;
+						}
+					}
+				}
+				return dominoes;
+			}
+		};
+	}
+
 	namespace task_840 {
 		/*
 		* https://leetcode.com/problems/magic-squares-in-grid/description/
@@ -13309,6 +13349,48 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1007 {
+		/*
+		* https://leetcode.com/problems/minimum-domino-rotations-for-equal-row/description/
+		*/
+		class Solution {
+		public:
+			int minDominoRotations(vector<int>& tops, vector<int>& bottoms) {
+				unordered_map<int, int> mp;
+				const size_t n = tops.size();
+
+				for (size_t i = 0; i < n; ++i) {
+					mp[tops[i]]++;
+					mp[bottoms[i]]++;
+				}
+
+				int el = 0;
+
+				for (auto i : mp) {
+					if (i.second >= n) {
+						el = i.first;
+						break;
+					}
+				}
+
+				int count = 0;
+				int topcount = 0, bottomcount = 0;
+				for (size_t i = 0; i < n; ++i) {
+					if (tops[i] != el && bottoms[i] != el)
+						return -1;
+
+					if (tops[i] != bottoms[i] && bottoms[i] == el)
+						topcount++;
+
+					if (tops[i] != bottoms[i] && tops[i] == el)
+						bottomcount++;
+
+				}
+				return min(topcount, bottomcount);
+			}
+		};
+	}
+
 	namespace task_1028 {
 		/*
 		* https://leetcode.com/problems/recover-a-tree-from-preorder-traversal/description/
@@ -14110,6 +14192,31 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1128 {
+		/*
+		* https://leetcode.com/problems/number-of-equivalent-domino-pairs/description/
+		*/
+		class Solution {
+		public:
+			int numEquivDominoPairs(vector<vector<int>>& dominoes) {
+				vector<vector<int>> values(10, vector<int>(10));
+				for (vector<int>& domino : dominoes) {
+					if (domino[0] > domino[1])
+						swap(domino[0], domino[1]);
+					++values[domino[0]][domino[1]];
+				}
+
+				int pairs = 0;
+				for (const vector<int>& value : values) {
+					for (const int count : value)
+						pairs += count * (count - 1) / 2;
+				}
+
+				return pairs;
+			}
+		};
+	}
+
 	namespace task_1137 {
 		/*
 		* https://leetcode.com/problems/n-th-tribonacci-number/description/
@@ -14760,6 +14867,25 @@ namespace leetcode {
 					}
 				}
 				return ans;
+			}
+		};
+	}
+
+	namespace task_1295 {
+		/*
+		* https://leetcode.com/problems/find-numbers-with-even-number-of-digits/description/
+		*/
+		class Solution {
+		public:
+			int findNumbers(vector<int>& nums) {
+				int count = 0;
+				for (int n : nums) {
+					int count_digit = 0;
+					for (; n > 0; n /= 10, ++count_digit) {}
+					count += ~count_digit & 1;
+				}
+
+				return count;
 			}
 		};
 	}
@@ -19426,6 +19552,62 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2071 {
+		/*
+		* https://leetcode.com/problems/maximum-number-of-tasks-you-can-assign/description/
+		*/
+		class Solution {
+		public:
+			int maxTaskAssign__leetcode(vector<int>& tasks, vector<int>& workers, int pills, int strength) {
+				int n = tasks.size(), m = workers.size();
+				sort(tasks.begin(), tasks.end());
+				sort(workers.begin(), workers.end());
+
+				auto check = [&](int mid) -> bool {
+					int p = pills;
+					deque<int> ws;
+					int ptr = m - 1;
+					// Enumerate each task from largest to smallest
+					for (int i = mid - 1; i >= 0; --i) {
+						while (ptr >= m - mid && workers[ptr] + strength >= tasks[i]) {
+							ws.push_front(workers[ptr]);
+							--ptr;
+						}
+						if (ws.empty()) {
+							return false;
+						}
+						// If the largest element in the deque is greater than or equal
+						// to tasks[i]
+						else if (ws.back() >= tasks[i]) {
+							ws.pop_back();
+						}
+						else {
+							if (!p) {
+								return false;
+							}
+							--p;
+							ws.pop_front();
+						}
+					}
+					return true;
+				};
+
+				int left = 1, right = min(m, n), ans = 0;
+				while (left <= right) {
+					int mid = (left + right) / 2;
+					if (check(mid)) {
+						ans = mid;
+						left = mid + 1;
+					}
+					else {
+						right = mid - 1;
+					}
+				}
+				return ans;
+			}
+		};
+	}
+
 	namespace task_2074 {
 		/*
 		* https://leetcode.com/problems/reverse-nodes-in-even-length-groups/
@@ -20706,6 +20888,26 @@ namespace leetcode {
 						l = i;
 				}
 				return nums.size() - r;
+			}
+		};
+	}
+
+	namespace task_2302 {
+		/*
+		* https://leetcode.com/problems/count-subarrays-with-score-less-than-k/description/
+		*/
+		class Solution {
+		public:
+			long long countSubarrays(vector<int>& nums, long long k) {
+				const size_t size = nums.size();
+				long long sum = 0, count = 0;
+				for (size_t i = 0, j = 0; i < size; ++i) {
+					sum += nums[i];
+					for (; sum * (i + 1 - j) >= k; ++j)
+						sum -= nums[j];
+					count += i + 1 - j;
+				}
+				return count;
 			}
 		};
 	}
@@ -24797,6 +24999,35 @@ namespace leetcode {
 				}
 
 				return nums;
+			}
+		};
+	}
+
+	namespace task_2962 {
+		/*
+		* https://leetcode.com/problems/count-subarrays-where-max-element-appears-at-least-k-times/description/
+		*/
+		class Solution {
+		public:
+			long long countSubarrays(vector<int>& nums, long long k) {
+				int max_value = 0, count_max = 0;
+				for (int n : nums)
+					max_value = max(max_value, n);
+				const size_t size = nums.size();
+				long long count = 0;
+				for (size_t i = 0, j = 0; i < size; ++i) {
+					if (nums[i] == max_value)
+						++count_max;
+					if (count_max >= k) {
+						for (; count_max >= k; ++j)
+							if (nums[j] == max_value)
+								--count_max;
+						count += j;
+						--j;
+						++count_max;
+					}
+				}
+				return count;
 			}
 		};
 	}
