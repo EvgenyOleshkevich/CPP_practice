@@ -5532,6 +5532,17 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_175 {
+		/*
+		* https://leetcode.com/problems/combine-two-tables/description/
+		*/
+		/*
+		SELECT Person.firstName , Person.lastName, Address.city, Address.state
+		FROM Person
+		LEFT JOIN Address ON Person.personId=Address.personId;
+		*/
+	}
+
 	namespace task_179 {
 		/*
 		* https://leetcode.com/problems/largest-number/description/
@@ -11503,6 +11514,26 @@ namespace leetcode {
 					}
 				}
 				return dist[dst] == INT32_MAX ? -1 : dist[dst];
+			}
+		};
+	}
+
+	namespace task_790 {
+		/*
+		* https://leetcode.com/problems/domino-and-tromino-tiling/description/
+		*/
+		class Solution {
+		public:
+			const long long mod = 1000000007;
+
+			int numTilings(int n) {
+				vector<long long> last_three({ 1, 2, 5 });
+				for (int i = 3; i < n; ++i)
+					last_three[(i - 3) % 3] = (
+						last_three[(i - 1) % 3] * 2 +
+						last_three[(i - 3) % 3]) % mod;
+
+				return last_three[(n - 1) % 3];
 			}
 		};
 	}
@@ -18731,6 +18762,23 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1920 {
+		/*
+		* https://leetcode.com/problems/build-array-from-permutation/description/
+		*/
+		class Solution {
+		public:
+			vector<int> buildArray(vector<int>& nums) {
+				const size_t size = nums.size();
+				vector<int> ans(size);
+				for (size_t i = 0; i < size; ++i)
+					ans[i] = nums[nums[i]];
+
+				return ans;
+			}
+		};
+	}
+
 	namespace task_1922 {
 		/*
 		* https://leetcode.com/problems/count-good-numbers/description/
@@ -24867,6 +24915,35 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2918 {
+		/*
+		* https://leetcode.com/problems/minimum-equal-sum-of-two-arrays-after-replacing-zeros/description/
+		*/
+		class Solution {
+		public:
+			long long minSum(vector<int>& nums1, vector<int>& nums2) {
+				long long sum1 = 0, sum2 = 0, count_zeros1 = 0, count_zeros2 = 0;
+				for (const int n : nums1) {
+					sum1 += n;
+					if (n == 0)
+						++count_zeros1;
+				}
+				for (const int n : nums2) {
+					sum2 += n;
+					if (n == 0)
+						++count_zeros2;
+				}
+				sum1 += count_zeros1;
+				sum2 += count_zeros2;
+				if (sum1 < sum2) {
+					swap(sum1, sum2);
+					swap(count_zeros1, count_zeros2);
+				}
+				return sum1 <= sum2 + count_zeros2 * (INT32_MAX - 1) ? sum1 : -1;
+			}
+		};
+	}
+
 	namespace task_2924 {
 		/*
 		* https://leetcode.com/problems/find-champion-ii/description/
@@ -26378,6 +26455,155 @@ namespace leetcode {
 
 			bool isVowel(char c) {
 				return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+			}
+		};
+	}
+
+	namespace task_3341 {
+		/*
+		* https://leetcode.com/problems/find-minimum-time-to-reach-last-room-i/description/
+		*/
+		class Solution {
+		public:
+			int minTimeToReach(vector<vector<int>>& moveTime) {
+				const int n = moveTime.size(), m = moveTime[0].size();
+				vector<vector<int>> min_time(n, vector<int>(m, INT32_MAX));
+				min_time[0][0] = 0;
+				priority_queue<vector<int>, vector<vector<int>>, greater<>> queue;
+				queue.push({ 0,0,0 });
+				while (!queue.empty())
+				{
+					const vector<int>& pos = queue.top();
+					int time = pos[0], i = pos[1], j = pos[2];
+					queue.pop();
+
+					if (i + 1 < n && min_time[i + 1][j] == INT32_MAX) {
+						min_time[i + 1][j] = max(moveTime[i + 1][j], time) + 1;
+						queue.push({ min_time[i + 1][j], i + 1, j });
+					}
+					if (j + 1 < m && min_time[i][j + 1] == INT32_MAX) {
+						min_time[i][j + 1] = max(moveTime[i][j + 1], time) + 1;
+						queue.push({ min_time[i][j + 1], i, j + 1 });
+					}
+					if (i > 0 && min_time[i - 1][j] == INT32_MAX) {
+						min_time[i - 1][j] = max(moveTime[i - 1][j], time) + 1;
+						queue.push({ min_time[i - 1][j], i - 1, j });
+					}
+					if (j > 0 && min_time[i][j - 1] == INT32_MAX) {
+						min_time[i][j - 1] = max(moveTime[i][j - 1], time) + 1;
+						queue.push({ min_time[i][j - 1], i, j - 1 });
+					}
+				}
+
+				return min_time[n - 1][m - 1];
+			}
+		};
+	}
+
+	namespace task_3342 {
+		/*
+		* https://leetcode.com/problems/find-minimum-time-to-reach-last-room-ii/description/
+		*/
+		class Solution {
+		public:
+			int minTimeToReach(vector<vector<int>>& moveTime) {
+				const int n = moveTime.size(), m = moveTime[0].size();
+				vector<vector<int>> min_time(n, vector<int>(m, INT32_MAX));
+				min_time[0][0] = 0;
+				priority_queue<vector<int>, vector<vector<int>>, greater<>> queue;
+				queue.push({ 0,0,0,0 }); // extra_time to check wait another second or not
+				while (!queue.empty())
+				{
+					const vector<int>& pos = queue.top();
+					int time = pos[0], extra_time = pos[1], i = pos[2], j = pos[3];
+					queue.pop();
+
+					if (i + 1 < n && min_time[i + 1][j] == INT32_MAX) {
+						min_time[i + 1][j] = max(moveTime[i + 1][j], time) + 1 + extra_time;
+						queue.push({ min_time[i + 1][j], extra_time ^ 1, i + 1, j });
+					}
+					if (j + 1 < m && min_time[i][j + 1] == INT32_MAX) {
+						min_time[i][j + 1] = max(moveTime[i][j + 1], time) + 1 + extra_time;
+						queue.push({ min_time[i][j + 1], extra_time ^ 1, i, j + 1 });
+					}
+					if (i > 0 && min_time[i - 1][j] == INT32_MAX) {
+						min_time[i - 1][j] = max(moveTime[i - 1][j], time) + 1 + extra_time;
+						queue.push({ min_time[i - 1][j], extra_time ^ 1, i - 1, j });
+					}
+					if (j > 0 && min_time[i][j - 1] == INT32_MAX) {
+						min_time[i][j - 1] = max(moveTime[i][j - 1], time) + 1 + extra_time;
+						queue.push({ min_time[i][j - 1], extra_time ^ 1, i, j - 1 });
+					}
+				}
+
+				return min_time[n - 1][m - 1];
+			}
+		};
+	}
+
+	namespace task_3343 {
+		/*
+		* https://leetcode.com/problems/find-minimum-time-to-reach-last-room-ii/description/
+		*/
+		class Solution {
+		public:
+			constexpr static long long MOD = 1e9 + 7;
+
+			int countBalancedPermutations(string num) {
+				int tot = 0, n = num.size();
+				vector<int> cnt(10);
+				for (char ch : num) {
+					int d = ch - '0';
+					cnt[d]++;
+					tot += d;
+				}
+				if (tot % 2 != 0) {
+					return 0;
+				}
+
+				int target = tot / 2;
+				int maxOdd = (n + 1) / 2;
+				vector<vector<long long>> comb(maxOdd + 1,
+					vector<long long>(maxOdd + 1));
+				vector<vector<long long>> f(target + 1, vector<long long>(maxOdd + 1));
+				for (int i = 0; i <= maxOdd; i++) {
+					comb[i][i] = comb[i][0] = 1;
+					for (int j = 1; j < i; j++) {
+						comb[i][j] = (comb[i - 1][j] + comb[i - 1][j - 1]) % MOD;
+					}
+				}
+
+				f[0][0] = 1;
+				int psum = 0, totSum = 0;
+				for (int i = 0; i <= 9; i++) {
+					/* Sum of the number of the first i digits */
+					psum += cnt[i];
+					/* Sum of the first i numbers */
+					totSum += i * cnt[i];
+					for (int oddCnt = min(psum, maxOdd);
+						oddCnt >= max(0, psum - (n - maxOdd)); oddCnt--) {
+						/* The number of bits that need to be filled in even numbered
+						 * positions */
+						int evenCnt = psum - oddCnt;
+						for (int curr = min(totSum, target);
+							curr >= max(0, totSum - target); curr--) {
+							long long res = 0;
+							for (int j = max(0, cnt[i] - evenCnt);
+								j <= min(cnt[i], oddCnt) && i * j <= curr; j++) {
+								/* The current digit is filled with j positions at odd
+								 * positions, and cnt[i] - j positions at even positions
+								 */
+								long long ways =
+									comb[oddCnt][j] * comb[evenCnt][cnt[i] - j] % MOD;
+								res = (res + ways * f[curr - i * j][oddCnt - j] % MOD) %
+									MOD;
+							}
+							f[curr][oddCnt] = res % MOD;
+						}
+					}
+				}
+
+				return f[target][maxOdd];
 			}
 		};
 	}
