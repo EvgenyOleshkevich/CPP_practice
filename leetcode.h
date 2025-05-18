@@ -3744,6 +3744,22 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_81 {
+		/*
+		* https://leetcode.com/problems/search-in-rotated-sorted-array-ii/description/
+		*/
+		class Solution {
+		public:
+			bool search(vector<int>& nums, int target) {
+				const size_t size = nums.size();
+				for (size_t i = 0; i < size; i++)
+					if (nums[i] == target)
+						return true;
+				return false;
+			}
+		};
+	}
+
 	namespace task_82
 	{
 		/*
@@ -5591,6 +5607,18 @@ namespace leetcode {
 				return false;
 			}
 		};
+	}
+
+	namespace task_181 {
+		/*
+		* https://leetcode.com/problems/employees-earning-more-than-their-managers/description/
+		*/
+		/*
+		SELECT A.name  AS Employee
+		FROM Employee A
+		LEFT JOIN Employee B ON A.managerId=B.id
+		WHERE A.salary  > B.salary;
+		*/
 	}
 
 	namespace task_188 {
@@ -18853,6 +18881,83 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1931 {
+		/*
+		* https://leetcode.com/problems/painting-a-grid-with-three-different-colors/description/
+		*/
+		class Solution {
+		public:
+			static const long long mod = 1000000007;
+			unordered_map<int, int> cnt, nxt;
+			unordered_map<int, vector<int>> valid_prev;
+			vector<int> masks;
+			size_t count_masks;
+
+			int colorTheGrid(int m, int n) {
+				cnt.clear();
+				nxt.clear();
+				generateBase(0, 0, m);
+				generateValidPrev();
+
+				for (int round = 1; round < n; ++round) {
+					for (const int mask : masks) {
+						long long next_count = 0;
+						for (const int neighbour : valid_prev[mask])
+							next_count += cnt[neighbour];
+						nxt[mask] = next_count % mod;
+					}
+
+					swap(cnt, nxt);
+					for (auto& [key, value] : nxt)
+						value = 0;
+				}
+
+				long long ans = 0;
+				for (const auto& [key, value] : cnt)
+					ans = ans + value;
+				return ans % mod;
+			}
+
+			void generateBase(const int base, const int last, const int m) {
+				if (m == 0) {
+					cnt[base] = 1;
+					masks.push_back(base);
+					return;
+				}
+				if (1 != last)
+					generateBase(base * 10 + 1, 1, m - 1);
+				if (2 != last)
+					generateBase(base * 10 + 2, 2, m - 1);
+				if (3 != last)
+					generateBase(base * 10 + 3, 3, m - 1);
+			}
+
+			void generateValidPrev() {
+				count_masks = masks.size();
+				for (size_t i = 0; i < count_masks; ++i)
+					valid_prev[masks[i]] = {};
+				for (size_t i = 0; i < count_masks; ++i) {
+					for (size_t j = i + 1; j < count_masks; ++j) {
+						if (canBeNeighbour(masks[i], masks[j])) {
+							valid_prev[masks[i]].push_back(masks[j]);
+							valid_prev[masks[j]].push_back(masks[i]);
+						}
+					}
+				}
+			}
+
+			bool canBeNeighbour(int a, int b) {
+				while (a > 0) {
+					if (a % 10 == b % 10)
+						return false;
+					a /= 10;
+					b /= 10;
+				}
+				return true;
+			}
+		};
+	}
+
 	namespace task_1937 {
 		/*
 		* https://leetcode.com/problems/maximum-number-of-points-with-cost/description/
@@ -19703,6 +19808,36 @@ namespace leetcode {
 					size_group = min(k, size);
 				}
 				return head;
+			}
+		};
+	}
+
+	namespace task_2094 {
+		/*
+		* https://leetcode.com/problems/finding-3-digit-even-numbers/description/
+		*/
+		class Solution {
+		public:
+			vector<int> findEvenNumbers(vector<int>& digits) {
+				set<int> nums;
+				size_t size = digits.size();
+				for (size_t i = 0; i < size; ++i) {
+					if (digits[i] % 2 == 0) {
+						for (size_t j = 0; j < i; ++j) {
+							for (size_t k = 0; k < size; ++k) {
+								if (digits[k] != 0 && k != i && k != j)
+									nums.insert(digits[k] * 100 + digits[j] * 10 + digits[i]);
+							}
+						}
+						for (size_t j = i + 1; j < size; ++j) {
+							for (size_t k = 0; k < size; ++k) {
+								if (digits[k] != 0 && k != i && k != j)
+									nums.insert(digits[k] * 100 + digits[j] * 10 + digits[i]);
+							}
+						}
+					}
+				}
+				return vector<int>(nums.begin(), nums.end());
 			}
 		};
 	}
@@ -24898,6 +25033,81 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2900 {
+		/*
+		* https://leetcode.com/problems/longest-unequal-adjacent-groups-subsequence-i/description/
+		*/
+		class Solution {
+		public:
+			vector<string> getLongestSubsequence(vector<string>& words, vector<int>& groups) {
+				const size_t size = words.size();
+				vector<string> res(1, words[0]);
+				int bit = groups[0];
+				for (size_t i = 1; i < size; ++i) {
+					if (bit != groups[i]) {
+						bit = groups[i];
+						res.push_back(words[i]);
+					}
+				}
+				return res;
+			}
+		};
+	}
+
+	namespace task_2901 {
+		/*
+		* https://leetcode.com/problems/longest-unequal-adjacent-groups-subsequence-ii/description/
+		*/
+		class Solution {
+		public:
+			vector<string> getWordsInLongestSubsequence(vector<string>& words, vector<int>& groups) {
+				const int size = words.size();
+				vector<int> lengths(size, 1), prevs(size, -1);
+				int max_len = 1, ind = 0;
+				for (int i = 1; i < size; ++i) {
+					size_t len = words[i].size();
+					int seq_len = 0, prev_ind = -1;
+					for (int j = i - 1; j > -1; --j) {
+						if (groups[i] != groups[j] &&
+							words[j].size() == len &&
+							lengths[j] > seq_len &&
+							isDistanceOne(words[i], words[j], len)) {
+							seq_len = lengths[j];
+							prev_ind = j;
+						}
+					}
+
+					if (seq_len != 0) {
+						++seq_len;
+						lengths[i] = seq_len;
+						prevs[i] = prev_ind;
+						if (max_len < seq_len) {
+							max_len = seq_len;
+							ind = i;
+						}
+					}
+				}
+
+				vector<string> res;
+				for (; ind != -1; ind = prevs[ind])
+					res.push_back(words[ind]);
+				reverse(res.begin(), res.end());
+
+				return res;
+			}
+
+			int isDistanceOne(const string& s1, const string& s2, const size_t size) {
+				size_t i = 0;
+				for (; i < size && s1[i] == s2[i]; ++i) {}
+				if (i == size)
+					return false;
+
+				for (++i; i < size && s1[i] == s2[i]; ++i) {}
+				return i == size;
+			}
+		};
+	}
+
 	namespace task_2914 {
 		/*
 		* https://leetcode.com/problems/minimum-number-of-changes-to-make-binary-string-beautiful/description/
@@ -26455,6 +26665,141 @@ namespace leetcode {
 
 			bool isVowel(char c) {
 				return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+			}
+		};
+	}
+
+	namespace task_3335 {
+		/*
+		* https://leetcode.com/problems/total-characters-in-string-after-transformations-i/description/
+		*/
+		class Solution {
+		public:
+			static const long long mod = 1000000007;
+
+			int lengthAfterTransformations(string s, int t) {
+				size_t size = s.size(), count = t + 26;
+				vector<int> dp(count, 1);
+				long long length = 0;
+				for (size_t i = 26; i < count; ++i)
+					dp[i] = (dp[i - 26] + dp[i - 25]) % mod;
+				for (const char c : s)
+					length = (length + dp[t + c - 'a']) % mod;
+				return length;
+			}
+
+			int lengthAfterTransformations__leetcode(string s, int t) {
+				vector<int> cnt(26);
+				for (char ch : s)
+					++cnt[ch - 'a']; // count of letters
+
+				for (int round = 0; round < t; ++round) {
+					vector<int> nxt(26);
+					nxt[0] = cnt[25]; // count 'a' is count of 'z' of previous step
+					nxt[1] = (cnt[25] + cnt[0]) % mod;  // count 'b' is count of 'z' and 'a' of previous step
+					for (int i = 2; i < 26; ++i)
+						nxt[i] = cnt[i - 1];
+
+					cnt = move(nxt);
+				}
+				int ans = 0;
+				for (int i = 0; i < 26; ++i)
+					ans = (ans + cnt[i]) % mod;
+
+				return ans;
+			}
+		};
+	}
+
+	namespace task_3337 {
+		/*
+		* https://leetcode.com/problems/total-characters-in-string-after-transformations-ii/description/
+		*/
+
+		static constexpr int L = 26;
+		static constexpr int mod = 1000000007;
+
+
+		// matrix multiplication
+		struct Mat {
+			Mat() { memset(a, 0, sizeof(a)); }
+			Mat(const Mat& that) {
+				for (int i = 0; i < L; ++i) {
+					for (int j = 0; j < L; ++j) {
+						a[i][j] = that.a[i][j];
+					}
+				}
+			}
+			Mat& operator=(const Mat& that) {
+				if (this != &that) {
+					for (int i = 0; i < L; ++i) {
+						for (int j = 0; j < L; ++j) {
+							a[i][j] = that.a[i][j];
+						}
+					}
+				}
+				return *this;
+			}
+
+			int a[L][L];
+		};
+
+		Mat operator*(const Mat& u, const Mat& v) {
+			Mat w;
+			for (int i = 0; i < L; ++i) {
+				for (int j = 0; j < L; ++j) {
+					for (int k = 0; k < L; ++k) {
+						w.a[i][j] =
+							(w.a[i][j] + (long long)u.a[i][k] * v.a[k][j]) % mod;
+					}
+				}
+			}
+			return w;
+		}
+
+		// identity matrix
+		Mat I() {
+			Mat w;
+			for (int i = 0; i < L; ++i) {
+				w.a[i][i] = 1;
+			}
+			return w;
+		}
+
+		// matrix exponentiation by squaring
+		Mat quickmul(const Mat& x, int y) {
+			Mat ans = I(), cur = x;
+			while (y) {
+				if (y & 1) {
+					ans = ans * cur;
+				}
+				cur = cur * cur;
+				y >>= 1;
+			}
+			return ans;
+		}
+
+		class Solution {
+		public:
+			int lengthAfterTransformations(string s, int t, vector<int>& nums) {
+				Mat T;
+				for (int i = 0; i < 26; ++i) {
+					for (int j = 1; j <= nums[i]; ++j) {
+						T.a[(i + j) % 26][i] = 1;
+					}
+				}
+				Mat res = quickmul(T, t);
+				int ans = 0;
+				vector<int> f(26);
+				for (char ch : s) {
+					++f[ch - 'a'];
+				}
+				for (int i = 0; i < 26; ++i) {
+					for (int j = 0; j < 26; ++j) {
+						ans = (ans + (long long)res.a[i][j] * f[j]) % mod;
+					}
+				}
+				return ans;
 			}
 		};
 	}
