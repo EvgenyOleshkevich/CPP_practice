@@ -3423,6 +3423,49 @@ namespace leetcode {
 							matrix[i][j] = 0;
 				}
 			}
+
+			void setZeroes__o1_memory(vector<vector<int>>& matrix) {
+				size_t m = matrix.size(), n = matrix[0].size();
+				bool first_row = false, first_column = false;
+				for (size_t i = 0; i < m; ++i) {
+					if (matrix[i][0] == 0) {
+						first_column = true;
+						break;
+					}
+				}
+				for (size_t j = 0; j < n; ++j) {
+					if (matrix[0][j] == 0) {
+						first_row = true;
+						break;
+					}
+				}
+
+				for (size_t i = 1; i < m; ++i) {
+					for (size_t j = 1; j < n; ++j)
+						if (matrix[i][j] == 0) {
+							matrix[i][0] = 0;
+							matrix[0][j] = 0;
+						}
+				}
+				for (size_t i = 1; i < m; ++i) {
+					if (matrix[i][0] == 0)
+						for (size_t j = 1; j < n; ++j)
+							matrix[i][j] = 0;
+				}
+				for (size_t j = 1; j < n; ++j) {
+					if (matrix[0][j] == 0)
+						for (size_t i = 1; i < m; ++i)
+							matrix[i][j] = 0;
+				}
+				if (first_column) {
+					for (size_t i = 0; i < m; ++i)
+						matrix[i][0] = 0;
+				}
+				if (first_row) {
+					for (size_t j = 0; j < n; ++j)
+						matrix[0][j] = 0;
+				}
+			}
 		};
 	}
 
@@ -3976,6 +4019,67 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_87 {
+		/*
+		* https://leetcode.com/problems/scramble-string/description/
+		*/
+		class Solution {
+		public:
+			bool isScramble(string s1, string s2) {
+				size_t size = s1.size();
+				vector<vector<vector<char>>> dp(size + 1, vector<vector<char>>(size, vector<char>(size)));
+				for (size_t i = 0; i < size; ++i) {
+					for (size_t j = 0; j < size; ++j)
+						dp[1][i][j] = s1[i] == s2[j] ? 1 : 0;
+				}
+
+				for (size_t len = 2; len <= size; ++len) {
+					for (size_t i = 0; i < size - len + 1; ++i) {
+						for (size_t j = 0; j < size - len + 1; ++j) {
+							for (size_t k = 1; k < len; ++k) {
+								if (dp[k][i][j] == 1 && dp[len - k][i + k][j + k] == 1 ||
+									dp[k][i][j + len - k] == 1 && dp[len - k][i + k][j] == 1) {
+									dp[len][i][j] = 1;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				return dp[size][0][0] == 1;
+			}
+
+			bool isScramble__TLE(string s1, string s2) {
+				return isScramble__TLE(s1, s2, 0, s1.size(), 0, s1.size());
+			}
+
+			bool isScramble__TLE(const string& s1, const string& s2, size_t l1, size_t r1, size_t l2, size_t r2) {
+				if (r1 - l1 == 1 && s1[l1] == s2[l2])
+					return true;
+
+				size_t length = r1 - l1;
+				vector<int> count_letter(26);
+				for (size_t i = 0; i < length; ++i) {
+					++count_letter[s1[l1 + i] - 'a'];
+					--count_letter[s2[l2 + i] - 'a'];
+				}
+				for (int n : count_letter)
+					if (n != 0)
+						return false;
+
+				for (size_t i = 1; i < length; ++i) {
+					if (isScramble__TLE(s1, s2, l1, l1 + i, l2, l2 + i) &&
+						isScramble__TLE(s1, s2, l1 + i, r1, l2 + i, r2) ||
+						isScramble__TLE(s1, s2, l1, l1 + i, r2 - i, r2) &&
+						isScramble__TLE(s1, s2, l1 + i, r1, l2, r2 - i))
+						return true;
+				}
+				return false;
+			}
+		};
+	}
+
 	namespace task_88 {
 		/*
 		* https://leetcode.com/problems/merge-sorted-array/description/
@@ -4098,6 +4202,69 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_91 {
+		/*
+		* https://leetcode.com/problems/decode-ways/description/
+		*/
+		class Solution {
+		public:
+			int numDecodings(string s) {
+				int size = s.size();
+				if (size == 1)
+					return s[0] == '0' ? 0 : 1;
+				vector<int> ways(size);
+				if (s[size - 1] != '0')
+					ways[size - 1] = 1;
+
+				if (s[size - 2] != '0')
+					ways[size - 2] = ways[size - 1];
+				if (s[size - 2] == '1')
+					++ways[size - 2];
+				else if (s[size - 2] == '2' && s[size - 1] < '7')
+					++ways[size - 2];
+
+				for (int i = size - 3; i > -1; --i) {
+					if (s[i] != '0')
+						ways[i] = ways[i + 1];
+					if (s[i] == '1')
+						ways[i] += ways[i + 2];
+					else if (s[i] == '2' && s[i + 1] < '7')
+						ways[i] += ways[i + 2];
+				}
+				return ways[0];
+			}
+
+			int numDecodings__o1_memory(string s) {
+				int size = s.size();
+				if (size == 1)
+					return s[0] == '0' ? 0 : 1;
+				int cur = 0, prev = 0, prev_prev = 0;
+				if (s[size - 1] != '0')
+					prev_prev = 1;
+
+				if (s[size - 2] != '0')
+					prev = prev_prev;
+				if (s[size - 2] == '1')
+					++prev;
+				else if (s[size - 2] == '2' && s[size - 1] < '7')
+					++prev;
+
+				for (int i = size - 3; i > -1; --i) {
+					if (s[i] != '0')
+						cur = prev;
+					if (s[i] == '1')
+						cur += prev_prev;
+					else if (s[i] == '2' && s[i + 1] < '7')
+						cur += prev_prev;
+					prev_prev = prev;
+					prev = cur;
+					cur = 0;
+				}
+				return prev;
+			}
+		};
+	}
+
 	namespace task_92 {
 		/*
 		* https://leetcode.com/problems/reverse-linked-list-ii/description/
@@ -4145,6 +4312,51 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_93 {
+		/*
+		* https://leetcode.com/problems/restore-ip-addresses/description/
+		*/
+		class Solution {
+		public:
+			vector<string> restoreIpAddresses(string s) {
+				int size = s.size();
+				if (size < 4)
+					return {};
+				vector<string> res;
+				for (size_t i = 0; i < 3; ++i) {
+					auto ip1 = s.substr(0, i + 1);
+					if (isNotValid(ip1))
+						continue;
+					for (size_t j = i + 1; j < i + 4 && j < size; ++j) {
+						auto ip2 = s.substr(i + 1, j - i);
+						if (isNotValid(ip2))
+							continue;
+						for (size_t k = j + 1; k < j + 4 && k < size; ++k) {
+							auto ip3 = s.substr(j + 1, k - j);
+							if (isNotValid(ip3))
+								continue;
+							auto ip4 = s.substr(k + 1);
+							if (isNotValid(ip4))
+								continue;
+							res.push_back(ip1 + "." + ip2 + "." + ip3 + "." + ip4);
+						}
+					}
+				}
+				return res;
+			}
+
+			bool isNotValid(const string& s) {
+				if (s.size() > 3 || s.size() == 0)
+					return true;
+				if (s.size() == 1)
+					return false;
+				if (s.size() == 2)
+					return s[0] == '0';
+				return s[0] == '0' || s > "255";
+			}
+		};
+	}
+
 	namespace task_94 {
 		/*
 		* https://leetcode.com/problems/binary-tree-inorder-traversal/
@@ -4170,6 +4382,89 @@ namespace leetcode {
 						nodes.push(node->right);
 				}
 				return res;
+			}
+		};
+	}
+
+	namespace task_95 {
+		/*
+		* https://leetcode.com/problems/unique-binary-search-trees/
+		*/
+		class Solution {
+		public:
+			vector<TreeNode*> generateTrees(int n) {
+				return generateTrees(1, n + 1);
+			}
+
+			vector<TreeNode*> generateTrees(int from, int to) {
+				if (to == from)
+					return { nullptr };
+				if (to - from == 1)
+					return { new TreeNode(from) };
+				vector<TreeNode*> trees;
+				for (int root = from; root < to; ++root) {
+					auto lefts = generateTrees(from, root);
+					auto rights = generateTrees(root + 1, to);
+					for (size_t i = 0; i < lefts.size(); ++i) {
+						for (size_t j = 0; j < rights.size(); ++j)
+							trees.push_back(new TreeNode(root, lefts[i], rights[j]));
+					}
+				}
+				return trees;
+			}
+		};
+	}
+
+	namespace task_96 {
+		/*
+		* https://leetcode.com/problems/unique-binary-search-trees/
+		*/
+		class Solution {
+		public:
+			int numTrees(int n) {
+				if (n < 3) {
+					switch (n)
+					{
+					case 1: return 1;
+					case 2: return 2;
+					case 3: return 5;
+					}
+				}
+				++n;
+				vector<int> counts(n);
+				counts[0] = 1;
+				counts[1] = 1;
+				counts[2] = 2;
+				counts[3] = 5;
+				for (int i = 4; i < n; ++i) {
+					for (int j = 0; j < i; ++j)
+						counts[i] += counts[j] * counts[i - j - 1];
+				}
+				return counts[n - 1];
+			}
+		};
+	}
+
+	namespace task_98 {
+		/*
+		* https://leetcode.com/problems/validate-binary-search-tree/description/
+		*/
+		class Solution {
+		public:
+			bool isValidBST(TreeNode* root) {
+				return isValidBST(root->left, 0, false, root->val, true) &&
+					isValidBST(root->right, root->val, true, 0, false);
+			}
+
+			bool isValidBST(TreeNode* root, int bottom, bool hasBottom, int up, bool hasUp) {
+				if (root == nullptr)
+					return true;
+				if (hasBottom && root->val <= bottom)
+					return false;
+				if (hasUp && root->val >= up)
+					return false;
+				return isValidBST(root->left, bottom, hasBottom, root->val, true) &&
+					isValidBST(root->right, root->val, true, up, hasUp);
 			}
 		};
 	}
@@ -5618,6 +5913,18 @@ namespace leetcode {
 		FROM Employee A
 		LEFT JOIN Employee B ON A.managerId=B.id
 		WHERE A.salary  > B.salary;
+		*/
+	}
+
+	namespace task_182 {
+		/*
+		* https://leetcode.com/problems/duplicate-emails/description/
+		*/
+		/*
+		SELECT DISTINCT Person.Email, COUNT(*) FROM Person
+		GROUP BY Person.Email
+		HAVING
+		COUNT(*) > 1;
 		*/
 	}
 
@@ -20206,6 +20513,32 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2131 {
+		/*
+		* https://leetcode.com/problems/longest-palindrome-by-concatenating-two-letter-words/description/
+		*/
+		class Solution {
+		public:
+			int longestPalindrome(vector<string>& words) {
+				vector<vector<int>> count_words(26, vector<int>(26));
+				for (const string& word : words)
+					++count_words[word[0] - 'a'][word[1] - 'a'];
+				int has_odd_symmetric = 0, count_pair = 0, count_symmetric_pair = 0;
+				for (size_t i = 0; i < 26; ++i) {
+					if (count_words[i][i] & 1 == 1)
+						has_odd_symmetric = 2;
+					count_symmetric_pair += count_words[i][i] >> 1;
+				}
+				for (size_t i = 1; i < 26; i++) {
+					for (size_t j = 0; j < i; ++j)
+						count_pair += min(count_words[i][j], count_words[j][i]);
+				}
+
+				return has_odd_symmetric + ((count_symmetric_pair + count_pair) << 2);
+			}
+		};
+	}
+
 	namespace task_2134 {
 		/*
 		* https://leetcode.com/problems/minimum-swaps-to-group-all-1s-together-ii/description/
@@ -25242,6 +25575,30 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2942 {
+		/*
+		* https://leetcode.com/problems/find-words-containing-character/description/
+		*/
+		class Solution {
+		public:
+			vector<int> findWordsContaining(vector<string>& words, char x) {
+				vector<int> res;
+				const int size = words.size();
+				for (int i = 0; i < size; i++)
+					if (contain(words[i], x))
+						res.push_back(i);
+				return res;
+			}
+
+			bool contain(const string& s, const char x) {
+				for (const char c : s)
+					if (c == x)
+						return true;
+				return false;
+			}
+		};
+	}
+
 	namespace task_2948 {
 		/*
 		* https://leetcode.com/problems/make-lexicographically-smallest-array-by-swapping-elements/description/
@@ -25572,6 +25929,29 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3024 {
+		/*
+		* https://leetcode.com/problems/type-of-triangle/description/
+		*/
+		class Solution {
+		public:
+			string triangleType(vector<int>& nums) {
+				if (nums[1] + nums[2] <= nums[0] ||
+					nums[0] + nums[2] <= nums[1] ||
+					nums[0] + nums[1] <= nums[2])
+					return "none";
+				if (nums[0] == nums[1] &&
+					nums[0] == nums[2])
+					return "equilateral";
+				if (nums[0] == nums[1] ||
+					nums[0] == nums[2] ||
+					nums[1] == nums[2])
+					return "isosceles";
+				return "scalene";
+			}
+		};
+	}
+
 	namespace task_3042 {
 		/*
 		* https://leetcode.com/problems/count-prefix-and-suffix-pairs-i/description/
@@ -25802,6 +26182,14 @@ namespace leetcode {
 		*/
 		class Solution {
 		public:
+			/*
+			we can make xor of 2 any vertex, becouse there exists path between them,
+			and for path a->b->c^ we have a^k, b^k^k = b, c^k.
+			we just need track counts of cases when xor is profitable, than not xor.
+			if count of xor is odd, we need make one extra max profit xor
+			or reject one less profit made xor.
+			
+			*/
 			long long maximumValueSum(vector<int>& nums, int k, vector<vector<int>>& edges) {
 				long long sum = 0;
 				long long min_positive = INT32_MAX;
@@ -26974,6 +27362,42 @@ namespace leetcode {
 				}
 				return true;
 			}
+
+			bool isZeroArray__new(vector<int>& nums, vector<vector<int>>& queries) {
+				sort(queries.begin(), queries.end());
+				priority_queue<int, vector<int>, greater<>> queue;
+				size_t size = nums.size(), size_q = queries.size(), j = 0;
+				for (size_t i = 0; i < size; ++i) {
+					for (; j < size_q && i == queries[j][0]; ++j)
+						queue.push(queries[j][1]);
+					while (!queue.empty() && queue.top() < i)
+						queue.pop();
+					if (nums[i] > queue.size())
+						return false;
+				}
+				return true;
+			}
+
+			bool isZeroArray__leetcode(vector<int>& nums, vector<vector<int>>& queries) {
+				vector<int> deltaArray(nums.size() + 1, 0);
+				for (const auto& query : queries) {
+					int left = query[0];
+					int right = query[1];
+					deltaArray[left] += 1;
+					deltaArray[right + 1] -= 1;
+				}
+				vector<int> operationCounts;
+				int currentOperations = 0;
+				for (int delta : deltaArray) {
+					currentOperations += delta;
+					operationCounts.push_back(currentOperations);
+				}
+				for (int i = 0; i < nums.size(); ++i) {
+					if (operationCounts[i] < nums[i])
+						return false;
+				}
+				return true;
+			}
 		};
 	}
 
@@ -27009,6 +27433,38 @@ namespace leetcode {
 					sum += differenceArray[i];
 				}
 				return k + 1;
+			}
+		};
+	}
+
+	namespace task_3362 {
+		/*
+		* https://leetcode.com/problems/zero-array-transformation-iii/description/
+		*/
+		class Solution {
+		public:
+			int maxRemoval__leetcode(vector<int>& nums, vector<vector<int>>& queries) {
+				sort(queries.begin(), queries.end());
+
+				priority_queue<int> heap;
+				vector<int> deltaArray(nums.size() + 1, 0);
+				int operations = 0;
+				for (int i = 0, j = 0; i < nums.size(); ++i) {
+					operations += deltaArray[i];
+					while (j < queries.size() && queries[j][0] == i) {
+						heap.push(queries[j][1]);
+						++j;
+					}
+					while (operations < nums[i] && !heap.empty() && heap.top() >= i) {
+						operations += 1;
+						deltaArray[heap.top() + 1] -= 1;
+						heap.pop();
+					}
+					if (operations < nums[i]) {
+						return -1;
+					}
+				}
+				return heap.size();
 			}
 		};
 	}
