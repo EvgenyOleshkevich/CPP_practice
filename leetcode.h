@@ -4445,6 +4445,44 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_97 {
+		/*
+		* https://leetcode.com/problems/divisible-and-non-divisible-sums-difference/description/
+		*/
+		class Solution {
+		public:
+			bool isInterleave(string s1, string s2, string s3) {
+				size_t size1 = s1.size(), size2 = s2.size(), size3 = s3.size();
+				if (size1 + size2 != size3)
+					return false;
+				if (size1 == 0)
+					return s2 == s3;
+				if (size2 == 0)
+					return s1 == s3;
+
+				++size1, ++size2;
+				vector<vector<char>> dp(size1, vector<char>(size2));
+				dp[1][0] = s1[0] == s3[0] ? 1 : 0;
+				dp[0][1] = s2[0] == s3[0] ? 1 : 0;
+				for (int i = 2; i < size1 && dp[i - 1][0] == 1; ++i)
+					dp[i][0] = s1[i - 1] == s3[i - 1] ? 1 : 0;
+				for (int j = 2; j < size2 && dp[0][j - 1] == 1; ++j)
+					dp[0][j] = s2[j - 1] == s3[j - 1] ? 1 : 0;
+
+				for (int i = 1; i < size1; ++i) {
+					for (int j = 1; j < size2; ++j) {
+						if (dp[i][j - 1] == 1)
+							dp[i][j] = s2[j - 1] == s3[i + j - 1] ? 1 : 0;
+						if (dp[i - 1][j] == 1 && dp[i][j] == 0)
+							dp[i][j] = s1[i - 1] == s3[i + j - 1] ? 1 : 0;
+					}
+				}
+
+				return dp[size1 - 1][size2 - 1] == 1;
+			}
+		};
+	}
+
 	namespace task_98 {
 		/*
 		* https://leetcode.com/problems/validate-binary-search-tree/description/
@@ -4465,6 +4503,41 @@ namespace leetcode {
 					return false;
 				return isValidBST(root->left, bottom, hasBottom, root->val, true) &&
 					isValidBST(root->right, root->val, true, up, hasUp);
+			}
+		};
+	}
+
+	namespace task_99 {
+		/*
+		* https://leetcode.com/problems/recover-binary-search-tree/description/
+		*/
+		class Solution {
+		public:
+			TreeNode* firstElement = nullptr;
+			TreeNode* secondElement = nullptr;
+			TreeNode* prevElement = nullptr;
+
+			void recoverTree(TreeNode* root) {
+				traverse(root);
+				swap(firstElement->val, secondElement->val);
+			}
+
+			void traverse(TreeNode* root) {
+				if (root == nullptr)
+					return;
+
+				traverse(root->left);
+
+				if (prevElement != nullptr && prevElement->val >= root->val) {
+					if (firstElement == nullptr) {
+						firstElement = prevElement;
+					}
+					if (firstElement != nullptr) {
+						secondElement = root;
+					}
+				}
+				prevElement = root;
+				traverse(root->right);
 			}
 		};
 	}
@@ -5162,6 +5235,41 @@ namespace leetcode {
 					if (str[i] != str[j])
 						return false;
 				return true;
+			}
+		};
+	}
+
+	namespace task_135 {
+		/*
+		* https://leetcode.com/problems/candy/description/
+		*/
+		class Solution {
+		public:
+			int candy(vector<int>& ratings) {
+				const size_t n = ratings.size();
+				int sum = 1, prev_value = 1; // count candy for last child in previous sequence
+				for (size_t i = 1; i < n; ++i) {
+					if (ratings[i] == ratings[i - 1]) {
+						++sum;
+						prev_value = 1;
+						continue;
+					}
+					size_t from = i - 1;
+					if (ratings[i] > ratings[i - 1]) {
+						for (; i < n && ratings[i] > ratings[i - 1]; ++i) {}
+						int len = i - from;
+						sum += len * (len + 1) / 2 - prev_value;
+						prev_value = len;
+					}
+					else {
+						for (; i < n && ratings[i] < ratings[i - 1]; ++i) {}
+						int len = i - from;
+						sum += len * (len - 1) / 2 - prev_value + max(prev_value, len);
+						prev_value = 1;
+					}
+					--i;
+				}
+				return sum;
 			}
 		};
 	}
@@ -5928,6 +6036,19 @@ namespace leetcode {
 		*/
 	}
 
+	namespace task_183 {
+		/*
+		* https://leetcode.com/problems/customers-who-never-order/description/
+		*/
+		/*
+		SELECT Customers.name
+		FROM Customers
+		left join Orders
+		on Customers.id = Orders.customerId
+		where Orders.customerId Is Null;
+		*/
+	}
+
 	namespace task_188 {
 		/*
 		* https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/description/
@@ -6035,6 +6156,18 @@ namespace leetcode {
 				return count;
 			}
 		};
+	}
+
+	namespace task_196 {
+		/*
+		* https://leetcode.com/problems/customers-who-never-order/description/
+		*/
+		/*
+		delete p1
+		from person p1
+		join person p2
+		on p1.email = p2.email and p1.id>p2.id;
+		*/
 	}
 
 	namespace task_198 {
@@ -12946,6 +13079,52 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_909 {
+		/*
+		* https://leetcode.com/problems/snakes-and-ladders/description/
+		*/
+		class Solution {
+		public:
+			int n, len;
+
+			int snakesAndLadders(vector<vector<int>>& board) {
+				n = board.size(), len = n * n;
+				vector<vector<int>> steps(n, vector<int>(n, -1));
+				vector<int> visited(len + 1, -1);
+				visited[1] = 0;
+				queue<int> queue;
+				queue.push(1);
+
+				for (int steps = 1; !queue.empty(); ++steps) {
+					int size = queue.size();
+					for (int i = 0; i < size; ++i) {
+						int vertex = queue.front();
+						queue.pop();
+						for (int j = 1; j < 7 && vertex + j <= len; ++j) {
+							int next = getValue(board, vertex + j);
+							if (next == -1)
+								next = vertex + j;
+
+							if (visited[next] == -1) {
+								visited[next] = steps;
+								queue.push(next);
+							}
+						}
+					}
+				}
+				return visited[len];
+			}
+
+			int getValue(const vector<vector<int>>& board, int vertex) {
+				int i = (vertex - 1) / n, j = (vertex - 1) % n;
+				if (i & 1)
+					j = n - j - 1;
+				i = n - i - 1;
+				return board[i][j];
+			}
+		};
+	}
+
 	namespace task_910 {
 		/*
 		* https://leetcode.com/problems/smallest-range-ii/description/
@@ -14281,6 +14460,42 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1061 {
+		/*
+		* https://leetcode.com/problems/lexicographically-smallest-equivalent-string/description/
+		*/
+		class Solution {
+		public:
+			vector<char> smallest_char = vector<char>(26);
+
+			string smallestEquivalentString(string s1, string s2, string baseStr) {
+				for (size_t i = 0; i < 26; ++i)
+					smallest_char[i] = i;
+
+				size_t size = s1.size();
+				for (size_t i = 0; i < size; ++i) {
+					auto i1 = s1[i] - 'a', i2 = s2[i] - 'a';
+					auto c1 = getChar(i1), c2 = getChar(i2);
+					smallest_char[max(c1, c2)] = min(c1, c2);
+				}
+
+				size = baseStr.size();
+				for (size_t i = 0; i < size; ++i)
+					baseStr[i] = getChar(baseStr[i] - 'a') + 'a';
+
+				return baseStr;
+			}
+
+			char getChar(char ind) {
+				char i = smallest_char[ind];
+				while (i != smallest_char[i])
+					i = smallest_char[i];
+				smallest_char[ind] = i;
+				return i;
+			}
+		};
+	}
+
 	namespace task_1072 {
 		/*
 		* https://leetcode.com/problems/flip-columns-for-maximum-number-of-equal-rows/description/
@@ -15328,6 +15543,59 @@ namespace leetcode {
 						counts.pop_back();
 				}
 				return true;
+			}
+		};
+	}
+
+	namespace task_1298 {
+		/*
+		* https://leetcode.com/problems/maximum-candies-you-can-get-from-boxes/description/
+		*/
+		class Solution {
+		public:
+			int maxCandies(vector<int>& status, vector<int>& candies,
+				vector<vector<int>>& keys,
+				vector<vector<int>>& containedBoxes,
+				vector<int>& initialBoxes) {
+				vector<char> has_box(status.size()); // 0 do not have, 1 - have closed, 2 - used
+				queue<int> q;
+				int sum = 0;
+
+				for (int box : initialBoxes) {
+					if (status[box]) {
+						q.push(box);
+						has_box[box] = 2;
+						sum += candies[box];
+					}
+					else {
+						has_box[box] = 1;
+					}
+				}
+
+				while (!q.empty()) {
+					int big_box = q.front();
+					q.pop();
+					for (int key : keys[big_box]) {
+						status[key] = 1;
+						if (has_box[key] == 1) {
+							q.push(key);
+							has_box[key] = 2;
+							sum += candies[key];
+						}
+					}
+					for (int box : containedBoxes[big_box]) {
+						if (status[box]) {
+							q.push(box);
+							has_box[box] = 2;
+							sum += candies[box];
+						}
+						else {
+							has_box[box] = 1;
+						}
+					}
+				}
+
+				return sum;
 			}
 		};
 	}
@@ -18713,6 +18981,55 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1857 {
+		/*
+		* https://leetcode.com/problems/largest-color-value-in-a-directed-graph/description/
+		*/
+		class Solution {
+		public:
+			int largestPathValue__not__my(string colors, vector<vector<int>>& edges) {
+				int n = colors.size();
+				vector<vector<int>> adj(n);
+				vector<int> indegree(n, 0);
+
+				for (auto& edge : edges) {
+					adj[edge[0]].push_back(edge[1]);
+					indegree[edge[1]]++;
+				}
+
+				vector<vector<int>> dp(n, vector<int>(26, 0));
+				queue<int> q;
+
+				for (int i = 0; i < n; ++i) {
+					if (indegree[i] == 0) q.push(i);
+					dp[i][colors[i] - 'a'] = 1;
+				}
+
+				int visited = 0;
+				int maxColor = 0;
+
+				while (!q.empty()) {
+					int node = q.front(); q.pop();
+					visited++;
+
+					for (int neighbor : adj[node]) {
+						for (int c = 0; c < 26; ++c) {
+							int inc = (colors[neighbor] - 'a' == c) ? 1 : 0;
+							dp[neighbor][c] = max(dp[neighbor][c], dp[node][c] + inc);
+						}
+
+						indegree[neighbor]--;
+						if (indegree[neighbor] == 0) q.push(neighbor);
+					}
+
+					maxColor = max(maxColor, *max_element(dp[node].begin(), dp[node].end()));
+				}
+
+				return visited == n ? maxColor : -1;
+			}
+		};
+	}
+
 	namespace task_1861 {
 		/*
 		* https://leetcode.com/problems/rotating-the-box/description/
@@ -21627,6 +21944,61 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2359 {
+		/*
+		* https://leetcode.com/problems/find-closest-node-to-given-two-nodes/description/
+		*/
+		class Solution {
+		public:
+			int closestMeetingNode(vector<int>& edges, int node1, int node2) {
+				if (node1 == node2)
+					return node1;
+				const int size = edges.size();
+				int meet_point = size;
+
+				queue<int> queue1;
+				queue<int> queue2;
+				queue1.push(node1);
+				queue2.push(node2);
+				vector<int> visited(size);
+				visited[node1] = 1;
+				visited[node2] = 2;
+				int count_odd = 0, count_even = 0;
+				while ((!queue1.empty() || !queue2.empty()) && meet_point == size) {
+					int q1_size = queue1.size(), q2_size = queue2.size();
+					for (int i = 0; i < q1_size; ++i) {
+						int vertex = edges[queue1.front()];
+						queue1.pop();
+						if (vertex == -1)
+							continue;
+						if (visited[vertex] == 0) {
+							visited[vertex] = 1;
+							queue1.push(vertex);
+						}
+						else if (visited[vertex] == 2) {
+							meet_point = min(meet_point, vertex);
+						}
+					}
+					for (int i = 0; i < q2_size; ++i) {
+						int vertex = edges[queue2.front()];
+						queue2.pop();
+						if (vertex == -1)
+							continue;
+						if (visited[vertex] == 0) {
+							visited[vertex] = 2;
+							queue2.push(vertex);
+						}
+						else if (visited[vertex] == 1) {
+							meet_point = min(meet_point, vertex);
+						}
+					}
+				}
+
+				return meet_point == size ? -1 : meet_point;
+			}
+		};
+	}
+
 	namespace task_2364 {
 		/*
 		* https://leetcode.com/problems/count-number-of-bad-pairs/description/
@@ -22254,6 +22626,8 @@ namespace leetcode {
 		};
 	}
 
+
+
 	namespace task_2433 {
 		/*
 		* https://leetcode.com/problems/find-the-original-array-of-prefix-xor/description/
@@ -22272,6 +22646,38 @@ namespace leetcode {
 			vector<int> findArray2(vector<int>& pref) {
 				for (int i = pref.size() - 1; i > 0; i--) pref[i] ^= pref[i - 1];
 				return pref;
+			}
+		};
+	}
+
+	namespace task_2434 {
+		/*
+		* https://leetcode.com/problems/using-a-robot-to-print-the-lexicographically-smallest-string/description/
+		*/
+		class Solution {
+		public:
+			string robotWithString__leetcode(string s) {
+				unordered_map<char, int> cnt;
+				for (char c : s) {
+					cnt[c]++;
+				}
+
+				stack<char> stk;
+				string res;
+				char minCharacter = 'a';
+				for (char c : s) {
+					stk.emplace(c);
+					cnt[c]--;
+					while (minCharacter != 'z' && cnt[minCharacter] == 0) {
+						minCharacter++;
+					}
+					while (!stk.empty() && stk.top() <= minCharacter) {
+						res.push_back(stk.top());
+						stk.pop();
+					}
+				}
+
+				return res;
 			}
 		};
 	}
@@ -25366,6 +25772,25 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2894 {
+		/*
+		* https://leetcode.com/problems/divisible-and-non-divisible-sums-difference/description/
+		*/
+		class Solution {
+		public:
+			int differenceOfSums(int n, int m) {
+				int sum = 0;
+				for (int i = 0; i <= n; ++i) {
+					if (i % m == 0)
+						sum -= i;
+					else
+						sum += i;
+				}
+				return sum;
+			}
+		};
+	}
+
 	namespace task_2900 {
 		/*
 		* https://leetcode.com/problems/longest-unequal-adjacent-groups-subsequence-i/description/
@@ -25503,6 +25928,21 @@ namespace leetcode {
 				++i;
 				for (; i < n && champions[i] == 0; ++i) {}
 				return i == n ? champion : -1;
+			}
+		};
+	}
+
+	namespace task_2929 {
+		/*
+		* https://leetcode.com/problems/distribute-candies-among-children-ii/description/
+		*/
+		class Solution {
+		public:
+			long long distributeCandies(int n, int limit) {
+				long long ans = 0;
+				for (int i = max(0, n - 2 * limit); i <= min(limit, n); i++)
+					ans += min(n - i, limit) - max(0, n - i - limit) + 1;
+				return ans;
 			}
 		};
 	}
@@ -26592,6 +27032,39 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3170 {
+		/*
+		* https://leetcode.com/problems/lexicographically-minimum-string-after-removing-stars/description/
+		*/
+		class Solution {
+		public:
+			string clearStars__leetcode(string s) {
+				vector<stack<int>> cnt(26);
+				for (int i = 0; i < s.size(); i++) {
+					if (s[i] != '*') {
+						cnt[s[i] - 'a'].push(i);
+					}
+					else {
+						for (int j = 0; j < 26; j++) {
+							if (!cnt[j].empty()) {
+								s[cnt[j].top()] = '*';
+								cnt[j].pop();
+								break;
+							}
+						}
+					}
+				}
+
+				string ans;
+				for (int i = 0; i < s.size(); i++) {
+					if (s[i] != '*')
+						ans.push_back(s[i]);
+				}
+				return ans;
+			}
+		};
+	}
+
 	namespace task_3174 {
 		/*
 		* https://leetcode.com/problems/clear-digits/description/
@@ -27469,6 +27942,155 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3372 {
+		/*
+		* https://leetcode.com/problems/maximize-the-number-of-target-nodes-after-connecting-trees-i/description/
+		*/
+		class Solution {
+		public:
+			int K, n, m;
+			vector<int> visited;
+
+			vector<int> maxTargetNodes(vector<vector<int>>& edges1, vector<vector<int>>& edges2, int k) {
+				n = 0, m = 0;
+				for (const auto& edge : edges1) {
+					n = max(n, edge[0]);
+					n = max(n, edge[1]);
+				}
+				for (const auto& edge : edges2) {
+					m = max(m, edge[0]);
+					m = max(m, edge[1]);
+				}
+				++n, ++m;
+				visited = vector<int>(max(n, m));
+				vector<vector<int>> adjacency_list1(n), adjacency_list2(m);
+				for (const auto& edge : edges1) {
+					adjacency_list1[edge[0]].push_back(edge[1]);
+					adjacency_list1[edge[1]].push_back(edge[0]);
+				}
+				for (const auto& edge : edges2) {
+					adjacency_list2[edge[0]].push_back(edge[1]);
+					adjacency_list2[edge[1]].push_back(edge[0]);
+				}
+				K = k;
+				int max_degree = 0;
+				for (int i = 0; i < m; ++i)
+					max_degree = max(max_degree, BFS_count(adjacency_list2, i, m));
+				++K;
+				vector<int> res(n);
+				for (int i = 0; i < n; ++i)
+					res[i] = BFS_count(adjacency_list1, i, n) + max_degree;
+
+				return res;
+			}
+
+			int BFS_count(const vector<vector<int>>& adjacency_list, int vertex, int vertexes) {
+				queue<int> queue;
+				queue.push(vertex);
+				visited[vertex] = 1;
+				int count = 0;
+				for (int i = 0; i < K && !queue.empty(); ++i) {
+					int size = queue.size();
+					for (int j = 0; j < size; ++j) {
+						++count;
+						vertex = queue.front();
+						queue.pop();
+						for (const int neighbour : adjacency_list[vertex])
+							if (visited[neighbour] == 0) {
+								visited[neighbour] = 1;
+								queue.push(neighbour);
+							}
+					}
+				}
+				for (int i = 0; i < vertexes; ++i)
+					visited[i] = 0;
+
+				return count;
+			}
+		};
+	}
+
+	namespace task_3373 {
+		/*
+		* https://leetcode.com/problems/maximize-the-number-of-target-nodes-after-connecting-trees-iш/description/
+		*/
+		class Solution {
+		public:
+			vector<int> maxTargetNodes(vector<vector<int>>& edges1, vector<vector<int>>& edges2) {
+				int n = 0, m = 0;
+				int groupCounts[2];
+				groupCounts[0] = 0, groupCounts[1] = 0;
+				for (const auto& edge : edges1) {
+					n = max(n, edge[0]);
+					n = max(n, edge[1]);
+				}
+				for (const auto& edge : edges2) {
+					m = max(m, edge[0]);
+					m = max(m, edge[1]);
+				}
+				++n, ++m;
+				vector<vector<int>> adjacency_list1(n), adjacency_list2(m);
+				for (const auto& edge : edges1) {
+					adjacency_list1[edge[0]].push_back(edge[1]);
+					adjacency_list1[edge[1]].push_back(edge[0]);
+				}
+				for (const auto& edge : edges2) {
+					adjacency_list2[edge[0]].push_back(edge[1]);
+					adjacency_list2[edge[1]].push_back(edge[0]);
+				}
+
+				// calculate the maximum number of odd or even group in tree 2
+				queue<int> queue;
+				queue.push(0);
+				vector<int> visited(m);
+				visited[0] = 1;
+				int count_odd = 0, count_even = 0;
+				for (int i = 0; !queue.empty(); ++i) {
+					int size = queue.size();
+					if (i & 1)
+						count_odd += size;
+					else
+						count_even += size;
+					for (int j = 0; j < size; ++j) {
+						int vertex = queue.front();
+						queue.pop();
+						for (const int neighbour : adjacency_list2[vertex])
+							if (visited[neighbour] == 0) {
+								visited[neighbour] = 1;
+								queue.push(neighbour);
+							}
+					}
+				}
+
+				int secondTreeCount = max(count_odd, count_even);
+				// calculate groups and their count in tree 2
+				queue.push(0);
+				vector<int> groups(n, 2);
+				groups[0] = 0;
+				for (int i = 0; !queue.empty(); ++i) {
+					int size = queue.size();
+					int group = i & 1;
+					groupCounts[group] += size;
+					group ^= 1;
+					for (int j = 0; j < size; ++j) {
+						int vertex = queue.front();
+						queue.pop();
+						for (const int neighbour : adjacency_list1[vertex])
+							if (groups[neighbour] == 2) {
+								groups[neighbour] = group;
+								queue.push(neighbour);
+							}
+					}
+				}
+
+				for (int i = 0; i < n; ++i)
+					groups[i] = groupCounts[groups[i]] + secondTreeCount;
+
+				return groups;
+			}
+		};
+	}
+
 	namespace task_3375 {
 		/*
 		* https://leetcode.com/problems/minimum-operations-to-make-array-values-equal-to-k/description/
@@ -27551,6 +28173,40 @@ namespace leetcode {
 				for (; i >= 0 && !set.contains(nums[i]); --i)
 					set.insert(nums[i]);
 				return ceil(++i / (double)3);
+			}
+		};
+	}
+
+	namespace task_3403 {
+		/*
+		* https://leetcode.com/problems/find-the-lexicographically-largest-string-from-the-box-i/description/
+		*/
+		class Solution {
+		public:
+			int size;
+
+			string answerString(string word, int numFriends) {
+				if (numFriends == 1)
+					return word;
+				size = word.size();
+				char max_char = word[0];
+				string max_str = getStr(word, numFriends, 0);
+				for (int i = 1; i < size; ++i) {
+					if (max_char < word[i]) {
+						max_char = word[i];
+						max_str = getStr(word, numFriends, i);
+					}
+					else if (max_char == word[i]) {
+						string str = getStr(word, numFriends, i);
+						if (max_str < str)
+							max_str = str;
+					}
+				}
+				return max_str;
+			}
+
+			string getStr(const string& word, const int numFriends, const int ind) const {
+				return word.substr(ind, size - ind - max(numFriends - ind - 1, 0));
 			}
 		};
 	}
