@@ -20,6 +20,7 @@
 #include <functional>
 #include <algorithm>
 #include <random>
+#include <numeric>
 using namespace std;
 
 namespace leetcode {
@@ -18493,6 +18494,40 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1695 {
+		/*
+		* https://leetcode.com/problems/maximum-erasure-value/description/
+		*/
+		class Solution {
+		public:
+			int maximumUniqueSubarray(vector<int>& nums) {
+				unordered_map<int, int> map;
+				int max_score = 0, score = 0;
+				int size = nums.size(), start = 0;
+				for (int i = 0; i < size; ++i) {
+					int value = nums[i];
+					auto it = map.find(value);
+					if (it == map.end()) {
+						map[value] = i;
+						score += value;
+					}
+					else {
+						max_score = max(max_score, score);
+						int end = it->second;
+						for (; start < end; ++start) {
+							score -= nums[start];
+							map.erase(nums[start]);
+						}
+						++start;
+						it->second = i;
+					}
+				}
+
+				return max(max_score, score);
+			}
+		};
+	}
+
 	namespace task_1701 {
 		/*
 		* https://leetcode.com/problems/average-waiting-time/description/
@@ -18607,6 +18642,42 @@ namespace leetcode {
 						gain += x * count_max + (min(count_first, count_second) - count_max) * y;
 						--i;
 					}
+				return gain;
+			}
+
+			int maximumGain2(string s, int x, int y) {
+				vector<char> stack;
+				char a = 'a', b = 'b';
+				int gain = 0;
+				if (y > x) {
+					swap(x, y);
+					swap(a, b);
+				}
+
+				for (char c : s) {
+					if (c == a) {
+						stack.push_back(a);
+					}
+					else if (c == b) {
+						if (!stack.empty() && stack.back() == a) {
+							gain += x;
+							stack.pop_back();
+						}
+						else {
+							stack.push_back(b);
+						}
+					}
+					else {
+						size_t size = stack.size(), i = 0;
+						for (; i < size && stack[i] == b; ++i) {}
+						gain += y * min(i, size - i);
+						stack.clear();
+					}
+				}
+				size_t size = stack.size(), i = 0;
+				for (; i < size && stack[i] == b; ++i) {}
+				gain += y * min(i, size - i);
+
 				return gain;
 			}
 		};
@@ -20224,6 +20295,21 @@ namespace leetcode {
 						++count_last;
 						res.push_back(c);
 					}
+				}
+				return res;
+			}
+
+			string makeFancyString2(string s) {
+				size_t size = s.size();
+				if (size < 3)
+					return s;
+				string res;
+				res.push_back(s[0]);
+				res.push_back(s[1]);
+				for (size_t i = 2; i < size; ++i) {
+					if (s[i - 2] == s[i] && s[i - 1] == s[i])
+						continue;
+					res.push_back(s[i]);
 				}
 				return res;
 			}
@@ -22182,6 +22268,34 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2210 {
+		/*
+		* https://leetcode.com/problems/count-hills-and-valleys-in-an-array/description/
+		*/
+		class Solution {
+		public:
+			int countHillValley(vector<int>& nums) {
+				size_t size = nums.size(), i = 1;
+				int count = 0;
+				for (; i < size && nums[0] == nums[i]; ++i) {}
+
+				while (true) {
+					if (nums[i - 1] > nums[i]) {
+						for (; i < size && nums[i - 1] >= nums[i]; ++i) {}
+						if (i == size)
+							return count;
+						++count;
+					}
+					for (; i < size && nums[i - 1] <= nums[i]; ++i) {}
+					if (i == size)
+						return count;
+					++count;
+				}
+				return count;
+			}
+		};
+	}
+
 	namespace task_2220 {
 		/*
 		* https://leetcode.com/problems/minimum-bit-flips-to-convert-number/description/
@@ -22590,7 +22704,7 @@ namespace leetcode {
 		*/
 		class Solution {
 		public:
-			int longestSubsequence__Leetcode(string s, int k) {
+			/*int longestSubsequence__Leetcode(string s, int k) {
 				int sm = 0;
 				int cnt = 0;
 				int bits = 32 - __builtin_clz(k);
@@ -22607,6 +22721,59 @@ namespace leetcode {
 					}
 				}
 				return cnt;
+			}*/
+		};
+	}
+
+	namespace task_2322 {
+		/*
+		* https://leetcode.com/problems/minimum-score-after-removals-on-a-tree/description/
+		*/
+		class Solution {
+		public:
+			int calc(int part1, int part2, int part3) {
+				return max(part1, max(part2, part3)) - min(part1, min(part2, part3));
+			}
+			int minimumScore__leetcode(vector<int>& nums, vector<vector<int>>& edges) {
+				int n = nums.size(), cnt = 0;
+				vector<int> sum(n), in(n), out(n);
+				vector<vector<int>> adj(n);
+				for (auto& e : edges) {
+					adj[e[0]].push_back(e[1]);
+					adj[e[1]].push_back(e[0]);
+				}
+				function<void(int, int)> dfs = [&](int x, int fa) {
+					in[x] = cnt++;
+					sum[x] = nums[x];
+					for (auto& y : adj[x]) {
+						if (y == fa) {
+							continue;
+						}
+						dfs(y, x);
+						sum[x] ^= sum[y];
+					}
+					out[x] = cnt;
+				};
+
+				dfs(0, -1);
+				int res = INT_MAX;
+				for (int u = 1; u < n; u++) {
+					for (int v = u + 1; v < n; v++) {
+						if (in[v] > in[u] && in[v] < out[u]) {
+							res = min(res,
+								calc(sum[0] ^ sum[u], sum[u] ^ sum[v], sum[v]));
+						}
+						else if (in[u] > in[v] && in[u] < out[v]) {
+							res = min(res,
+								calc(sum[0] ^ sum[v], sum[v] ^ sum[u], sum[u]));
+						}
+						else {
+							res = min(res,
+								calc(sum[0] ^ sum[u] ^ sum[v], sum[u], sum[v]));
+						}
+					}
+				}
+				return res;
 			}
 		};
 	}
@@ -29762,6 +29929,64 @@ namespace leetcode {
 					}
 				}
 				return ans;
+			}
+		};
+	}
+
+	namespace task_3480 {
+		/*
+		* https://leetcode.com/problems/maximize-subarrays-after-removing-one-conflicting-pair/description/
+		*/
+		class Solution {
+		public:
+			long long maxSubarrays__leetcode(int n, vector<vector<int>>& conflictingPairs) {
+				vector<int> bMin1(n + 1, INT_MAX), bMin2(n + 1, INT_MAX);
+				for (const auto& pair : conflictingPairs) {
+					int a = min(pair[0], pair[1]), b = max(pair[0], pair[1]);
+					if (bMin1[a] > b) {
+						bMin2[a] = bMin1[a];
+						bMin1[a] = b;
+					}
+					else if (bMin2[a] > b) {
+						bMin2[a] = b;
+					}
+				}
+				long long res = 0;
+				int ib1 = n, b2 = INT_MAX;
+				vector<long long> delCount(n + 1, 0);
+				for (int i = n; i >= 1; i--) {
+					if (bMin1[ib1] > bMin1[i]) {
+						b2 = min(b2, bMin1[ib1]);
+						ib1 = i;
+					}
+					else {
+						b2 = min(b2, bMin1[i]);
+					}
+					res += min(bMin1[ib1], n + 1) - i;
+					delCount[ib1] +=
+						min(min(b2, bMin2[ib1]), n + 1) - min(bMin1[ib1], n + 1);
+				}
+				return res + *max_element(delCount.begin(), delCount.end());
+			}
+		};
+	}
+
+	namespace task_3487 {
+		/*
+		* https://leetcode.com/problems/maximum-unique-subarray-sum-after-deletion/description/
+		*/
+		class Solution {
+		public:
+			int maxSum(vector<int>& nums) {
+				unordered_set<int> positiveNumsSet;
+				for (int num : nums) {
+					if (num > 0)
+						positiveNumsSet.emplace(num);
+				}
+				if (positiveNumsSet.empty())
+					return *max_element(nums.begin(), nums.end());
+
+				return accumulate(positiveNumsSet.begin(), positiveNumsSet.end(), 0);
 			}
 		};
 	}
