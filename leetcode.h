@@ -21434,6 +21434,48 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2106 {
+		/*
+		* https://leetcode.com/problems/maximum-fruits-harvested-after-at-most-k-steps/description/
+		*/
+		class Solution {
+		public:
+			int maxTotalFruits__leetcode(vector<vector<int>>& fruits, int startPos, int k) {
+				int left = 0;
+				int right = 0;
+				int n = fruits.size();
+				int sum = 0;
+				int ans = 0;
+
+				auto step = [&](int left, int right) -> int {
+					if (fruits[right][0] <= startPos) {
+						return startPos - fruits[left][0];
+					}
+					else if (fruits[left][0] >= startPos) {
+						return fruits[right][0] - startPos;
+					}
+					else {
+						return min(abs(startPos - fruits[right][0]),
+							abs(startPos - fruits[left][0])) +
+							fruits[right][0] - fruits[left][0];
+					}
+				};
+				// each time fix the right boundary of the window
+				while (right < n) {
+					sum += fruits[right][1];
+					// move left boundary
+					while (left <= right && step(left, right) > k) {
+						sum -= fruits[left][1];
+						left++;
+					}
+					ans = max(ans, sum);
+					right++;
+				}
+				return ans;
+			}
+		};
+	}
+
 	namespace task_2109 {
 		/*
 		* https://leetcode.com/problems/adding-spaces-to-a-string/description/
@@ -23481,6 +23523,28 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2411 {
+		/*
+		* https://leetcode.com/problems/smallest-subarrays-with-maximum-bitwise-or/description/
+		*/
+		class Solution {
+		public:
+			vector<int> smallestSubarrays(vector<int>& nums) {
+				vector<int> res(nums.size()), bit_pos(30, -1);
+				for (int i = nums.size() - 1; i >= 0; --i) {
+					int num = nums[i], max_bit_pos = i;;
+					for (int bit = 0; bit < 30; ++bit, num >>= 1) {
+						if (num & 1)
+							bit_pos[bit] = i;
+						max_bit_pos = max(max_bit_pos, bit_pos[bit]);
+					}
+					res[i] = max_bit_pos - i + 1;
+				}
+				return res;
+			}
+		};
+	}
+
 	namespace task_2415 {
 		/*
 		* https://leetcode.com/problems/reverse-odd-levels-of-binary-tree/description/
@@ -24930,6 +24994,42 @@ namespace leetcode {
 						l = max_value;
 				}
 				return l;
+			}
+		};
+	}
+
+	namespace task_2561 {
+		/*
+		* https://leetcode.com/problems/rearranging-fruits/description/
+		*/
+		class Solution {
+		public:
+			long long minCost__leetcode(vector<int>& basket1, vector<int>& basket2) {
+				int m = INT_MAX;
+				unordered_map<int, int> frequency_map;
+				for (int b1 : basket1) {
+					frequency_map[b1]++;
+					m = min(m, b1);
+				}
+				for (int b2 : basket2) {
+					frequency_map[b2]--;
+					m = min(m, b2);
+				}
+				vector<int> merge;
+				for (auto [k, c] : frequency_map) {
+					if (c % 2 != 0) {
+						return -1;
+					}
+					for (int i = 0; i < abs(c) / 2; ++i) {
+						merge.push_back(k);
+					}
+				}
+				nth_element(merge.begin(), merge.begin() + merge.size() / 2,
+					merge.end());
+				return accumulate(merge.begin(), merge.begin() + merge.size() / 2, 0ll,
+					[&](long long res, int x) -> long long {
+						return res + min(2 * m, x);
+					});
 			}
 		};
 	}
