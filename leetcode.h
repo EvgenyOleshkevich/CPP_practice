@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <iostream>
 #include <cstddef>
@@ -12212,6 +12212,39 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_808 {
+		/*
+		* https://leetcode.com/problems/soup-servings/description/
+		*/
+		class Solution {
+		public:
+			double soupServings__leetcode(int n) {
+				int m = ceil(n / 25.0);
+				unordered_map<int, unordered_map<int, double>> dp;
+
+				function<double(int, int)> calculateDP = [&](int i, int j) -> double {
+					if (i <= 0 && j <= 0)
+						return 0.5;
+					if (i <= 0)
+						return 1;
+					if (j <= 0)
+						return 0;
+					if (dp[i].count(j))
+						return dp[i][j];
+					return dp[i][j] = (calculateDP(i - 4, j) + calculateDP(i - 3, j - 1) +
+						calculateDP(i - 2, j - 2) + calculateDP(i - 1, j - 3)) /
+						4;
+				};
+
+				for (int k = 1; k <= m; k++) {
+					if (calculateDP(k, k) > 1 - 1e-5)
+						return 1;
+				}
+				return calculateDP(m, m);
+			}
+		};
+	}
+
 	namespace task_817 {
 		/*
 		* https://leetcode.com/problems/linked-list-components/
@@ -12806,6 +12839,30 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_869 {
+		/*
+		* https://leetcode.com/problems/reordered-power-of-2/description/
+		*/
+		class Solution {
+		public:
+			string sortD(int n) {
+				string s = to_string(n);
+				sort(s.begin(), s.end());
+				return s;
+			}
+
+			bool reorderedPowerOf2(int n) {
+				string target = sortD(n);
+				for (int i = 0; i < 31; i++) {
+					if (sortD(1 << i) == target) {
+						return true;
+					}
+				}
+				return false;
+			}
+		};
+	}
+
 	namespace task_873 {
 		/*
 		* https://leetcode.com/problems/length-of-longest-fibonacci-subsequence/description/
@@ -13186,6 +13243,39 @@ namespace leetcode {
 				}
 
 				return setBitOR.size();
+			}
+		};
+	}
+
+	namespace task_904 {
+		/*
+		* https://leetcode.com/problems/fruit-into-baskets/description/
+		*/
+		class Solution {
+		public:
+			int totalFruit(vector<int>& fruits) {
+				vector<int> baskets(2, -1), have_fruits(2);
+				int max_frouits = 0, second_bacsket_before_swap = 0;
+				for (const int fruit : fruits) {
+					if (fruit == baskets[0]) {
+						second_bacsket_before_swap = have_fruits[0];
+						++have_fruits[0];
+						swap(have_fruits[0], have_fruits[1]);
+						swap(baskets[0], baskets[1]);
+					}
+					else if (fruit == baskets[1]) {
+						++have_fruits[1];
+					}
+					else {
+						max_frouits = max(max_frouits, have_fruits[0] + have_fruits[1]);
+						have_fruits[0] = have_fruits[1] - second_bacsket_before_swap;
+						baskets[0] = baskets[1];
+						have_fruits[1] = 1;
+						baskets[1] = fruit;
+						second_bacsket_before_swap = 0;
+					}
+				}
+				return max(max_frouits, have_fruits[0] + have_fruits[1]);
 			}
 		};
 	}
@@ -29503,6 +29593,52 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3363 {
+		/*
+		* https://leetcode.com/problems/ind-the-maximum-number-of-fruits-collected/description/
+		*/
+		class Solution {
+		public:
+			int maxCollectedFruits__leetcode(vector<vector<int>>& fruits) {
+				int n = fruits.size();
+				int ans = 0;
+				for (int i = 0; i < n; ++i) {
+					ans += fruits[i][i];
+				}
+
+				auto dp = [&]() -> int {
+					vector<int> prev(n, INT_MIN), curr(n, INT_MIN);
+					prev[n - 1] = fruits[0][n - 1];
+					for (int i = 1; i < n - 1; ++i) {
+						for (int j = max(n - 1 - i, i + 1); j < n; ++j) {
+							int best = prev[j];
+							if (j - 1 >= 0) {
+								best = max(best, prev[j - 1]);
+							}
+							if (j + 1 < n) {
+								best = max(best, prev[j + 1]);
+							}
+							curr[j] = best + fruits[i][j];
+						}
+						swap(prev, curr);
+					}
+					return prev[n - 1];
+				};
+
+				ans += dp();
+
+				for (int i = 0; i < n; ++i) {
+					for (int j = 0; j < i; ++j) {
+						swap(fruits[j][i], fruits[i][j]);
+					}
+				}
+
+				ans += dp();
+				return ans;
+			}
+		};
+	}
+
 	namespace task_3372 {
 		/*
 		* https://leetcode.com/problems/maximize-the-number-of-target-nodes-after-connecting-trees-i/description/
@@ -30029,6 +30165,111 @@ namespace leetcode {
 					}
 				}
 				return ans;
+			}
+		};
+	}
+
+	namespace task_3477 {
+		/*
+		* https://leetcode.com/problems/fruit-into-baskets-ii/description/
+		*/
+		class Solution {
+		public:
+			int numOfUnplacedFruits(vector<int>& fruits, vector<int>& baskets) {
+				size_t size = fruits.size();
+				int count = 0;
+				for (size_t i = 0; i < size; ++i) {
+					bool not_found = true;
+					for (size_t j = 0; j < size; ++j) {
+						if (baskets[j] >= fruits[i]) {
+							baskets[j] = 0;
+							not_found = false;
+							break;
+						}
+					}
+					if (not_found)
+						++count;
+				}
+				return count;
+			}
+		};
+	}
+
+	namespace task_3479 {
+		/*
+		* https://leetcode.com/problems/fruit-into-baskets-iii/description/
+		*/
+		class Solution {
+		public:
+			int segTree[400007];
+			vector<int> baskets;
+
+			void build(int p, int l, int r) {
+				if (l == r) {
+					segTree[p] = baskets[l];
+					return;
+				}
+				int mid = (l + r) >> 1;
+				build(p << 1, l, mid);
+				build(p << 1 | 1, mid + 1, r);
+				segTree[p] = max(segTree[p << 1], segTree[p << 1 | 1]);
+			}
+
+			int query(int p, int l, int r, int ql, int qr) {
+				if (ql > r || qr < l) {
+					return INT_MIN;
+				}
+				if (ql <= l && r <= qr) {
+					return segTree[p];
+				}
+				int mid = (l + r) >> 1;
+				return max(query(p << 1, l, mid, ql, qr),
+					query(p << 1 | 1, mid + 1, r, ql, qr));
+			}
+
+			void update(int p, int l, int r, int pos, int val) {
+				if (l == r) {
+					segTree[p] = val;
+					return;
+				}
+				int mid = (l + r) >> 1;
+				if (pos <= mid) {
+					update(p << 1, l, mid, pos, val);
+				}
+				else {
+					update(p << 1 | 1, mid + 1, r, pos, val);
+				}
+				segTree[p] = max(segTree[p << 1], segTree[p << 1 | 1]);
+			}
+
+			int numOfUnplacedFruits__leetcode(vector<int>& fruits, vector<int>& baskets) {
+				this->baskets = baskets;
+				int m = baskets.size();
+				int count = 0;
+				if (m == 0) {
+					return fruits.size();
+				}
+				build(1, 0, m - 1);
+				for (int i = 0; i < m; i++) {
+					int l = 0, r = m - 1, res = -1;
+					while (l <= r) {
+						int mid = (l + r) >> 1;
+						if (query(1, 0, m - 1, 0, mid) >= fruits[i]) {
+							res = mid;
+							r = mid - 1;
+						}
+						else {
+							l = mid + 1;
+						}
+					}
+					if (res != -1 && baskets[res] >= fruits[i]) {
+						update(1, 0, m - 1, res, INT_MIN);
+					}
+					else {
+						count++;
+					}
+				}
+				return count;
 			}
 		};
 	}
