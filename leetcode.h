@@ -7781,6 +7781,24 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_326 {
+		/*
+		* https://leetcode.com/problems/power-of-three/description/
+		*/
+		class Solution {
+		public:
+			bool isPowerOfThree(int n) {
+				while (n > 1 && n % 3 == 0)
+					n /= 3;
+				return n == 1;
+			}
+
+			bool isPowerOfThree__fast(int n) {
+				return n > 0 && 1162261467 % n == 0; // 3^19 is the largest power of 3 in int range
+			}
+		};
+	}
+
 	namespace task_328 {
 		/*
 		* https://leetcode.com/problems/odd-even-linked-list/
@@ -12399,6 +12417,30 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_837 {
+		/*
+		* https://leetcode.com/problems/new-21-game/description/
+		*/
+		class Solution {
+		public:
+			double new21Game__leetcode(int n, int k, int maxPts) {
+				vector<double> dp(n + 1);
+				dp[0] = 1;
+				double s = k > 0 ? 1 : 0;
+				for (int i = 1; i <= n; i++) {
+					dp[i] = s / maxPts;
+					if (i < k) {
+						s += dp[i];
+					}
+					if (i - maxPts >= 0 && i - maxPts < k) {
+						s -= dp[i - maxPts];
+					}
+				}
+				return accumulate(dp.begin() + k, dp.end(), 0.0);
+			}
+		};
+	}
+
 	namespace task_838 {
 		/*
 		* https://leetcode.com/problems/push-dominoes/description/
@@ -15992,6 +16034,42 @@ namespace leetcode {
 					a_or_b >>= 1;
 				}
 				return count;
+			}
+		};
+	}
+
+	namespace task_1323 {
+		/*
+		* https://leetcode.com/problems/maximum-69-number/description/
+		*/
+		class Solution {
+		public:
+			int maximum69Number(int num) {
+				int res = 0, last_add = 0, degree = 1;
+				while (num != 0) {
+					int val = num % 10;
+					if (val == 6) {
+						res -= last_add;
+						last_add = 3 * degree;
+					}
+					res += 9 * degree;
+					degree *= 10;
+					num /= 10;
+				}
+				return res;
+			}
+
+			bool isPowerOfFour(int n) {
+				if (n < 1)
+					return false;
+				while ((~n & 3) == 3)
+					n >>= 2;
+				return n == 1;
+			}
+
+			bool isPowerOfFour__bit_magic(int n) {
+				int mask = 0b01010101010101010101010101010101;
+				return n > 0 && (n & (n - 1)) == 0 && (n | mask) == mask;
 			}
 		};
 	}
@@ -22510,6 +22588,26 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2264 {
+		/*
+		* https://leetcode.com/problems/largest-3-same-digit-number-in-string/description/
+		*/
+		class Solution {
+		public:
+			string largestGoodInteger(string num) {
+				char largest = '.';
+				const size_t size = num.size();
+				for (size_t i = 2; i < size; ++i) {
+					if (num[i] == num[i - 1] && num[i] == num[i - 2])
+						largest = max(largest, num[i]);
+				}
+				if (largest == '.')
+					return "";
+				return string(3, largest);
+			}
+		};
+	}
+
 	namespace task_2270 {
 		/*
 		* https://leetcode.com/problems/number-of-ways-to-split-array/description/
@@ -23931,6 +24029,52 @@ namespace leetcode {
 					}
 				}
 
+				return res;
+			}
+		};
+	}
+
+	namespace task_2438 {
+		/*
+		* https://leetcode.com/problems/range-product-queries-of-powers/description/
+		*/
+		class Solution {
+		public:
+			const unsigned long long mod = 1000000007;
+
+			vector<int> productQueries(int n, vector<vector<int>>& queries) {
+				vector<int> powers_length; // length '0' of powers of 2 digit: 8 = 1000 - 3 length
+				int degree_length = 0;
+				while (n != 0) {
+					if (n & 1)
+						powers_length.push_back(degree_length);
+					++degree_length;
+					n >>= 1;
+				}
+				// make prefix product:
+				for (size_t i = 1; i < powers_length.size(); ++i)
+					powers_length[i] += powers_length[i - 1];
+
+				const size_t size = queries.size();
+				vector<int> answers(size);
+				for (size_t i = 0; i < size; ++i) {
+					int degree = powers_length[queries[i][1]] - (queries[i][0] == 0 ? 0 : powers_length[queries[i][0] - 1]);
+					answers[i] = pow(degree);
+				}
+				return answers;
+			}
+
+			unsigned long long pow(int degree) {
+				unsigned long long res = 1, mult = 2;
+				while (degree) {
+					if (degree & 1) {
+						res *= mult;
+						res %= mod;
+					}
+					mult *= mult;
+					mult %= mod;
+					degree >>= 1;
+				}
 				return res;
 			}
 		};
@@ -26371,6 +26515,71 @@ namespace leetcode {
 					}
 				}
 				return sum;
+			}
+		};
+	}
+
+	namespace task_2787 {
+		/*
+		* https://leetcode.com/problems/ways-to-express-an-integer-as-sum-of-powers/description/
+		*/
+		class Solution {
+		public:
+			const unsigned long long mod = 1000000007;
+			vector<unordered_map<int, unsigned long long>> count_ways;
+			vector<int> numbers;
+
+			int numberOfWays(int n, int x) {
+				count_ways = vector<unordered_map<int, unsigned long long>>(n + 1);
+				getNumbers(n, x);
+				for (const int num : numbers)
+					count_ways[num][num] = 1;
+
+				return req(n, numbers.size());
+			}
+
+			int req(int n, int max_num) {
+				unsigned long long ways = 0;
+				for (int i = 0; i < max_num; ++i) {
+					int num = numbers[i];
+					if (num > n)
+						break;
+					auto it = count_ways[n].find(num);
+					if (it == count_ways[n].end()) {
+						int ways_num = req(n - num, i);
+						count_ways[n][num] = ways_num;
+						ways += ways_num;
+					}
+					else {
+						ways += it->second;
+					}
+				}
+				return ways % mod;
+			}
+
+			void getNumbers(int n, int x) {
+				numbers = vector<int>();
+				numbers.push_back(1);
+				for (int i = 2; true; ++i) {
+					int num = pow(i, x);
+					if (num > n)
+						break;
+					numbers.push_back(num);
+				}
+			}
+
+			int numberOfWays__leetcode(int n, int x) {
+				vector<long long> dp(n + 1);
+				dp[0] = 1;
+				for (int i = 1; i <= n; i++) {
+					long long val = pow(i, x);
+					if (val > n)
+						break;
+
+					for (int j = n; j >= val; j--)
+						dp[j] = (dp[j] + dp[j - val]) % mod;
+				}
+				return dp[n];
 			}
 		};
 	}
