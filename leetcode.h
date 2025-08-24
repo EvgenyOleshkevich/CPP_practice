@@ -11090,6 +11090,71 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_679 {
+		/*
+		* https://leetcode.com/problems/24-game/description/
+		*/
+		class Solution {
+		public:
+			const double EPS = 1e-6;
+
+			// recursion works on doubles
+			bool judgePoint24(vector<double>& cards) {
+				if (cards.size() == 1) {
+					return fabs(cards[0] - 24.0) < EPS;
+				}
+
+				for (int i = 0; i < cards.size() - 1; i++) {
+					for (int j = i + 1; j < cards.size(); j++) {
+						double a = cards[i], b = cards[j];
+
+						vector<double> p = cards;
+						p.erase(p.begin() + j);
+						p.erase(p.begin() + i);
+
+
+						p.push_back(a + b);
+						if (judgePoint24(p)) return true;
+						p.pop_back();
+
+
+						p.push_back(a - b);
+						if (judgePoint24(p)) return true;
+						p.pop_back();
+
+						p.push_back(b - a);
+						if (judgePoint24(p)) return true;
+						p.pop_back();
+
+
+						p.push_back(a * b);
+						if (judgePoint24(p)) return true;
+						p.pop_back();
+
+
+						if (fabs(b) > EPS) {
+							p.push_back(a / b);
+							if (judgePoint24(p)) return true;
+							p.pop_back();
+						}
+						if (fabs(a) > EPS) {
+							p.push_back(b / a);
+							if (judgePoint24(p)) return true;
+							p.pop_back();
+						}
+					}
+				}
+				return false;
+			}
+
+			// entry point (int -> double)
+			bool judgePoint24__leetcode(vector<int>& cards) {
+				vector<double> nums(cards.begin(), cards.end());
+				return judgePoint24(nums);
+			}
+		};
+	}
+
 	namespace task_684 {
 		/*
 		* https://leetcode.com/problems/redundant-connection/description/
@@ -17386,6 +17451,33 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1493 {
+		/*
+		* https://leetcode.com/problems/longest-subarray-of-1s-after-deleting-one-element/description/
+		*/
+		class Solution {
+		public:
+			int longestSubarray(vector<int>& nums) {
+				int max_len = 0, prev_len = 0, size = nums.size();
+				for (int i = 0; i < size; ++i) {
+					if (nums[i] == 1) {
+						int j = i + 1;
+						for (; j < size && nums[j] == 1; ++j) {}
+						if (i == 0 && j == size)
+							return size - 1;
+						max_len = max(max_len, j - i + prev_len);
+						prev_len = j - i;
+						i = j;
+					}
+					else {
+						prev_len = 0;
+					}
+				}
+				return max_len;
+			}
+		};
+	}
+
 	namespace task_1497 {
 		/*
 		* https://leetcode.com/problems/problems/check-if-array-pairs-are-divisible-by-k/description/
@@ -17447,6 +17539,40 @@ namespace leetcode {
 					mult *= mult;
 					mult %= modul;
 					degree >>= 1;
+				}
+				return res;
+			}
+		};
+	}
+
+	namespace task_1504 {
+		/*
+		* https://leetcode.com/problems/count-submatrices-with-all-ones/description
+		*/
+		class Solution {
+		public:
+			int numSubmat_leetcode(vector<vector<int>>& mat) {
+				int n = mat[0].size();
+				vector<int> heights(n, 0);
+				int res = 0;
+				for (const auto& row : mat) {
+					for (int i = 0; i < n; ++i)
+						heights[i] = (row[i] == 0) ? 0 : heights[i] + 1;
+
+					stack<vector<int>> st;
+					st.push({ -1, 0, -1 });
+					for (int i = 0; i < n; ++i) {
+						int h = heights[i];
+						while (st.top()[2] >= h) {
+							st.pop();
+						}
+						auto& top = st.top();
+						int j = top[0];
+						int prev = top[1];
+						int cur = prev + (i - j) * h;
+						st.push({ i, cur, h });
+						res += cur;
+					}
 				}
 				return res;
 			}
@@ -23174,6 +23300,28 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2348 {
+		/*
+		* https://leetcode.com/problems/number-of-zero-filled-subarrays/description/
+		*/
+		class Solution {
+		public:
+			long long zeroFilledSubarray(vector<int>& nums) {
+				const size_t size = nums.size();
+				long long count = 0;
+				for (size_t i = 0; i < size; i++) {
+					if (nums[i] == 0) {
+						size_t j = i + 1;
+						for (; j < size && nums[j] == 0; ++j) {}
+						count += (j - i) * (j - i + 1) / 2;
+						i = j - 1;
+					}
+				}
+				return count;
+			}
+		};
+	}
+
 	namespace task_2349 {
 		/*
 		* https://leetcode.com/problems/design-a-number-container-system/description/
@@ -28801,6 +28949,96 @@ namespace leetcode {
 					}
 				}
 				return (nums[size] == 1 && nums[size + 1] == 1) ? count : -1;
+			}
+		};
+	}
+
+	namespace task_3195 {
+		/*
+		* https://leetcode.com/problems/find-the-minimum-area-to-cover-all-ones-i/description/
+		*/
+		class Solution {
+		public:
+			int minimumArea(vector<vector<int>>& grid) {
+				int n = grid.size(), m = grid[0].size();
+				int min_i = n, max_i = 0;
+				int min_j = m, max_j = 0;
+				for (int i = 0; i < n; i++) {
+					for (int j = 0; j < m; j++) {
+						if (grid[i][j] == 1) {
+							min_i = min(min_i, i);
+							max_i = max(max_i, i);
+							min_j = min(min_j, j);
+							max_j = max(max_j, j);
+						}
+					}
+				}
+				return (max_i - min_i + 1) * (max_j - min_j + 1);
+			}
+		};
+	}
+
+	namespace task_3197 {
+		/*
+		* https://leetcode.com/problems/find-the-minimum-area-to-cover-all-ones-i/description/
+		*/
+		class Solution {
+		public:
+			int minimumSum(vector<vector<int>>& grid, int u, int d, int l, int r) {
+				int min_i = grid.size(), max_i = 0;
+				int min_j = grid[0].size(), max_j = 0;
+				for (int i = u; i <= d; i++) {
+					for (int j = l; j <= r; j++) {
+						if (grid[i][j] == 1) {
+							min_i = min(min_i, i);
+							min_j = min(min_j, j);
+							max_i = max(max_i, i);
+							max_j = max(max_j, j);
+						}
+					}
+				}
+				return min_i <= max_i ? (max_i - min_i + 1) * (max_j - min_j + 1)
+					: INT_MAX / 3;
+			}
+
+			vector<vector<int>> rotate(vector<vector<int>>& vec) {
+				int n = vec.size(), m = vec[0].size();
+				vector<vector<int>> ret(m, vector<int>(n));
+				for (int i = 0; i < n; i++) {
+					for (int j = 0; j < m; j++) {
+						ret[m - j - 1][i] = vec[i][j];
+					}
+				}
+				return ret;
+			}
+
+			int solve(vector<vector<int>>& grid) {
+				int n = grid.size(), m = grid[0].size();
+				int res = n * m;
+				for (int i = 0; i + 1 < n; i++) {
+					for (int j = 0; j + 1 < m; j++) {
+						res =
+							min(res, minimumSum(grid, 0, i, 0, m - 1) +
+								minimumSum(grid, i + 1, n - 1, 0, j) +
+								minimumSum(grid, i + 1, n - 1, j + 1, m - 1));
+						res = min(res, minimumSum(grid, 0, i, 0, j) +
+							minimumSum(grid, 0, i, j + 1, m - 1) +
+							minimumSum(grid, i + 1, n - 1, 0, m - 1));
+					}
+				}
+				for (int i = 0; i + 2 < n; i++) {
+					for (int j = i + 1; j + 1 < n; j++) {
+						res = min(res, minimumSum(grid, 0, i, 0, m - 1) +
+							minimumSum(grid, i + 1, j, 0, m - 1) +
+							minimumSum(grid, j + 1, n - 1, 0, m - 1));
+					}
+				}
+				return res;
+			}
+
+			int minimumSum__leetcode(vector<vector<int>>& grid) {
+				auto rgrid = rotate(grid);
+				return min(solve(grid), solve(rgrid));
 			}
 		};
 	}
