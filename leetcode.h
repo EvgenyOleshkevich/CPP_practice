@@ -9377,6 +9377,34 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_498 {
+		/*
+		* https://leetcode.com/problems/diagonal-traverse/description/
+		*/
+		class Solution {
+		public:
+			vector<int> findDiagonalOrder(vector<vector<int>>& mat) {
+				int m = mat.size(), n = mat[0].size(), res_i = 0, diags = m + n - 1;
+				vector<int> res(m * n);
+				res[0] = mat[0][0];
+				for (int d = 1; d < diags; ++d) {
+					if (d & 1) {
+						int j = min(d, n - 1), i = d - j;
+						for (; i < m && j >= 0; ++i, --j)
+							res[++res_i] = mat[i][j];
+					}
+					else {
+						int i = min(d, m - 1), j = d - i;
+						for (; i >= 0 && j < n; --i, ++j)
+							res[++res_i] = mat[i][j];
+					}
+				}
+
+				return res;
+			}
+		};
+	}
+
 	namespace task_502 {
 		/*
 		* https://leetcode.com/problems/ipo/description/
@@ -19451,6 +19479,30 @@ namespace leetcode {
 		*/
 		class Solution {
 		public:
+			double maxAverageRatio(vector<vector<int>>& classes, int extraStudents) {
+				auto calculateGain = [](const vector<int>& class_) {
+					return (double)(class_[0] + 1) / (class_[1] + 1) -
+						(double)class_[0] / class_[1];
+				};
+
+				priority_queue<pair<double, size_t>> ratios;
+				size_t size = classes.size();
+				for (size_t i = 0; i < size; ++i)
+					ratios.push({ calculateGain(classes[i]), i });
+				for (; extraStudents != 0; --extraStudents) {
+					size_t index = ratios.top().second;
+					ratios.pop();
+					++classes[index][0];
+					++classes[index][1];
+					ratios.push({ calculateGain(classes[index]), index });
+				}
+				double ratio = 0;
+				for (const vector<int>& class_ : classes)
+					ratio += (double)class_[0] / class_[1];
+
+				return ratio / size;
+			}
+
 			double maxAverageRatio__leetcode(vector<vector<int>>& classes, int extraStudents) {
 				// Lambda to calculate the gain of adding an extra student
 				auto calculateGain = [](int passes, int totalStudents) {
@@ -28068,6 +28120,29 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3000 {
+		/*
+		* https://leetcode.com/problems/maximum-area-of-longest-diagonal-rectangle/description/
+		*/
+		class Solution {
+		public:
+			int areaOfMaxDiagonal(vector<vector<int>>& dimensions) {
+				int max_area = 0, max_diag = 0;
+				for (const vector<int>& dimension : dimensions) {
+					int diag = dimension[0] * dimension[0] + dimension[1] * dimension[1];
+					if (max_diag < diag) {
+						max_diag = diag;
+						max_area = dimension[0] * dimension[1];
+					}
+					else if (max_diag == diag) {
+						max_area = max(max_area, dimension[0] * dimension[1]);
+					}
+				}
+				return max_area;
+			}
+		};
+	}
+
 	namespace task_3011 {
 		/*
 		* https://leetcode.com/problems/find-if-array-can-be-sorted/description/
@@ -28125,6 +28200,23 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3021 {
+		/*
+		* https://leetcode.com/problems/alice-and-bob-playing-flower-game/description/
+		*/
+		class Solution {
+		public:
+			long long flowerGame(int n, int m) {
+				long long n_even = n >> 1, n_odd = n_even + (n & 1), m_even = m >> 1, m_odd = m_even + (m & 1);
+				return n_even * m_odd + n_odd * m_even;
+			}
+
+			long long flowerGame2(int n, int m) {
+				return (long long)m * n / 2;
+			}
+		};
+	}
+
 	namespace task_3024 {
 		/*
 		* https://leetcode.com/problems/type-of-triangle/description/
@@ -28144,6 +28236,55 @@ namespace leetcode {
 					nums[1] == nums[2])
 					return "isosceles";
 				return "scalene";
+			}
+		};
+	}
+
+	namespace task_3025 {
+		/*
+		* https://leetcode.com/problems/find-the-number-of-ways-to-place-people-i/description/
+		*/
+		class Solution {
+		public:
+			int numberOfPairs__leetcode(vector<vector<int>>& points) {
+				int ans = 0;
+				int n = points.size();
+
+				for (int i = 0; i < n; i++) {
+					auto& pointA = points[i];
+					for (int j = 0; j < n; j++) {
+						vector<int> pointB = points[j];
+						if (i == j ||
+							!(pointA[0] <= pointB[0] && pointA[1] >= pointB[1])) {
+							continue;
+						}
+						if (n == 2) {
+							ans++;
+							continue;
+						}
+
+						bool illegal = false;
+						for (int k = 0; k < n; k++) {
+							if (k == i || k == j) {
+								continue;
+							}
+
+							auto& pointTmp = points[k];
+							bool isXContained =
+								pointTmp[0] >= pointA[0] && pointTmp[0] <= pointB[0];
+							bool isYContained =
+								pointTmp[1] <= pointA[1] && pointTmp[1] >= pointB[1];
+							if (isXContained && isYContained) {
+								illegal = true;
+								break;
+							}
+						}
+						if (!illegal) {
+							ans++;
+						}
+					}
+				}
+				return ans;
 			}
 		};
 	}
@@ -30612,6 +30753,92 @@ namespace leetcode {
 					}
 				}
 				return ans;
+			}
+		};
+	}
+
+	namespace task_3446 {
+		/*
+		* https://leetcode.com/problems/sort-matrix-by-diagonals/description/
+		*/
+		class Solution {
+		public:
+			vector<vector<int>> sortMatrix__leetcode(vector<vector<int>>& grid) {
+				int n = grid.size();
+				for (int i = 0; i < n; i++) {
+					vector<int> tmp;
+					for (int j = 0; i + j < n; j++) {
+						tmp.push_back(grid[i + j][j]);
+					}
+					sort(tmp.begin(), tmp.end(), greater<int>());
+					for (int j = 0; i + j < n; j++) {
+						grid[i + j][j] = tmp[j];
+					}
+				}
+				for (int j = 1; j < n; j++) {
+					vector<int> tmp;
+					for (int i = 0; j + i < n; i++) {
+						tmp.push_back(grid[i][j + i]);
+					}
+					sort(tmp.begin(), tmp.end());
+					for (int i = 0; j + i < n; i++) {
+						grid[i][j + i] = tmp[i];
+					}
+				}
+				return grid;
+			}
+		};
+	}
+
+	namespace task_3459 {
+		/*
+		* https://leetcode.com/problems/length-of-longest-v-shaped-diagonal-segment/description/
+		*/
+		class Solution {
+		public:
+			int lenOfVDiagonal__leetcode(vector<vector<int>>& grid) {
+				int m = grid.size(), n = grid[0].size();
+				int dirs[4][2] = { {1, 1}, {1, -1}, {-1, -1}, {-1, 1} };
+				vector<vector<vector<vector<int>>>> memo(m, vector<vector<vector<int>>>(n, vector<vector<int>>(4, vector<int>(2))));
+				//memset(memo, -1, sizeof(memo));
+
+				function<int(int, int, int, bool, int)> dfs =
+					[&](int cx, int cy, int direction, bool turn, int target) -> int {
+					int nx = cx + dirs[direction][0];
+					int ny = cy + dirs[direction][1];
+					/* If it goes beyond the boundary or the next node's value is not
+					 * the target value, then return */
+					if (nx < 0 || ny < 0 || nx >= m || ny >= n ||
+						grid[nx][ny] != target) {
+						return 0;
+					}
+					if (memo[nx][ny][direction][turn] != -1) {
+						return memo[nx][ny][direction][turn];
+					}
+
+					/* Continue walking in the original direction. */
+					int maxStep = dfs(nx, ny, direction, turn, 2 - target);
+					if (turn) {
+						/* Clockwise rotate 90 degrees turn */
+						maxStep = fmax(maxStep, dfs(nx, ny, (direction + 1) % 4, false,
+							2 - target));
+					}
+					memo[nx][ny][direction][turn] = maxStep + 1;
+					return maxStep + 1;
+				};
+
+				int res = 0;
+				for (int i = 0; i < m; ++i) {
+					for (int j = 0; j < n; ++j) {
+						if (grid[i][j] == 1) {
+							for (int direction = 0; direction < 4; ++direction) {
+								res = fmax(res, dfs(i, j, direction, true, 2) + 1);
+							}
+						}
+					}
+				}
+
+				return res;
 			}
 		};
 	}
