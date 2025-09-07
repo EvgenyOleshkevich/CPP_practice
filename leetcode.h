@@ -15984,6 +15984,28 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1304 {
+		/*
+		* https://leetcode.com/problems/find-n-unique-integers-sum-up-to-zero/description/
+		*/
+		class Solution {
+		public:
+			vector<int> sumZero(int n) {
+				vector<int> res;
+				if (n % 2 == 1)
+					res.push_back(0);
+				n >>= 1;
+				++n;
+				for (int i = 1; i < n; ++i) {
+					res.push_back(i);
+					res.push_back(-i);
+				}
+
+				return res;
+			}
+		};
+	}
+
 	namespace task_1306 {
 		/*
 		* https://leetcode.com/problems/jump-game-iii/description/
@@ -26627,6 +26649,35 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2749 {
+		/*
+		* https://leetcode.com/problems/minimum-operations-to-make-the-integer-zero/description/
+		*/
+		class Solution {
+		public:
+			int makeTheIntegerZero(int num1, int num2) {
+				long long value = num1;
+				for (int i = 1; i < 33; ++i) {
+					value -= num2;
+					if (value < i)
+						return -1;
+					if (numberOnes(value) <= i)
+						return i;
+				}
+				return -1;
+			}
+
+			int numberOnes(long long value) {
+				int count = 0;
+				while (value != 0) {
+					count += value & 1;
+					value >>= 1;
+				}
+				return count;
+			}
+		};
+	}
+
 	namespace task_2751 {
 		/*
 		* https://leetcode.com/problems/robot-collisions/description/
@@ -28281,6 +28332,41 @@ namespace leetcode {
 						}
 						if (!illegal) {
 							ans++;
+						}
+					}
+				}
+				return ans;
+			}
+		};
+	}
+
+	namespace task_3027 {
+		/*
+		* https://leetcode.com/problems/find-the-number-of-ways-to-place-people-ii/description/
+		*/
+		class Solution {
+		public:
+			int numberOfPairs(vector<vector<int>>& points) {
+				int ans = 0;
+				sort(points.begin(), points.end(),
+					[](const vector<int>& a, const vector<int>& b) {
+						return a[0] < b[0] || (a[0] == b[0] && a[1] > b[1]);
+					});
+
+				for (int i = 0; i < points.size() - 1; i++) {
+					const auto& pointA = points[i];
+					int xMin = pointA[0] - 1;
+					int xMax = INT_MAX;
+					int yMin = INT_MIN;
+					int yMax = pointA[1] + 1;
+
+					for (int j = i + 1; j < points.size(); j++) {
+						const auto& pointB = points[j];
+						if (pointB[0] > xMin && pointB[0] < xMax && pointB[1] > yMin &&
+							pointB[1] < yMax) {
+							ans++;
+							xMin = pointB[0];
+							yMin = pointB[1];
 						}
 					}
 				}
@@ -31002,6 +31088,54 @@ namespace leetcode {
 					return *max_element(nums.begin(), nums.end());
 
 				return accumulate(positiveNumsSet.begin(), positiveNumsSet.end(), 0);
+			}
+		};
+	}
+
+	namespace task_3495 {
+		/*
+		* https://leetcode.com/problems/minimum-operations-to-make-array-elements-zero/description/
+		*/
+		class Solution {
+		public:
+			long long minOperations(vector<vector<int>>& queries) {
+				int value = 1;
+				long long count = 0;
+				vector<int> degrees;
+				for (int i = 1; i < 16; i++) {
+					value <<= 2;
+					degrees.push_back(value);
+				}
+
+				for (vector<int>& query : queries) {
+					long long query_count = 0;
+					for (long long i = 0; i < 15; i++) {
+						if (degrees[i] <= query[0])
+							continue;
+
+						query_count += (min(degrees[i] - 1, query[1]) + 1 - query[0]) * (i + 1);
+						query[0] = degrees[i];
+
+						if (degrees[i] > query[1])
+							break;
+					}
+					count += query_count / 2 + (query_count & 1);
+				}
+
+				return count;
+			}
+		};
+	}
+
+	namespace task_3516 {
+		/*
+		* https://leetcode.com/problems/find-closest-person/description/
+		*/
+		class Solution {
+		public:
+			int findClosest(int x, int y, int z) {
+				x = abs(z - x) - abs(z - y);
+				return x > 0 ? 2 : x == 0 ? 0 : 1;
 			}
 		};
 	}
