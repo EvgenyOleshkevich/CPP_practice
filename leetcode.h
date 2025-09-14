@@ -13971,6 +13971,85 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_966 {
+		/*
+		* https://leetcode.com/problems/vowel-spellchecker/description/
+		*/
+		class Solution {
+		public:
+			vector<string> spellchecker__leetcode(vector<string>& wordlist,
+				vector<string>& queries) {
+				// Store exact words for case-sensitive matching
+				unordered_set<string> exact(wordlist.begin(), wordlist.end());
+
+				// Maps for case-insensitive and vowel-error matches
+				unordered_map<string, string> caseMap;  // lowercase -> first original
+				unordered_map<string, string> vowelMap; // devoweled -> first original
+
+				// Preprocess the wordlist
+				for (string w : wordlist) {
+					string lower = toLower(w);      // Convert to lowercase
+					string devowel = deVowel(lower); // Replace vowels with '*'
+
+					// Store first occurrence of each case pattern
+					if (!caseMap.count(lower))
+						caseMap[lower] = w;
+
+					// Store first occurrence of each vowel pattern
+					if (!vowelMap.count(devowel))
+						vowelMap[devowel] = w;
+				}
+
+				vector<string> result;
+				// Process each query
+				for (string q : queries) {
+					// Exact match (case-sensitive)
+					if (exact.count(q)) {
+						result.push_back(q);
+					}
+					else {
+						string lower = toLower(q);      // Convert to lowercase
+						string devowel = deVowel(lower); // Replace vowels with '*'
+
+						// Case-insensitive match
+						if (caseMap.count(lower))
+							result.push_back(caseMap[lower]);
+						// Vowel-error match
+						else if (vowelMap.count(devowel))
+							result.push_back(vowelMap[devowel]);
+						// No match found
+						else
+							result.push_back("");
+					}
+				}
+				return result;
+			}
+
+		private:
+			// Convert string to lowercase
+			string toLower(string s) {
+				for (char& c : s)
+					c = tolower(c);
+				return s;
+			}
+
+			// Replace all vowels with '*' wildcard
+			string deVowel(string s) {
+				for (char& c : s) {
+					if (isVowel(c))
+						c = '*';
+				}
+				return s;
+			}
+
+			// Check if character is a vowel (case-insensitive)
+			bool isVowel(char c) {
+				c = tolower(c);
+				return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+			}
+		};
+	}
+
 	namespace task_974 {
 		/*
 		* https://leetcode.com/problems/continuous-subarray-sum/description/
@@ -16125,6 +16204,32 @@ namespace leetcode {
 				for (size_t i = 0; i < size2; i++)
 					length = max(length, length_of_LNS[i]);
 				return length;
+			}
+		};
+	}
+
+	namespace task_1317 {
+		/*
+		* https://leetcode.com/problems/convert-integer-to-the-sum-of-two-no-zero-integers/description/
+		*/
+		class Solution {
+		public:
+			vector<int> getNoZeroIntegers(int n) {
+				int a = 1;
+				for (; a < n; ++a) {
+					if (hasNoZero(a) && hasNoZero(n - a))
+						break;
+				}
+				return { a, n - a };
+			}
+
+			bool hasNoZero(int n) {
+				while (n != 0) {
+					if (n % 10 == 0)
+						return false;
+					n /= 10;
+				}
+				return true;
 			}
 		};
 	}
@@ -19220,6 +19325,45 @@ namespace leetcode {
 					count += ((frequency - 1) * frequency) << 2; // 8 * (frequency - 1) * frequency / 2;
 
 				return count;
+			}
+		};
+	}
+
+	namespace task_1733 {
+		/*
+		* https://leetcode.com/problems/minimum-number-of-people-to-teach/description/
+		*/
+		class Solution {
+		public:
+			int minimumTeachings__leetcode(int n, vector<vector<int>>& languages,
+				vector<vector<int>>& friendships) {
+				unordered_set<int> cncon;
+				for (auto friendship : friendships) {
+					unordered_map<int, int> mp;
+					bool conm = false;
+					for (int lan : languages[friendship[0] - 1]) {
+						mp[lan] = 1;
+					}
+					for (int lan : languages[friendship[1] - 1]) {
+						if (mp[lan]) {
+							conm = true;
+							break;
+						}
+					}
+					if (!conm) {
+						cncon.insert(friendship[0] - 1);
+						cncon.insert(friendship[1] - 1);
+					}
+				}
+				int max_cnt = 0;
+				vector<int> cnt(n + 1, 0);
+				for (auto friendship : cncon) {
+					for (int lan : languages[friendship]) {
+						cnt[lan]++;
+						max_cnt = max(max_cnt, cnt[lan]);
+					}
+				}
+				return cncon.size() - max_cnt;
 			}
 		};
 	}
@@ -23246,6 +23390,33 @@ namespace leetcode {
 				}
 
 				return matrix;
+			}
+		};
+	}
+
+	namespace task_2327 {
+		/*
+		* https://leetcode.com/problems/number-of-people-aware-of-a-secret/description/
+		*/
+		class Solution {
+		public:
+			const unsigned long long mod = 1000000007;
+
+			int peopleAwareOfSecret(int n, int delay, int forget) {
+				vector<int> delay_persons(delay), forget_persons(forget);
+				unsigned long long aware_persons = 1, can_share = 0;
+				delay_persons[0] = 1;
+				forget_persons[0] = 1;
+
+				for (int i = 1; i < n; ++i) {
+					int delay_ind = i % delay, forget_ind = i % forget;
+					can_share = (can_share + delay_persons[delay_ind] - forget_persons[forget_ind] + mod) % mod;
+					aware_persons = (aware_persons + can_share - forget_persons[forget_ind] + mod) % mod;
+					delay_persons[delay_ind] = can_share;
+					forget_persons[forget_ind] = can_share;
+				}
+
+				return aware_persons;
 			}
 		};
 	}
@@ -29501,6 +29672,20 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3227 {
+		/*
+		* https://leetcode.com/problems/vowels-game-in-a-string/description/
+		*/
+		class Solution {
+		public:
+			bool doesAliceWin__leetcode(string s) {
+				return ranges::any_of(s, [](char c) {
+					return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+					});
+			}
+		};
+	}
+
 	namespace task_3243 {
 		/*
 		* https://leetcode.com/problems/shortest-distance-after-road-addition-queries-i/description/
@@ -31136,6 +31321,34 @@ namespace leetcode {
 			int findClosest(int x, int y, int z) {
 				x = abs(z - x) - abs(z - y);
 				return x > 0 ? 2 : x == 0 ? 0 : 1;
+			}
+		};
+	}
+
+	namespace task_3541 {
+		/*
+		* https://leetcode.com/problems/find-most-frequent-vowel-and-consonant/description/
+		*/
+		class Solution {
+		public:
+			bool is_vowel(char c) {
+				return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+			}
+			int maxFreqSum(string s) {
+				unordered_map<char, int> mp;
+				for (auto ch : s) {
+					mp[ch]++;
+				}
+				int vowel = 0, consonant = 0;
+				for (char ch = 'a'; ch <= 'z'; ch++) {
+					if (is_vowel(ch)) {
+						vowel = max(vowel, mp[ch]);
+					}
+					else {
+						consonant = max(consonant, mp[ch]);
+					}
+				}
+				return vowel + consonant;
 			}
 		};
 	}
