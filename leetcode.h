@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <random>
 #include <numeric>
+#include<array>
 using namespace std;
 
 namespace leetcode {
@@ -122,6 +123,52 @@ namespace leetcode {
 			}
 			os << endl;
 			return os;
+		}
+
+		int GCD(int x, int y) {
+			while (x != y) {
+				if (x > y)
+					x -= y;
+				else
+					y -= x;
+			}
+			return x;
+		}
+
+		int GCD_fast(int x, int y) {
+			while (y != 0) {
+				int remainder = x % y;
+				x = y;
+				y = remainder;
+			}
+			return x;
+		}
+
+		size_t bin_search(const vector<int>& nums, const int value) {
+			size_t l = 0, r = nums.size();
+			while (r - l > 1) {
+				size_t i = (r + l) / 2;
+				if (nums[i] == value)
+					return i;
+				if (nums[i] > value)
+					r = i;
+				else
+					l = i;
+			}
+			return l;
+		}
+
+		size_t bin_search(const vector<int>& nums, const int value, size_t l, size_t r) {
+			while (r - l > 1) {
+				size_t i = (r + l) / 2;
+				if (nums[i] == value)
+					return i;
+				if (nums[i] > value)
+					r = i;
+				else
+					l = i;
+			}
+			return l;
 		}
 	}
 
@@ -20395,6 +20442,88 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_1912 {
+		/*
+		* https://leetcode.com/problems/design-movie-rental-system/description/
+		*/
+		class MovieRentingSystem {
+		public:
+			struct PairHash {
+				size_t operator()(const pair<int, int>& p) const {
+					// Simple but effective hash combine
+					return hash<int>()(p.first) ^ (hash<int>()(p.second) << 1);
+				}
+			};
+
+
+			set<array<int, 3>> rented;
+			unordered_map<int, set<pair<int, int>>> movie_unrented;
+			unordered_map<pair<int, int>, int, PairHash> price;
+			MovieRentingSystem(int n, vector<vector<int>>& entries) {
+
+				for (int i = 0; i < entries.size(); i++) {
+					movie_unrented[entries[i][1]].insert({ entries[i][2], entries[i][0] });
+					price[{entries[i][0], entries[i][1]}] = entries[i][2];
+				}
+
+			}
+
+			vector<int> search(int movie) {
+
+				vector<int> ans;
+
+				for (auto it : movie_unrented[movie]) {
+					if (ans.size() < 5) {
+						ans.push_back(it.second);
+					}
+					else {
+						break;
+					}
+				}
+
+				return ans;
+			}
+
+			void rent(int shop, int movie) {
+
+				int priceOfTheMovie = price[{shop, movie}];
+				rented.insert({ priceOfTheMovie, shop, movie });
+				movie_unrented[movie].erase({ priceOfTheMovie, shop });
+
+
+
+			}
+
+			void drop(int shop, int movie) {
+
+				int priceOfTheMovie = price[{shop, movie}];
+				rented.erase({ priceOfTheMovie, shop, movie });
+				movie_unrented[movie].insert({ priceOfTheMovie, shop });
+			}
+
+			vector<vector<int>> report() {
+
+				vector<vector<int>> ans;
+				vector<int> cur;
+
+				for (auto it : rented) {
+					vector<int> cur;
+					cur.push_back(it[1]);
+					cur.push_back(it[2]);
+					if (ans.size() < 5) {
+						ans.push_back(cur);
+					}
+					else {
+						break;
+					}
+				}
+
+				return ans;
+
+			}
+		};
+	}
+
 	namespace task_1920 {
 		/*
 		* https://leetcode.com/problems/build-array-from-permutation/description/
@@ -20559,6 +20688,37 @@ namespace leetcode {
 					b /= 10;
 				}
 				return true;
+			}
+		};
+	}
+
+	namespace task_1935 {
+		/*
+		* https://leetcode.com/problems/maximum-number-of-words-you-can-type/description/
+		*/
+		class Solution {
+		public:
+			int canBeTypedWords(string text, string brokenLetters) {
+				bool can_type = true;
+				int count = 0;
+				vector<char> broken(26);
+
+				for (char c : brokenLetters) {
+					++broken[c - 'a'];
+				}
+
+				for (char c : text) {
+					if (c == ' ') {
+						if (can_type)
+							++count;
+						can_type = true;
+					}
+					else if (broken[c - 'a'] == 1) {
+						can_type = false;
+					}
+				}
+
+				return count + (can_type ? 1 : 0);
 			}
 		};
 	}
@@ -22768,6 +22928,57 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_2197 {
+		/*
+		* https://leetcode.com/problems/replace-non-coprime-numbers-in-array/description/
+		*/
+		class Solution {
+		public:
+			vector<int> replaceNonCoprimes(vector<int>& nums) {
+				const size_t size = nums.size();
+				vector<int> res;
+				res.push_back(nums[0]);
+				for (size_t i = 1; i < size; ++i) {
+					int gcd = GCD_fast(res.back(), nums[i]);
+					if (gcd != 1) {
+						int value = gcd * (res.back() / gcd) * (nums[i] / gcd);
+						res.pop_back();
+						if (res.empty()) {
+							res.push_back(value);
+						}
+						else {
+							nums[i] = value;
+							--i;
+						}
+					}
+					else {
+						res.push_back(nums[i]);
+					}
+				}
+				return res;
+			}
+
+			int GCD(int x, int y) {
+				while (x != y) {
+					if (x > y)
+						x -= y;
+					else
+						y -= x;
+				}
+				return x;
+			}
+
+			int GCD_fast(int x, int y) {
+				while (y != 0) {
+					int remainder = x % y;
+					x = y;
+					y = remainder;
+				}
+				return x;
+			}
+		};
+	}
+
 	namespace task_2200 {
 		/*
 		* https://leetcode.com/problems/find-all-k-distant-indices-in-an-array/description/
@@ -23596,6 +23807,59 @@ namespace leetcode {
 			int find(int number) {
 				auto _number = numbers_indexes.find(number);
 				return _number == numbers_indexes.end() ? -1 : *_number->second.begin();
+			}
+		};
+	}
+
+	namespace task_2353 {
+		/*
+		* https://leetcode.com/problems/design-a-food-rating-system/description/
+		*/
+		class FoodRatings {
+		public:
+			unordered_map<string, pair<vector<pair<string, int>>, priority_queue<pair<int, int>>>> food_ratings;
+			// {vec<{food, rait}>, queue<{rait, pos}>}
+			unordered_map<string, pair<string, int>> food_category;
+
+			FoodRatings(vector<string>& foods, vector<string>& cuisines, vector<int>& ratings) {
+				size_t size = foods.size();
+				for (size_t i = 0; i < size; ++i) {
+					if (food_ratings.find(cuisines[i]) == food_ratings.end())
+						food_ratings[cuisines[i]] = { {}, {} };
+					auto& obj = food_ratings[cuisines[i]];
+					int pos = obj.first.size();
+					obj.first.push_back({ foods[i], ratings[i] });
+				}
+				// sorting to return lexicographically smaller food
+				for (auto& item : food_ratings) {
+					auto& vec = item.second.first;
+					auto& queue = item.second.second;
+					sort(vec.begin(), vec.end());
+					reverse(vec.begin(), vec.end());
+					size_t size = vec.size();
+					for (size_t i = 0; i < size; ++i) {
+						queue.push({ vec[i].second, i });
+						food_category[vec[i].first] = { item.first, i };
+					}
+				}
+			}
+
+			void changeRating(string food, int newRating) {
+				const auto& cuisine_pos = food_category[food];
+				auto& obj = food_ratings[cuisine_pos.first];
+				obj.first[cuisine_pos.second].second = newRating;
+				obj.second.push({ newRating, cuisine_pos.second });
+			}
+
+			string highestRated(string cuisine) {
+				auto& obj = food_ratings[cuisine];
+				while (true) {
+					const auto& rait_pos = obj.second.top();
+					if (obj.first[rait_pos.second].second == rait_pos.first)
+						return obj.first[rait_pos.second].first;
+					obj.second.pop();
+				}
+				return string();
 			}
 		};
 	}
@@ -30815,6 +31079,58 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3408 {
+		/*
+		* https://leetcode.com/problems/design-task-manager/description/
+		*/
+		class TaskManager {
+		public:
+			priority_queue<pair<int, int>> queue;
+			// queue<{priority, taskId}
+			unordered_map<int, pair<int, int>> map;
+			// {priority, userId}
+
+			TaskManager(vector<vector<int>>& tasks) {
+				for (const vector<int>& task : tasks) {
+					queue.push({ task[2], task[1] });
+					map[task[1]] = { task[2], task[0] };
+				}
+			}
+
+			void add(int userId, int taskId, int priority) {
+				queue.push({ priority, taskId });
+				map[taskId] = { priority, userId };
+			}
+
+			void edit(int taskId, int newPriority) {
+				queue.push({ newPriority, taskId });
+				map[taskId].first = newPriority;
+			}
+
+			void rmv(int taskId) {
+				map.erase(taskId);
+			}
+
+			int execTop() {
+				while (!queue.empty()) {
+					const auto priority_taskId = queue.top();
+					queue.pop();
+					auto it = map.find(priority_taskId.second);
+					if (it != map.end()) {
+						if (it->second.first == priority_taskId.first) {
+							auto userId = it->second.second;
+							map.erase(it);
+							return userId;
+						}
+					}
+				}
+				map.clear();
+
+				return -1;
+			}
+		};
+	}
+
 	namespace task_3423 {
 		/*
 		* https://leetcode.com/problems/maximum-difference-between-adjacent-elements-in-a-circular-array/description/
@@ -31257,6 +31573,41 @@ namespace leetcode {
 		};
 	}
 
+	namespace task_3484 {
+		/*
+		* https://leetcode.com/problems/design-spreadsheet/description/
+		*/
+		class Spreadsheet {
+		public:
+			vector<vector<int>> table;
+
+			Spreadsheet(int rows) {
+				table = vector<vector<int>>(26, vector<int>(rows + 1));
+			}
+
+			void setCell(string cell, int value) {
+				table[cell[0] - 'A'][stoi(cell.substr(1))] = value;
+			}
+
+			int getCellOrValue(string cell) {
+				if (cell[0] >= 'A')
+					return table[cell[0] - 'A'][stoi(cell.substr(1))];
+				else
+					return stoi(cell);
+			}
+
+			void resetCell(string cell) {
+				table[cell[0] - 'A'][stoi(cell.substr(1))] = 0;
+			}
+
+			int getValue(string formula) {
+				const size_t pos = formula.find('+');
+				return getCellOrValue(formula.substr(1, pos - 1)) +
+					getCellOrValue(formula.substr(pos + 1));
+			}
+		};
+	}
+
 	namespace task_3487 {
 		/*
 		* https://leetcode.com/problems/maximum-unique-subarray-sum-after-deletion/description/
@@ -31308,6 +31659,121 @@ namespace leetcode {
 				}
 
 				return count;
+			}
+		};
+	}
+
+	namespace task_3508 {
+		/*
+		* https://leetcode.com/problems/implement-router/description/
+		*/
+		struct PairHash {
+			size_t operator()(const pair<int, pair<int, int>>& p) const {
+				size_t h1 = hash<int>()(p.first);
+				size_t h2 = hash<int>()(p.second.first);
+				size_t h3 = hash<int>()(p.second.second);
+				return h1 ^ (h2 << 1) ^ (h3 << 2); // combine hashes
+			}
+		};
+
+		class Router {
+		public:
+			int size;
+			unordered_set<pair<int, pair<int, int>>, PairHash> st;
+			queue<pair<int, pair<int, int>>> q;
+			unordered_map<int, vector<int>> mpp;
+			unordered_map<int, int> destIndex;
+			Router(int memoryLimit) {
+				size = memoryLimit;
+			}
+
+			bool addPacket(int source, int destination, int timestamp) {
+				if (st.find({ source,{destination,timestamp} }) != st.end())return false;
+
+				st.insert({ source,{destination,timestamp} });
+				q.push({ source,{destination,timestamp} });
+				mpp[destination].push_back(timestamp);
+
+				if (st.size() > size) {
+					auto it = q.front();
+					q.pop();
+					st.erase(it);
+					if (destIndex.find(it.second.first) != destIndex.end()) {
+						int curr = destIndex[it.second.first];
+						destIndex[it.second.first] = curr + 1;
+					}
+					else {
+						destIndex[it.second.first] = 1;
+					}
+				}
+
+				return true;
+			}
+
+			vector<int> forwardPacket() {
+				if (st.size() == 0)return {};
+
+				auto it = q.front();
+				vector<int> temp = { it.first,it.second.first,it.second.second };
+				if (destIndex.find(it.second.first) != destIndex.end()) {
+					int curr = destIndex[it.second.first];
+					destIndex[it.second.first] = curr + 1;
+				}
+				else {
+					destIndex[it.second.first] = 1;
+				}
+				q.pop();
+				st.erase(it);
+				return temp;
+			}
+
+			int lowerBound(vector<int>& temp, int st, int end, int target) {
+				int ans = end + 1; // if no element >= target
+				while (st <= end) {
+					int mid = st + (end - st) / 2;
+					if (temp[mid] >= target) {
+						ans = mid;
+						end = mid - 1;
+					}
+					else {
+						st = mid + 1;
+					}
+				}
+				return ans;
+			}
+
+			int upperBound(vector<int>& temp, int st, int end, int target) {
+				int ans = st - 1; // if no element >= target
+				while (st <= end) {
+					int mid = st + (end - st) / 2;
+					if (temp[mid] <= target) {
+						ans = mid;
+						st = mid + 1;
+					}
+					else {
+						end = mid - 1;
+					}
+				}
+				return ans;
+			}
+
+
+			int getCount(int destination, int startTime, int endTime) {
+				vector<int>& temp = mpp[destination];
+				int stIndex = 0;
+
+				if (destIndex.find(destination) != destIndex.end()) {
+					stIndex = destIndex[destination];
+				}
+
+				int n = temp.size();
+				if (stIndex >= n) return 0;
+
+				int l = lowerBound(temp, stIndex, n - 1, startTime);
+				int r = upperBound(temp, stIndex, n - 1, endTime);
+				if (l > r) return 0;
+
+				return r - l + 1;
 			}
 		};
 	}
