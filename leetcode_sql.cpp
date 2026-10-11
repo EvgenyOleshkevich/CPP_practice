@@ -755,4 +755,196 @@ namespace leetcode {
 		GROUP BY project_id;
 		*/
 	}
+
+	namespace task_1084 {
+		/*
+		* https://leetcode.com/problems/sales-analysis-iii/description/
+		*/
+		/*
+		SELECT
+			p.product_id,
+			p.product_name
+		FROM Product p
+		JOIN Sales s
+			ON p.product_id = s.product_id
+		GROUP BY p.product_id, p.product_name
+		HAVING MIN(s.sale_date) >= '2019-01-01'
+			AND MAX(s.sale_date) <= '2019-03-31';
+		*/
+	}
+
+	namespace task_1141 {
+		/*
+		* https://leetcode.com/problems/user-activity-for-the-past-30-days-i/description/
+		*/
+		/*
+		SELECT
+			activity_date AS day,
+			COUNT(DISTINCT user_id) AS active_users
+		FROM Activity
+		WHERE activity_date >= '2019-06-27' AND
+			activity_date <= '2019-07-27'
+		GROUP BY activity_date
+		ORDER BY activity_date;
+		*/
+	}
+
+	namespace task_1148 {
+		/*
+		* https://leetcode.com/problems/article-views-i/description/
+		*/
+		/*
+		SELECT
+			DISTINCT author_id  AS id
+		FROM Views
+		WHERE author_id  = viewer_id
+		ORDER BY id;
+		*/
+	}
+
+	namespace task_1158 {
+		/*
+		* https://leetcode.com/problems/market-analysis-i/description/
+		*/
+		/*
+		SELECT
+			user_id AS buyer_id,
+			join_date,
+			COUNT(order_id) AS orders_in_2019
+		FROM Users
+		LEFT JOIN Orders
+			ON user_id = buyer_id AND YEAR(order_date) = 2019
+		GROUP BY user_id, join_date;
+		*/
+	}
+
+	namespace task_1164 {
+		/*
+		* https://leetcode.com/problems/product-price-at-a-given-date/description/
+		*/
+		/*
+		WITH last_day AS (
+			SELECT
+				product_id,
+				MAX(change_date) AS last_day
+			FROM Products
+			WHERE change_date <= '2019-08-16'
+			GROUP BY product_id
+		)
+		SELECT
+			p.product_id,
+			new_price AS price
+		FROM Products p
+		JOIN last_day l
+			ON p.product_id = l.product_id AND p.change_date = l.last_day
+		UNION ALL
+		SELECT
+			product_id,
+			10 AS price
+		FROM Products
+		GROUP BY product_id
+		HAVING MIN(change_date) > '2019-08-16';
+		*/
+
+		/*
+		* using window function
+		WITH ranked AS (
+			SELECT
+				product_id,
+				new_price,
+				ROW_NUMBER() OVER (
+					PARTITION BY product_id
+					ORDER BY change_date DESC
+				) AS rn
+			FROM Products
+			WHERE change_date <= '2019-08-16'
+		),
+		all_products AS (
+			SELECT DISTINCT product_id
+			FROM Products
+		)
+		SELECT
+			a.product_id,
+			COALESCE(r.new_price, 10) AS price
+		FROM all_products a
+		LEFT JOIN ranked r
+			ON a.product_id = r.product_id
+			AND r.rn = 1;
+		*/
+	}
+
+	namespace task_1174 {
+		/*
+		* https://leetcode.com/problems/immediate-food-delivery-ii/description/
+		*/
+		/*
+		WITH first_order AS (
+			SELECT *
+			FROM (
+				SELECT
+					customer_id,
+					order_date,
+					customer_pref_delivery_date,
+					ROW_NUMBER() OVER (
+						PARTITION BY customer_id
+						ORDER BY order_date
+					) AS rn
+				FROM Delivery
+			) t
+			WHERE rn = 1
+		)
+		SELECT
+			CAST(COUNT(*) * 100.0 /
+			(SELECT COUNT(*) FROM first_order) AS DECIMAL(10, 2)) AS immediate_percentage
+		FROM first_order
+		WHERE order_date = customer_pref_delivery_date;
+		*/
+	}
+
+	namespace task_1179 {
+		/*
+		* https://leetcode.com/problems/reformat-department-table/description/
+		*/
+		/*
+		SELECT
+			id,
+			SUM(CASE WHEN month = 'Jan' THEN revenue END) AS Jan_Revenue,
+			SUM(CASE WHEN month = 'Feb' THEN revenue END) AS Feb_Revenue,
+			SUM(CASE WHEN month = 'Mar' THEN revenue END) AS Mar_Revenue,
+			SUM(CASE WHEN month = 'Apr' THEN revenue END) AS Apr_Revenue,
+			SUM(CASE WHEN month = 'May' THEN revenue END) AS May_Revenue,
+			SUM(CASE WHEN month = 'Jun' THEN revenue END) AS Jun_Revenue,
+			SUM(CASE WHEN month = 'Jul' THEN revenue END) AS Jul_Revenue,
+			SUM(CASE WHEN month = 'Aug' THEN revenue END) AS Aug_Revenue,
+			SUM(CASE WHEN month = 'Sep' THEN revenue END) AS Sep_Revenue,
+			SUM(CASE WHEN month = 'Oct' THEN revenue END) AS Oct_Revenue,
+			SUM(CASE WHEN month = 'Nov' THEN revenue END) AS Nov_Revenue,
+			SUM(CASE WHEN month = 'Dec' THEN revenue END) AS Dec_Revenue
+		FROM Department
+		GROUP BY id;
+		*/
+	}
+
+	namespace task_1193 {
+		/*
+		* https://leetcode.com/problems/monthly-transactions-i/description/
+		*/
+		/*
+		WITH by_month AS (
+			SELECT
+			*,
+			FORMAT(trans_date, 'yyyy-MM') AS month // CONVERT(char(7), trans_date, 126) AS month
+			FROM Transactions
+		)
+		SELECT
+			month,
+			country,
+			COUNT(*) AS trans_count,
+			SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END) AS approved_count,
+			SUM(amount) AS trans_total_amount,
+			SUM(CASE WHEN state = 'approved' THEN amount ELSE 0 END) AS approved_total_amount
+		FROM by_month
+		GROUP BY month, country;
+		*/
+	}
 }

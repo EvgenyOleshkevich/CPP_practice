@@ -1,13 +1,32 @@
 ﻿#pragma once
-#include <math.h>
-#include <ctime>
-#include <queue>
-#include <unordered_set>
+#include <iostream>
+#include <fstream>
+#include <cstddef>
 #include <cstring>
+#include <string>
+#include <sstream>
+#include <cassert>
+#include <tuple>
+#include <list>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <map>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
+#include <typeinfo>
+#include <typeindex>
+#include <functional>
+#include <algorithm>
+#include <random>
 #include <numeric>
 #include <array>
 #include <bitset>
+#include "utils.h"
 // ||
+
+using namespace std;
 
 namespace leetcode {
 	// NOT SOLVED
